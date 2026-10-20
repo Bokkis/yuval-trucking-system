@@ -22,16 +22,22 @@ module.exports = async (req, res) => {
 
   let txt = "";
   if (GKEY) {
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
-      method: "POST",
-      headers: { "x-goog-api-key": GKEY, "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ inline_data: { mime_type: "image/jpeg", data: image } }, { text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", temperature: 0 }
-      })
-    });
-    const j = await r.json().catch(() => ({}));
+    // Tries the newest free Gemini model first, then falls back to an older one.
+    const models = [process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-3.5-flash"];
+    let j = {}, r = null;
+    for (const model of models) {
+      r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
+        method: "POST",
+        headers: { "x-goog-api-key": GKEY, "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ inline_data: { mime_type: "image/jpeg", data: image } }, { text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json", temperature: 0 }
+        })
+      });
+      j = await r.json().catch(() => ({}));
+      if (r.status !== 404) break; // 404 = model name not available, try the next one
+    }
+    if (r.status === 401 || r.status === 403) return res.status(502).json({ error: "Google rejected the key. In AI Studio create a new key, update GEMINI_API_KEY in Vercel, then redeploy." });
     if (r.status === 429) return res.status(429).json({ error: "The free limit was reached. Wait a minute and try again." });
     if (!r.ok) return res.status(502).json({ error: (j.error && j.error.message) || "Gemini request failed" });
     const parts = (((j.candidates || [])[0] || {}).content || {}).parts || [];
