@@ -241,6 +241,31 @@ main{max-width:none!important;width:100%;flex:1 1 0;min-width:0;padding:clamp(14
 .pgrid{grid-template-columns:repeat(auto-fill,minmax(clamp(170px,14vw,240px),1fr))}
 @media(max-width:900px){main{padding:14px 14px 88px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.lks{grid-template-columns:1fr 1fr}.lsg,.mgrid,.fgrid{grid-template-columns:1fr}}
+/* ===== login: equipment-working background ===== */
+#lscene,#lvid,.lov{position:absolute;inset:0;width:100%;height:100%}
+#lvid{object-fit:cover}
+.lov{background:linear-gradient(180deg,rgba(10,8,7,.5),rgba(10,8,7,.28) 45%,rgba(10,8,7,.72))}
+#lscene{background:linear-gradient(180deg,#16202c 0%,#3a2c33 38%,#e5732b 66%,#f2a44a 78%,#171210 78%)}
+#lscene .sun{position:absolute;left:68%;bottom:20%;width:min(26vw,260px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff3c4 0%,#ffc552 45%,#ff9f2e00 72%);filter:blur(1px)}
+#lscene .h1,#lscene .h2{position:absolute;left:-5%;right:-5%;bottom:21%}
+#lscene .h1{height:26%;background:#2a1f1d;clip-path:polygon(0 100%,0 62%,10% 40%,22% 56%,36% 26%,52% 54%,66% 34%,80% 58%,92% 38%,100% 52%,100% 100%)}
+#lscene .h2{height:16%;background:#1e1614;clip-path:polygon(0 100%,0 50%,14% 30%,30% 60%,48% 28%,64% 56%,82% 24%,100% 50%,100% 100%)}
+#lscene .gd{position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(#1d1714,#100c0a)}
+#lscene .rd{position:absolute;left:0;right:0;bottom:3%;height:9.5%;background:#2b2522;border-top:3px solid #3b332e}
+#lscene .rd:after{content:"";position:absolute;left:0;right:0;top:48%;border-top:3px dashed #6c5f55}
+#lscene .eq{--c:#f2a31b}
+#lscene .veh{position:absolute;bottom:4%;left:-260px;animation:lgo var(--d,20s) linear infinite;animation-delay:var(--dl,0s)}
+#lscene .veh.rv{left:auto;right:-260px;animation-name:lgoL}
+#lscene .veh.rv .eq{transform:scaleX(-1)}
+#lscene .exc{position:absolute;right:11%;bottom:20%;transform-origin:50% 100%;animation:ldig 2.6s ease-in-out infinite}
+#lscene .dust{position:absolute;right:calc(11% + 150px);bottom:21%;width:14px;height:14px;border-radius:50%;background:#c9a27c;opacity:0;animation:ldust 2.6s ease-out infinite}
+#lscene .dust.d2{animation-delay:.5s;right:calc(11% + 168px)}#lscene .dust.d3{animation-delay:1s;right:calc(11% + 138px)}
+@keyframes lgo{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 520px))}}
+@keyframes lgoL{from{transform:translateX(0)}to{transform:translateX(calc(-100vw - 520px))}}
+@keyframes ldig{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2.5deg)}}
+@keyframes ldust{0%{opacity:.7;transform:translate(0,0) scale(.5)}100%{opacity:0;transform:translate(-26px,-46px) scale(2.6)}}
+@media(prefers-reduced-motion:reduce){#lscene *{animation:none!important}}
+@media(max-width:600px){#lscene .exc{display:none}#lscene .dust{display:none}}
 .eqm{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 3px #0009)}
 .lv{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px 18px;margin:12px 0 14px}
 .lvh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.lvh b{font-size:17px;display:block}
@@ -326,7 +351,7 @@ body.rail nav#nav .nf{flex-direction:column;padding-top:12px}body.rail nav#nav .
   </div></div>
  <div id="view"></div>
 </main>
-<div id="login" style="position:fixed;inset:0;background:#fafaf9;display:grid;place-items:center;z-index:200;padding:16px"><div style="background:#fff;color:#1c1917;border:1px solid #e7e5e4;border-radius:14px;padding:28px;width:min(380px,100%);text-align:center"><img src="${LOGO}" id="llogo" style="width:110px;border-radius:12px"><h2 style="margin:8px 0 14px">Yuval Trucking</h2><input id="lem" type="email" placeholder="Email" style="margin-bottom:8px;color:#1d1a17"><input id="lpw" type="password" placeholder="Password" style="margin-bottom:12px;color:#1d1a17" onkeydown="if(event.key=='Enter')doLogin()"><button onclick="doLogin()" style="width:100%">Sign in</button><p id="lmsg" style="color:#d64545;font-size:13px;min-height:18px"></p></div></div>
+<div id="login" style="position:fixed;inset:0;background:#0c0a09;display:grid;place-items:center;z-index:200;padding:16px;overflow:hidden"><div id="lscene"></div><video id="lvid" autoplay muted loop playsinline preload="auto"><source src="bg.mp4" type="video/mp4" onerror="this.parentNode.remove()"></video><div class="lov"></div><div style="position:relative;z-index:2;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#1c1917;border:1px solid #ffffff55;border-radius:18px;padding:28px;width:min(380px,100%);text-align:center;box-shadow:0 24px 70px #000a"><img src="${LOGO}" id="llogo" style="width:110px;border-radius:12px"><h2 style="margin:8px 0 14px">Yuval Trucking</h2><input id="lem" type="email" placeholder="Email" style="margin-bottom:8px;color:#1d1a17"><input id="lpw" type="password" placeholder="Password" style="margin-bottom:12px;color:#1d1a17" onkeydown="if(event.key=='Enter')doLogin()"><button onclick="doLogin()" style="width:100%">Sign in</button><p id="lmsg" style="color:#d64545;font-size:13px;min-height:18px"></p></div></div>
 <dialog id="sc" style="width:min(1000px,96vw)"><div id="scb"></div></dialog>
 <dialog id="pf" style="width:min(780px,96vw)" onclick="if(event.target==this)this.close()"><div id="pfb"></div></dialog>
 <dialog id="dlg"><form id="frm" onsubmit="return false"><h3 id="dt" style="margin-top:0"></h3><div id="ff"></div>
@@ -566,12 +591,14 @@ async function qPdf(){const src=document.querySelector(".paper"),q=db.quotes.fin
   if(!ta&&(L.getAttribute("oninput")||"").includes("'amount'")){const s=document.createElement("span");s.textContent=peso(+L.value);n.replaceWith(s);return}
   const s=document.createElement(ta?"div":"span");let v=L.value;
   if(L.type=="date"&&v)v=new Date(v+"T00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"}).replace(/ /g,"-");
-  s.textContent=v;if(ta)s.style.cssText="white-space:pre-wrap;margin-top:4px";n.replaceWith(s)});
+  if(ta){s.style.cssText="margin-top:4px";v.split("\n").forEach(l=>{const d=document.createElement("div");d.textContent=l||"\u00a0";d.style.whiteSpace="pre-wrap";s.appendChild(d)})}else s.textContent=v;n.replaceWith(s)});
  cl.querySelectorAll(".np").forEach(e=>e.remove());box.appendChild(cl);document.body.appendChild(box);
- try{const c=await html2canvas(cl,{scale:2,backgroundColor:"#ffffff"}),P=new window.jspdf.jsPDF({unit:"pt",format:"a4"}),pw=P.internal.pageSize.getWidth(),ph=P.internal.pageSize.getHeight(),m=20,uw=pw-2*m,uh=ph-2*m,img=c.toDataURL("image/jpeg",.95);
-  let iw=uw,ih=c.height*uw/c.width;if(ih>uh&&ih<=uh*1.6){iw=uw*uh/ih;ih=uh}
-  const x=m+(uw-iw)/2;P.addImage(img,"JPEG",x,m,iw,ih);
-  if(ih>uh){let y=m,left=ih-uh;while(left>2){y-=uh;P.addPage();P.addImage(img,"JPEG",x,y,iw,ih);left-=uh}}
+ try{const c=await html2canvas(cl,{scale:2,backgroundColor:"#ffffff"}),P=new window.jspdf.jsPDF({unit:"pt",format:"a4"}),pw=P.internal.pageSize.getWidth(),ph=P.internal.pageSize.getHeight(),m=20,uw=pw-2*m,uh=ph-2*m-12,f=uw/c.width,H=Math.floor(uh/f),top=cl.getBoundingClientRect().top,cut=new Set();
+  cl.querySelectorAll("*").forEach(n=>{const b=Math.round((n.getBoundingClientRect().bottom-top)*2);if(b>0&&b<c.height)cut.add(b)});
+  const cuts=[...cut].sort((a,b)=>a-b),pages=[];let y0=0;
+  while(c.height-y0>H){const lim=y0+H;let y1=0;for(const b of cuts){if(b>lim)break;if(b>y0+H*.4)y1=b}if(!y1)y1=lim;pages.push([y0,y1]);y0=y1}
+  pages.push([y0,c.height]);
+  pages.forEach(([a,b],i)=>{if(i)P.addPage();const s=document.createElement("canvas");s.width=c.width;s.height=b-a;s.getContext("2d").drawImage(c,0,a,c.width,b-a,0,0,c.width,b-a);P.addImage(s.toDataURL("image/jpeg",.95),"JPEG",m,m,uw,(b-a)*f);if(pages.length>1){P.setFontSize(8);P.setTextColor(120);P.text("Page "+(i+1)+" of "+pages.length,pw-m,ph-10,{align:"right"})}});
   const blob=P.output("blob"),name="Quotation-"+(q.no||"draft")+".pdf",dl=(typeof claude!="undefined"&&claude.use)?await claude.use("downloads"):null;
   if(dl){await dl.save({filename:name,data:blob});toast("PDF ready")}
   else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast("PDF downloaded")}
@@ -921,6 +948,7 @@ $("#cx").onclick=()=>$("#dlg").close();
 $("#add").onclick=()=>open_(null);$("#q").oninput=table;
 
 boot();
+(function(){const E=(t,w)=>eqSvg(t,"move",w);document.getElementById("lscene").innerHTML=`<div class="sun"></div><div class="h1"></div><div class="h2"></div><div class="gd"></div><div class="rd"></div><div class="exc">${E("Excavator",210)}</div><i class="dust"></i><i class="dust d2"></i><i class="dust d3"></i><div class="veh" style="--d:19s">${E("Dump Truck",190)}</div><div class="veh rv" style="--d:26s;--dl:-7s">${E("Crane",170)}</div><div class="veh" style="--d:31s;--dl:-16s;bottom:5%">${E("Wheel Loader",150)}</div><div class="veh rv" style="--d:22s;--dl:-15s;bottom:5.5%">${E("Truck",130)}</div>`})();
 document.getElementById("llogo").src=LOGO;document.getElementById("mlogo").src=LOGO;
 </script>
 </body>
