@@ -205,6 +205,44 @@ tr.sel td{background:color-mix(in srgb,var(--ac) 8%,transparent)}
 .mw{font-size:12.5px;background:color-mix(in srgb,var(--wa) 12%,transparent);border-radius:8px;padding:6px 10px}
 .mb{display:flex;gap:6px;margin-top:auto}
 /* ===== premium sidebar + sub tabs ===== */
+.eq{--c:#2f7de1;overflow:visible;display:block}.eq.move{--c:#1f9d55}.eq.stby{--c:#c98a00}.eq.bad{--c:#d64545}
+.eq .wh,.eq .smk circle{transform-box:fill-box;transform-origin:center}
+.eq.move .eqb{animation:eqdrive 1.1s ease-in-out infinite}.eq.move .wh{animation:eqspin .5s linear infinite}
+.eq .spd,.eq .zz,.eq .smk,.eq .warn{display:none}
+.eq.move .spd{display:block;animation:eqspd 1.1s linear infinite}
+.eq.stby .zz{display:block;animation:eqzz 2.4s ease-in-out infinite}
+.eq.bad .smk,.eq.bad .warn{display:block}.eq.bad .smk circle{animation:eqsmoke 2s ease-out infinite}.eq.bad .smk circle:nth-child(2){animation-delay:.7s}.eq.bad .smk circle:nth-child(3){animation-delay:1.3s}
+.eq.bad .warn{animation:eqblink 1.2s steps(2) infinite}.eq.bad .eqb{transform:rotate(-4deg);transform-origin:50% 90%;transform-box:fill-box}
+@keyframes eqdrive{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px) translateY(-.6px)}}
+@keyframes eqspin{to{transform:rotate(360deg)}}
+@keyframes eqspd{0%{opacity:.9;transform:translateX(4px)}100%{opacity:0;transform:translateX(-6px)}}
+@keyframes eqzz{0%,100%{opacity:.2;transform:translateY(2px)}50%{opacity:1;transform:translateY(-2px)}}
+@keyframes eqsmoke{0%{opacity:.7;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-12px) scale(1.4)}}
+@keyframes eqblink{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.eq *{animation:none!important}}
+.eqm{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 3px #0009)}
+.lv{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px 18px;margin:12px 0 14px}
+.lvh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.lvh b{font-size:17px;display:block}
+.lvs{color:var(--mu);font-size:12.5px;display:flex;align-items:center;gap:6px;margin-top:2px}
+.ldot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;animation:lp 1.6s infinite}@keyframes lp{0%{box-shadow:0 0 0 0 #1f9d5588}100%{box-shadow:0 0 0 9px #1f9d5500}}
+.lks{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.lk{background:var(--bg);border-radius:12px;padding:10px 14px}.lk b{display:block;font-size:26px;font-weight:650;font-family:Inter,sans-serif}.lk span{color:var(--mu);font-size:12px}
+.lk.ok b{color:var(--ok)}.lk.wa b{color:var(--wa)}.lk.no b{color:var(--mu)}
+.lsg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ls{border:1px solid var(--bd);border-radius:14px;padding:12px 14px}
+.lsh{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:8px}.lsh b{font-size:15px}.lsh span{font-size:12.5px;color:var(--mu);white-space:nowrap}
+.lbar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--bg);margin-bottom:10px}.lbar i{display:block;height:100%}.lbar i.ok{background:var(--ok)}.lbar i.wa{background:var(--wa)}.lbar i.no{background:#8b95a166}
+.lcs{display:flex;flex-wrap:wrap;gap:6px}.lc{font-size:12px;padding:3px 10px;border-radius:99px;cursor:pointer;border:1px solid transparent}
+.lc.on{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}.lc.off{background:color-mix(in srgb,var(--wa) 16%,transparent);color:var(--wa)}.lc.none{background:color-mix(in srgb,var(--mu) 14%,transparent);color:var(--mu)}
+@media print{.lv .s{display:none}}
+#alert:empty{display:none}
+.alb{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--wa) 14%,var(--card));border:1px solid color-mix(in srgb,var(--wa) 45%,var(--bd));border-radius:14px;padding:10px 14px;margin:0 0 16px}
+.alb.out{background:color-mix(in srgb,var(--bad) 13%,var(--card));border-color:color-mix(in srgb,var(--bad) 45%,var(--bd))}
+.alb .ali{font-size:20px;color:var(--wa)}.alb.out .ali{color:var(--bad)}
+.alb .alt{flex:1;min-width:0}.alb .alt b{display:block;font-size:14px}.alb .alt span{display:block;color:var(--mu);font-size:12.5px;margin-top:2px}
+.alb .alx{background:none;box-shadow:none;border:0;color:var(--mu);padding:4px 8px;font-size:15px;cursor:pointer}
+@media(max-width:900px){.alb{flex-wrap:wrap}.alb .alt{flex-basis:calc(100% - 80px)}}
+@media print{#alert{display:none!important}}
 nav#nav{background:linear-gradient(180deg,#15120f 0%,#0b0908 100%);color:#cfc7be;border:0;border-right:1px solid #ffffff12;width:256px;padding:18px 14px 14px;display:flex;flex-direction:column;box-shadow:none}
 nav#nav .brand{display:flex;align-items:center;gap:12px;padding:4px 6px 18px;margin:0 0 12px;border:0;border-bottom:1px solid #ffffff14;position:relative}
 nav#nav .brand img{width:44px;height:44px;border-radius:12px;background:#fff;object-fit:cover;box-shadow:0 0 0 1px #ffffff22,0 6px 18px #0008;flex:none}
@@ -257,6 +295,7 @@ body.rail nav#nav .nf{flex-direction:column;padding-top:12px}body.rail nav#nav .
 <div id="ov" onclick="document.body.classList.remove('menu')"></div>
 <div id="tabs"></div>
 <main>
+ <div id="alert"></div>
  <div id="sub"></div>
  <div class="top"><h2 id="ttl"></h2>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -335,6 +374,9 @@ async function load(){for(const T of TB){let all=[],from=0;for(;;){const{data,er
  db[T.k]=all.map(r=>fromRow(T,r));if(T.k=="attendance")db.attendance.forEach(a=>{if(!a.ain&&!a.aout&&!a.pin&&!a.pout&&(a.tin||a.tout)){a.ain=a.tin||"";a.pout=a.tout||""}});snap[T.t]={};db[T.k].forEach(o=>snap[T.t][o.id]=JSON.stringify(toRow(T,o)))}
  const d=await SB.from("payroll_deductions").select("*");if(d.error)throw d.error;db.ded={};dsn={};d.data.forEach(r=>{const k=r.employee_id+"|"+r.period_from+"|"+r.period_to;db.ded[k]=+r.amount;dsn[k]=+r.amount});
  const s=await SB.from("app_settings").select("*");if(s.error)throw s.error;ssn={};s.data.forEach(r=>{db[r.key]=r.value;ssn[r.key]=r.value})}
+window.pullLive=async function(){if(!ready||dirty||busy)return;const T=TB.find(x=>x.t=="attendance"),td=ltoday(),{data,error}=await SB.from("attendance").select("*").eq("work_date",td);if(error||dirty||busy)return;
+ db.attendance.filter(a=>a.date==td).forEach(a=>delete snap.attendance[a.id]);db.attendance=db.attendance.filter(a=>a.date!=td).concat(data.map(r=>fromRow(T,r)));
+ db.attendance.filter(a=>a.date==td).forEach(o=>{if(!o.ain&&!o.aout&&!o.pin&&!o.pout&&(o.tin||o.tout)){o.ain=o.tin||"";o.pout=o.tout||""}snap.attendance[o.id]=JSON.stringify(toRow(T,o))})};
 function save(){dirty=true;setSt("Saving...","#c98a00");clearTimeout(tmr);tmr=setTimeout(sync,700)}
 async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=false;
  try{for(const T of TB){const old=snap[T.t],up=[];db[T.k].forEach(o=>{const r=toRow(T,o);if(old[o.id]!==JSON.stringify(r))up.push(r)});
@@ -346,7 +388,7 @@ async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=f
   setSt("\u25cf Saved","#1f9d55")}catch(e){setSt("Save failed","#d64545");toast("Save failed: "+(e.message||e))}
  busy=false;if(dirty)save()}
 async function doLogin(){const m=document.getElementById("lmsg");m.textContent="Signing in...";const{error}=await SB.auth.signInWithPassword({email:document.getElementById("lem").value.trim(),password:document.getElementById("lpw").value});if(error){m.textContent=error.message;return}start()}
-async function start(){document.getElementById("login").style.display="none";try{setSt("Loading...","#c98a00");await load();ready=true;go();setSt("\u25cf Connected","#1f9d55")}catch(e){document.getElementById("login").style.display="grid";document.getElementById("lmsg").textContent="Could not load data: "+(e.message||e)+" (Did you run the SQL script?)";setSt("Error","#d64545")}}
+async function start(){document.getElementById("login").style.display="none";try{setSt("Loading...","#c98a00");await load();ready=true;go();try{SB.channel("live-att").on("postgres_changes",{event:"*",schema:"public",table:"attendance"},()=>{pullLive().then(()=>{if(cur=="dash")updLive()})}).subscribe()}catch(e){}setSt("\u25cf Connected","#1f9d55")}catch(e){document.getElementById("login").style.display="grid";document.getElementById("lmsg").textContent="Could not load data: "+(e.message||e)+" (Did you run the SQL script?)";setSt("Error","#d64545")}}
 async function logout(){await SB.auth.signOut();location.reload()}
 async function boot(){const{data}=await SB.auth.getSession();if(data&&data.session)start()}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ready&&!dirty&&!busy&&!document.querySelector("dialog[open]"))load().then(go).catch(()=>{})});
@@ -356,20 +398,34 @@ const nm=(mod,id)=>{const r=db[mod].find(x=>x.id==id);return r?r[M[mod].m]:"—"
 const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
 const net=r=>M.payroll.c[1](r);
 function badge(v){const g=["Available","Active","Approved","Done","Resolved","Returned","Contract","Operating","IN","VAT","Half day"],r=["Breakdown","Not operating","Reported","Cancelled","Inactive","Not resolved"],c=g.includes(v)?"ok":r.includes(v)?"bad":["Maintenance","OUT","Standby","Shop rate","In process","Pending","Dispatched","In progress","Quotation","Rented","Scheduled","On leave"].includes(v)?"wa":"";return `<span class="b ${c}">${v}</span>`}
-const GRP=[["dash","Dashboard",["dash"]],["ops","Operations",["fleet","sites","rescue"]],["ppl","People & Payroll",["employees","attendance","payroll"]],["bil","Billing",["invoices","docs"]],["exp","Expenses & Stock",["exp","inventory","stock"]]],GICON={dash:"dash",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Attendance",payroll:"Payroll",invoices:"Invoices",docs:"Quotations",exp:"Expenses",inventory:"Parts inventory",stock:"Stock in / out"};let GLAST={};
+const GRP=[["dash","Dashboard",["dash"]],["ops","Operations",["fleet","sites","rescue"]],["ppl","People & Payroll",["employees","attendance","payroll"]],["bil","Billing",["invoices","docs"]],["exp","Expenses & Stock",["exp","inventory","stock"]]],GICON={dash:"dash",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Attendance",payroll:"Payroll",invoices:"Invoices",docs:"Quotations",exp:"Expenses",inventory:"Parts inventory",stock:"Stock in / out"};let GLAST={},ALDX="";
 function toggleRail(){document.body.classList.toggle("rail");try{localStorage.setItem("yuvalRail",document.body.classList.contains("rail")?"1":"0")}catch(e){}}
 try{if(localStorage.getItem("yuvalRail")=="1")document.body.classList.add("rail")}catch(e){}
 function nav(){const HIDE=["clients","rentals","maint","receipts"],keys=["dash",...Object.keys(M)].filter(k=>!HIDE.includes(k));if(!keys.includes(cur))cur=keys[0];
  const gs=GRP.map(([id,l,ks])=>({id,l,ks:ks.filter(k=>keys.includes(k))})).filter(g=>g.ks.length),used=new Set(gs.flatMap(g=>g.ks)),more=keys.filter(k=>!used.has(k));if(more.length)gs.push({id:"more",l:"More",ks:more});
  const cg=gs.find(g=>g.ks.includes(cur));if(cg)GLAST[cg.id]=cur;
- const td=ltoday(),nr=(db.employees||[]).filter(e=>e.status!="Inactive"&&!(db.attendance||[]).some(a=>a.emp==e.id&&a.date==td)).length,un=(db.invoices||[]).filter(i=>(+i.amount||0)>(+i.paid||0)).length,bc={ppl:nr,bil:un},
+ const td=ltoday(),nr=(db.employees||[]).filter(e=>e.status!="Inactive"&&!(db.attendance||[]).some(a=>a.emp==e.id&&a.date==td)).length,un=(db.invoices||[]).filter(i=>(+i.amount||0)>(+i.paid||0)).length,bc={},
  lab=k=>k=="dash"?"Dashboard":M[k].t.split(" (")[0],tgt=g=>GLAST[g.id]&&g.ks.includes(GLAST[g.id])?GLAST[g.id]:g.ks[0],
  link=g=>`<a class="${g===cg?"on":""}" data-k="${tgt(g)}" title="${g.l}"><i>${IC[GICON[g.id]||g.ks[0]]||""}</i><span>${g.l}</span>${bc[g.id]?`<em class="nb">${bc[g.id]}</em>`:""}</a>`;
  $("#nav").innerHTML=`<div class="brand"><img src="${LOGO}" alt=""><div><b>Yuval Trucking</b><small>Heavy Equipment</small></div><button class="rl" type="button" onclick="toggleRail()" title="Collapse menu" aria-label="Collapse menu">‹</button></div>`+gs.map(link).join("")+`<div class="nsp"></div><div class="nf"><div class="av">Y</div><div><b>Administrator</b><small>Cabanatuan City</small></div>${typeof SB!="undefined"?'<span class="lo" onclick="logout()" title="Sign out">⏻</span>':""}</div>`;
+ {const low=(db.inventory||[]).filter(r=>+r.min>0&&(+r.qty||0)<=+r.min).sort((a,b)=>(+a.qty||0)-(+b.qty||0)),sig=low.map(r=>r.id+":"+r.qty).join(",");
+  $("#alert").innerHTML=low.length&&sig!=ALDX?`<div class="alb${low.some(r=>(+r.qty||0)<=0)?" out":""}"><span class="ali">\u26A0</span><div class="alt"><b>${low.length} part${low.length>1?"s are":" is"} low on stock</b><span>${low.slice(0,4).map(r=>`${r.part} (${+r.qty||0}${r.unit?" "+r.unit:""} left, alert at ${r.min})`).join(" \u00b7 ")}${low.length>4?" \u00b7 +"+(low.length-4)+" more":""}</span></div><button type="button" class="s" onclick="cur='inventory';ALDX='';go()">View parts</button><button type="button" class="alx" onclick="ALDX='${sig}';nav()" aria-label="Dismiss">\u2715</button></div>`:""}
  $("#sub").innerHTML=cg&&cg.ks.length>1?cg.ks.map(k=>`<a class="${k==cur?"on":""}" data-k="${k}">${SL[k]||lab(k)}</a>`).join(""):"";
  $("#tabs").innerHTML=gs.slice(0,4).map(g=>`<a class="${g===cg?"on":""}" data-k="${tgt(g)}">${IC[GICON[g.id]||g.ks[0]]||""}<span>${g.l.split(" ")[0]}</span></a>`).join("")+`<a onclick="document.body.classList.toggle('menu')">${ICM}<span>Menu</span></a>`;
  document.querySelectorAll("nav a[data-k], #sub a[data-k], #tabs a[data-k]").forEach(a=>a.onclick=()=>{cur=a.dataset.k;$("#q").value="";FE=FF=FT="";AG=false;SK="";QV=null;ECAT="";FC="";ICAT="";PS=false;AST="";RV=false;RCT="";EXV="log";EST="";SEL.clear();document.body.classList.remove("menu");go()})}
 document.addEventListener("keydown",e=>{if(e.key=="/"&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||"")){const q=$("#q");if(q&&q.offsetParent){e.preventDefault();q.focus()}}});
+function liveData(){const td=ltoday(),S={},T={on:0,off:0,none:0};
+ db.employees.filter(e=>e.status!="Inactive").forEach(e=>{const L=db.attendance.filter(a=>a.emp==e.id&&a.date==td),t=L[L.length-1],ss=siteOf(e),nmS=(t&&t.site)||(ss?(ss.client||ss.name):"")||e.place||"No site assigned",a=t?(t.act||"Operating"):"",g=!t?"none":(a=="Operating"||a=="Half day"||a=="Shop rate")?"on":"off",o=S[nmS]=S[nmS]||{name:nmS,on:[],off:[],none:[]};o[g].push({e,t,a});T[g]++});
+ return{sites:Object.values(S).sort((a,b)=>(b.on.length+b.off.length+b.none.length)-(a.on.length+a.off.length+a.none.length)||a.name.localeCompare(b.name)),T}}
+function liveInner(){const{sites,T}=liveData(),tot=T.on+T.off+T.none,chip=(r,c)=>`<span class="lc ${c}" onclick="openMonitor(${r.e.id})" title="${r.t&&r.t.why?r.t.why:""}">${r.e.name}${r.a&&r.a!="Operating"?` · ${r.a}`:""}${c=="off"&&r.t&&r.t.why?` (${r.t.why})`:""}</span>`,
+ k=(l,v,c)=>`<div class="lk ${c}"><b>${v}</b><span>${l}</span></div>`;
+ return `<div class="lvh"><div><b>Today at the sites</b><span class="lvs"><i class="ldot"></i> Live · <span id="lvt">${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span></span></div><button class="s g" onclick="cur='attendance';go()">Open attendance</button></div>
+ <div class="lks">${k("Operating today",T.on,"ok")}${k("Not operating (standby / off)",T.off,"wa")}${k("No record yet",T.none,"no")}${k("Total operators",tot,"")}</div>
+ <div class="lsg">${sites.map(s=>{const n=s.on.length+s.off.length+s.none.length,pc=x=>n?x/n*100:0;return `<div class="ls"><div class="lsh"><b>${s.name}</b><span>${s.on.length} of ${n} operating</span></div><div class="lbar"><i class="ok" style="width:${pc(s.on.length)}%"></i><i class="wa" style="width:${pc(s.off.length)}%"></i><i class="no" style="width:${pc(s.none.length)}%"></i></div><div class="lcs">${s.on.map(r=>chip(r,"on")).join("")}${s.off.map(r=>chip(r,"off")).join("")}${s.none.map(r=>chip(r,"none")).join("")}</div></div>`}).join("")||"<p style='color:var(--mu)'>No operators yet.</p>"}</div>`}
+function updLive(){const e=document.getElementById("lv");if(e)e.innerHTML=liveInner()}
+setInterval(()=>{const e=document.getElementById("lvt");if(e)e.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})},1000);
+setInterval(()=>{if(document.hidden||cur!="dash"||document.querySelector("dialog[open]"))return;Promise.resolve(window.pullLive?window.pullLive():0).catch(()=>{}).then(()=>{if(cur=="dash")updLive()})},15000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&cur=="dash")Promise.resolve(window.pullLive?window.pullLive():0).catch(()=>{}).then(()=>{if(cur=="dash")updLive()})});
 function dash(){
  const rev=sum(db.invoices,r=>r.paid),ar=sum(db.invoices,r=>r.amount-r.paid),ex=sum(db.exp,r=>r.amount)+sum(db.maint,r=>r.cost)+sum(db.rescue,r=>r.cost),pay=sum(calcPay("","",false),r=>r.net);
  const low=db.inventory.filter(p=>p.min>0&&p.qty<=p.min),today=new Date(),exp=[],open=db.rescue.filter(r=>r.status!="Resolved"),bd=db.fleet.filter(f=>f.status=="Breakdown");
@@ -377,7 +433,7 @@ function dash(){
  const mx=Math.max(rev,ar,ex,pay,1),bar=(l,v)=>`<div class="bar"><span>${l}</span><i style="width:${v/mx*60}%"></i>${peso(v)}</div>`;
  const fc=ST.map(s=>[s,db.fleet.filter(f=>f.status==s).length]),fm=Math.max(...fc.map(x=>x[1]),1);
  const alerts=[...low.map(p=>`<div class="al">Low stock: ${p.part} (${p.qty} left, min ${p.min})</div>`),...exp.map(d=>`<div class="al">Expiring/expired: ${d.title} — ${nm("fleet",d.equip)} (${d.expiry})</div>`),...open.map(r=>`<div class="al r">Open incident: ${r.issue} (${r.status})</div>`),...bd.map(f=>`<div class="al r">Breakdown: ${f.name}</div>`),...db.invoices.filter(i=>i.amount>i.paid&&i.due&&new Date(i.due)<today).map(i=>`<div class="al">Overdue invoice ${i.ref}: ${peso(i.amount-i.paid)}</div>`)];
- $("#view").innerHTML=`<div class="hero"><div><h1>Fleet &amp; Rental Command Center</h1><p>${new Date().toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · Cabanatuan City, Nueva Ecija</p></div><img src="${LOGO}" alt=""></div><div class="grid">${card("Active rentals",db.rentals.filter(r=>r.stage=="Active").length)}${card("Equipment available",db.fleet.filter(f=>f.status=="Available").length)}${card("Dispatch operators",new Set([...db.employees.filter(e=>db.fleet.some(f=>f.id==e.equip&&f.status=="Rented")).map(e=>e.id),...db.rescue.filter(r=>r.status=="Dispatched").map(r=>r.by)]).size)}${card("All equipment",db.fleet.length)}</div><div class="grid">${ecards()}</div>
+ $("#view").innerHTML=`<div class="hero"><div><h1>Fleet &amp; Rental Command Center</h1><p>${new Date().toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · Cabanatuan City, Nueva Ecija</p></div><img src="${LOGO}" alt=""></div><div class="grid">${card("Active rentals",db.rentals.filter(r=>r.stage=="Active").length)}${card("Equipment available",db.fleet.filter(f=>f.status=="Available").length)}${card("Dispatch operators",new Set([...db.employees.filter(e=>db.fleet.some(f=>f.id==e.equip&&f.status=="Rented")).map(e=>e.id),...db.rescue.filter(r=>r.status=="Dispatched").map(r=>r.by)]).size)}${card("All equipment",db.fleet.length)}</div><div id="lv" class="lv">${liveInner()}</div>
  ${mapHTML()}<div class="two"><div class="card"><b style="font-size:15px">Finance overview</b>${bar("Collected",rev)}${bar("Receivable",ar)}${bar("Expenses",ex)}${bar("Payroll",pay)}</div>
  <div class="card"><b style="font-size:15px">Fleet status</b>${fc.map(([s,n])=>`<div class="bar"><span>${s}</span><i style="width:${n/fm*60}%;min-width:4px"></i>${n}</div>`).join("")}</div>
  <div class="card"><b style="font-size:15px">Alerts (${alerts.length})</b>${alerts.join("")||"<p>All clear ✅</p>"}</div></div>`}
@@ -386,12 +442,24 @@ function shrink(file,cb){const r=new FileReader();r.onload=()=>{const im=new Ima
 function pick(k,t,el){[...el.files].forEach(f=>shrink(f,d=>{if(t=="im")tmp[k].push(d);else tmp[k]=d;prev(k)}));el.value=""}
 function prev(k){const v=tmp[k],ar=Array.isArray(v),a=ar?v:v?[v]:[],z=ar?70:90;$("#p_"+k).innerHTML=a.map((s,i)=>`<img src="${s}" title="Click to remove" onclick="rm('${k}',${i})" style="width:${z}px;height:${z}px;object-fit:cover;border-radius:${ar?6:50}%;margin:2px;cursor:pointer">`).join("")+(a.length?"<div style='font-size:11px;color:var(--mu)'>Click an image to remove it</div>":"")}
 function rm(k,i){if(Array.isArray(tmp[k]))tmp[k].splice(i,1);else tmp[k]="";prev(k)}
+const EQC={move:"#1f9d55",stby:"#c98a00",bad:"#d64545"},EQL=(f,st)=>st=="move"?"Operating · moving":st=="stby"?"Standby":f.status=="Maintenance"?"Under maintenance":"Broken down";
+function eqState(f){const td=ltoday(),inc=(db.rescue||[]).some(r=>r.equip==f.id&&r.status!="Resolved");if(inc||f.status=="Breakdown"||f.status=="Maintenance")return"bad";
+ const ids=db.employees.filter(e=>e.equip==f.id).map(e=>e.id);return db.attendance.some(a=>a.date==td&&ids.includes(a.emp)&&["Operating","Half day","Shop rate"].includes(a.act||"Operating"))?"move":"stby"}
+function eqSvg(type,st,w,at){const t=String(type||""),k=/excav|backhoe/i.test(t)?"ex":/crane/i.test(t)?"cr":/loader/i.test(t)?"ld":/grader/i.test(t)?"gr":"tk",D="#5a544d",C="var(--c)",
+ wh=(x,y,r)=>`<g transform="translate(${x} ${y})"><g class="wh"><circle r="${r}" fill="#1c1917" stroke="#9a9086" stroke-width="1"/><path d="M${-r+1.5} 0H${r-1.5}" stroke="#9a9086" stroke-width="1.4"/></g></g>`,
+ win=d=>`<path d="${d}" fill="#fff" opacity=".85"/>`;let g="";
+ if(k=="tk")g=`<path d="M4 11h30l-3 17H4z" fill="${C}"/><path d="M36 15h12l8 8v7H36z" fill="${C}"/>${win("M40 18h7l4 4h-11z")}<rect x="3" y="27" width="53" height="4" rx="1" fill="${D}"/>${wh(13,33,5.5)}${wh(29,33,5.5)}${wh(47,33,5.5)}`;
+ else if(k=="ex")g=`<rect x="6" y="28" width="36" height="9" rx="4.5" fill="${D}"/><rect x="11" y="19" width="26" height="10" rx="2" fill="${C}"/><path d="M11 19v-8h13l4 8z" fill="${C}"/>${win("M14 13h8l2 5h-10z")}<path d="M30 21L46 7L57 17" stroke="${C}" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M54 15l8 4-3 8-8-5z" fill="${D}"/>`;
+ else if(k=="cr")g=`<rect x="3" y="22" width="42" height="8" rx="2" fill="${C}"/><path d="M45 18h9l6 7v5H45z" fill="${C}"/>${win("M48 20h5l3 4h-8z")}<path d="M10 22L40 4" stroke="${D}" stroke-width="4" stroke-linecap="round"/><path d="M40 4v15" stroke="${D}" stroke-width="1.5"/><rect x="37" y="18" width="6" height="4" fill="${D}"/>${wh(12,33,5.5)}${wh(28,33,5.5)}${wh(52,33,5.5)}`;
+ else if(k=="ld")g=`<path d="M18 17h24v14H14z" fill="${C}"/><rect x="26" y="8" width="15" height="10" rx="2" fill="${C}"/>${win("M29 10h9v6h-9z")}<path d="M16 24L6 20" stroke="${D}" stroke-width="3" stroke-linecap="round"/><path d="M0 14h10l-1 17H1z" fill="${D}"/>${wh(23,31,7)}${wh(44,31,7)}`;
+ else g=`<rect x="8" y="18" width="50" height="8" rx="2" fill="${C}"/><rect x="40" y="8" width="14" height="11" rx="2" fill="${C}"/>${win("M43 10h8v6h-8z")}<rect x="2" y="30" width="28" height="4" rx="2" fill="${D}"/>${wh(16,32,5.5)}${wh(44,32,6.5)}${wh(55,32,6.5)}`;
+ return `<svg class="eq ${st}" ${at||""} width="${w}" height="${Math.round(w*.625)}" viewBox="0 0 64 40"><g class="spd" stroke="#9a9086" stroke-width="1.6" stroke-linecap="round"><path d="M-4 14h6M-6 22h8M-3 30h5"/></g><g class="eqb">${g}</g><g class="zz" fill="var(--mu)" font-weight="700" font-family="Inter,sans-serif"><text x="46" y="8" font-size="9">z</text><text x="53" y="4" font-size="7">z</text></g><g class="smk" fill="#8b95a1"><circle cx="22" cy="12" r="3"/><circle cx="26" cy="10" r="2.4"/><circle cx="19" cy="9" r="2"/></g><g class="warn"><path d="M54 2l8 14H46z" fill="#d64545" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/><path d="M54 7v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="54" cy="13.2" r=".9" fill="#fff"/></g></svg>`}
 function mapHTML(){
  const cnt={},U=db.fleet.map(f=>{const g=geo(f);if(!g)return null;const k=g.join(),i=cnt[k]=(cnt[k]||0)+1;return{...f,lat:g[0],lng:g[1],i:i-1}}).filter(Boolean),op=id=>db.employees.filter(e=>e.equip==id).map(e=>e.name).join(", ")||"No operator",inc=id=>db.rescue.some(r=>r.equip==id&&r.status!="Resolved");
  let svg='<div id="lmap" style="height:440px;border-radius:8px;border:1px solid var(--bd)"></div>';setTimeout(initMap,0);
  const dot=c=>`<span style="color:${c}">●</span>`;
  return `<div class="card" style="margin-bottom:12px"><div class="top" style="margin-bottom:8px"><b style="font-size:15px">Dispatch map: units &amp; operators</b></div>${svg}
- <p style="font-size:12px;color:var(--mu)">${dot("#1f9d55")} Operating ${dot("#c98a00")} Standby ${dot("#8b95a1")} Not operating ${dot("#2f7de1")} Available / no timesheet ${dot("#d64545")} Breakdown/incident</p>
+ <p style="font-size:12px;color:var(--mu)"><span style="color:#1f9d55">\u25CF</span> Operating (moving) <span style="color:#c98a00">\u25CF</span> Standby <span style="color:#d64545">\u25CF</span> Broken / under maintenance \u00b7 Each icon is the equipment type</p>
  <div class="wrap" style="border:0"><table><tr><th>Unit</th><th>Operator</th><th>Status</th><th>Activity</th><th>City / Province</th><th></th></tr>${db.fleet.map(u=>`<tr><td>${u.name}</td><td>${op(u.id)}</td><td>${badge(u.status)}</td><td>${actOf(u.id)?badge(actOf(u.id)):"—"}</td><td>${[u.city,u.prov].filter(Boolean).join(", ")||"—"}${geo(u)?"":" <small>(not on map)</small>"}</td><td>${u.city||u.prov?`<a href="https://www.google.com/maps/search/${encodeURIComponent([u.city,u.prov,"Philippines"].filter(Boolean).join(", "))}" target="_blank" rel="noopener">Open in Google Maps</a>`:""}</td></tr>`).join("")}</table></div></div>`}
 const kk=x=>String(x||"").toLowerCase().replace(/^city of /,"").replace(/ city$/,"").replace(/\s+/g," ").trim();
 const GEO=Object.fromEntries("Bugallon:15.9667,120.3667;Jaen:15.3333,120.9;Laoag:18.1978,120.5936;Batac:18.06,120.56;Vigan:17.5707,120.3869;Narvacan:17.42,120.47;Candon:17.1936,120.4513;Tagudin:16.9333,120.45;Bauang:16.53,120.33;San Fernando La Union:16.62,120.32;Dagupan:16.04,120.33;Calasiao:16.02,120.36;Mangaldan:16.07,120.4;Lingayen:16.02,120.23;Alaminos:16.16,119.98;San Carlos:15.93,120.35;Santa Barbara:15.99,120.4;Urdaneta:15.98,120.57;Rosales:15.9,120.63;Tayug:16.02,120.75;Baguio:16.41,120.6;Cabanatuan:15.49,120.97;San Jose:15.8,120.99;Munoz:15.72,120.9;Talavera:15.59,120.92;Gapan:15.31,120.95;Palayan:15.54,121.08;Guimba:15.66,120.77;Cuyapo:15.77,120.67;Bongabon:15.64,121.15;Angeles:15.15,120.59;Olongapo:14.83,120.28;Manila:14.6,120.98;Tuguegarao:17.61,121.73;Santiago:16.69,121.55;Ilagan:17.15,121.89;Cebu:10.32,123.89;Davao:7.07,125.61;Cagayan de Oro:8.48,124.65;Iloilo:10.72,122.56;Bacolod:10.67,122.95;Zamboanga:6.91,122.08;General Santos:6.11,125.17;Ilocos Norte:18.17,120.71;Ilocos Sur:17.57,120.39;La Union:16.62,120.32;Pangasinan:15.9,120.35;Abra:17.59,120.68;Benguet:16.55,120.8;Ifugao:16.83,121.17;Mountain Province:17.05,121;Kalinga:17.47,121.35;Apayao:18,121.1;Cagayan:17.6,121.7;Isabela:16.9,121.9;Nueva Vizcaya:16.33,121.17;Quirino:16.5,121.55;Batanes:20.45,121.97;Aurora:15.75,121.6;Bataan:14.68,120.45;Bulacan:14.85,120.9;Nueva Ecija:15.5,121;Pampanga:15.05,120.65;Tarlac:15.48,120.6;Zambales:15.3,120;Batangas:13.9,121.05;Cavite:14.3,120.9;Laguna:14.25,121.35;Quezon:14,122;Rizal:14.6,121.3;Metro Manila:14.6,121;NCR:14.6,121;Albay:13.2,123.6;Camarines Sur:13.6,123.3;Palawan:9.8,118.7;Bohol:9.85,124.15;Leyte:10.9,124.9;Bukidnon:8,125.1".split(";").map(s=>{const[n,c]=s.split(":");return[kk(n),c.split(",").map(Number)]}));
@@ -426,7 +494,7 @@ function table(){
  const HR=cur=="attendance"&&!FE&&!FF&&!FT&&!q;let body;
  if(ef&&AG){const gs={};rows.forEach(r=>(gs[r[ef[0]]]=gs[r[ef[0]]]||[]).push(r));body=Object.keys(gs).sort((a,b)=>nm("employees",a).localeCompare(nm("employees",b))).map(id=>{const g=gs[id],t=cur=="attendance"?` · ${g.length} day(s) · ${sum(g,r=>r.hrs)} hrs · ${sum(g,r=>r.ot)} OT`:` · ${g.length} record(s)`;return `<tr><td colspan="${nc}" style="background:var(--bg);font-weight:700">👷 ${nm("employees",id)}${t}</td></tr>`+g.map(row).join("")}).join("")}else body=rows.map(row).join("");
  const th=f=>`<th style="cursor:pointer" onclick="srt('${f[0]}')">${f[1]}${sf==f?(dir>0?" ▲":" ▼"):""}</th>`;
- $("#view").innerHTML=(cur=="attendance"?tb+monKpis()+scanBar()+profiles():cur=="docs"?quotesBox():cur=="exp"?expSeg()+expTabs():cur=="receipts"?rcBar():cur=="inventory"?invBar():cur=="fleet"?`<div class="chips" style="margin-bottom:12px"><button class="chip on" onclick="FV='cards';table()">▦ Card view</button></div>`:"")+(cur=="attendance"?"":tb)+(HR?`<p style="color:var(--mu);font-size:13px;margin-top:6px">The records table is hidden. Tap <b>Records</b> on an operator card, or choose an operator or dates above, to see and edit the daily records.</p>`:(cur=="attendance"?selBar():"")+`<div class="wrap"><table><tr>${cur=="attendance"?selHead():""}${m.f.map(th).join("")}${m.c?`<th>${m.c[0]}</th>`:""}${(m.x||[]).map(x=>`<th>${x[0]}</th>`).join("")}<th></th></tr>`+body+`</table></div>`+(rows.length?`<p style="color:var(--mu);font-size:12px">${rows.length} record(s)</p>`:"<p style='color:var(--mu)'>No records.</p>"))}
+ $("#view").innerHTML=(cur=="attendance"?tb+monKpis()+scanBar()+profiles():cur=="docs"?quotesBox():cur=="exp"?expSeg()+expTabs():cur=="receipts"?rcBar():cur=="inventory"?invBar():cur=="rescue"?`<div class="grid" style="margin-bottom:14px">${ecards()}</div>`:cur=="fleet"?`<div class="chips" style="margin-bottom:12px"><button class="chip on" onclick="FV='cards';table()">▦ Card view</button></div>`:"")+(cur=="attendance"?"":tb)+(HR?`<p style="color:var(--mu);font-size:13px;margin-top:6px">The records table is hidden. Tap <b>Records</b> on an operator card, or choose an operator or dates above, to see and edit the daily records.</p>`:(cur=="attendance"?selBar():"")+`<div class="wrap"><table><tr>${cur=="attendance"?selHead():""}${m.f.map(th).join("")}${m.c?`<th>${m.c[0]}</th>`:""}${(m.x||[]).map(x=>`<th>${x[0]}</th>`).join("")}<th></th></tr>`+body+`</table></div>`+(rows.length?`<p style="color:var(--mu);font-size:12px">${rows.length} record(s)</p>`:"<p style='color:var(--mu)'>No records.</p>"))}
 function logFor(id){cur="attendance";open_(null);const f=$("#frm").elements;f.emp.value=id;f.date.value=new Date().toISOString().slice(0,10)}
 function actOf(id){const ids=db.employees.filter(e=>e.equip==id).map(e=>e.id),A=db.attendance.filter(a=>ids.includes(a.emp)&&a.act).sort((a,b)=>String(b.date).localeCompare(String(a.date)));return A[0]?A[0].act:""}
 function opSel(id){const c=id?opsOf({id})[0]:null;return `<label>Operator (from Employees / Operators)</label><select name="__op"><option value="">— none —</option>${[...db.employees].filter(e=>e.status!="Inactive"||(c&&e.id==c.id)).sort((a,b)=>a.name.localeCompare(b.name)).map(e=>{const u=e.equip&&e.equip!=id?db.fleet.find(x=>x.id==e.equip):null;return `<option value="${e.id}" ${c&&c.id==e.id?"selected":""}>${e.name}${e.role?" ("+e.role+")":""}${u?" — now on "+u.name:""}</option>`}).join("")}</select>`}
@@ -514,10 +582,8 @@ function initMap(){const el=document.getElementById("lmap");if(!el)return;
  m=L.map(el,{layers:[street]}),cnt={},pts=[];
  L.control.layers({"Street":street,"Satellite":sat,"Terrain":topo}).addTo(m);
  db.fleet.forEach(f=>{const g=geo(f);if(!g)return;const k=g.join(),i=cnt[k]=(cnt[k]||0)+1,ll=[g[0]-(i-1)*.006,g[1]+(i-1)*.006],
-  ops=db.employees.filter(e=>e.equip==f.id).map(e=>e.name).join(", ")||"No operator",ac=actOf(f.id),oe=db.employees.find(z=>z.equip==f.id),
-  inc=db.rescue.some(r=>r.equip==f.id&&r.status!="Resolved"),
-  col=inc||f.status=="Breakdown"?"#d64545":ac=="Operating"?"#1f9d55":ac=="Standby"?"#c98a00":ac=="Not operating"?"#8b95a1":"#2f7de1";
-  pts.push(ll);(oe?L.marker(ll,{icon:L.divIcon({className:"",html:`<div class="pm" style="border-color:${col}">${oe.photo?`<img src="${oe.photo}">`:(oe.name||"?")[0]}</div>`,iconSize:[44,44],iconAnchor:[22,22]})}):L.circleMarker(ll,{radius:9,color:"#fff",weight:2,fillColor:col,fillOpacity:1})).addTo(m).bindPopup("<b>"+f.name+"</b><br>\u{1F477} "+ops+"<br>"+(ac||f.status)+"<br>"+[f.city,f.prov].filter(Boolean).join(", ")).bindTooltip(f.name+(ac?" \u00b7 "+ac:""),{direction:"right",offset:[10,0]})});
+  ops=db.employees.filter(e=>e.equip==f.id).map(e=>e.name).join(", ")||"No operator",ac=actOf(f.id),st=eqState(f);
+  pts.push(ll);L.marker(ll,{icon:L.divIcon({className:"",html:`<div class="eqm">${eqSvg(f.type,st,64)}</div>`,iconSize:[64,40],iconAnchor:[32,22]})}).addTo(m).bindPopup("<b>"+f.name+"</b><br>\u{1F477} "+ops+"<br>"+EQL(f,st)+"<br>"+[f.city,f.prov].filter(Boolean).join(", ")).bindTooltip(f.name+" \u00b7 "+EQL(f,st),{direction:"right",offset:[34,0]})});
  pts.length?m.fitBounds(pts,{padding:[40,40],maxZoom:11}):m.setView([16,120.6],7)}
 let FV="cards",FC="";
 const fcat=t=>/crane/i.test(t||"")?"Cranes":/truck|trailer/i.test(t||"")?"Trucks":"Heavy Equipment";
