@@ -2,7 +2,8 @@
 // Set ONE of these environment variables in Vercel (Settings > Environment Variables):
 //   GEMINI_API_KEY     - free key from Google AI Studio (aistudio.google.com)
 //   ANTHROPIC_API_KEY  - paid key from console.anthropic.com
-// If both are set, Gemini is used.
+// If both are set, Claude (Anthropic) is used. Default model is the fast claude-haiku-5-5;
+// set ANTHROPIC_MODEL=claude-sonnet-5-5 in Vercel for better handwriting accuracy.
 module.exports = async (req, res) => {
   const GKEY = process.env.GEMINI_API_KEY, AKEY = process.env.ANTHROPIC_API_KEY;
   if (req.method === "GET") return res.status(200).json({ ok: true, geminiKeySet: !!GKEY, anthropicKeySet: !!AKEY });
@@ -21,7 +22,7 @@ module.exports = async (req, res) => {
   if (!image || !prompt) return res.status(400).json({ error: "No image" });
 
   let txt = "";
-  if (GKEY) {
+  if (!AKEY) {
     // Tries the newest free Gemini model first, then falls back to an older one.
     const models = [process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-3.5-flash"];
     let j = {}, r = null;
@@ -47,13 +48,15 @@ module.exports = async (req, res) => {
       method: "POST",
       headers: { "x-api-key": AKEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-5-5", max_tokens: 4000,
+        model: process.env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 4000, temperature: 0,
         messages: [{ role: "user", content: [
           { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
           { type: "text", text: prompt } ] }]
       })
     });
     const j = await r.json().catch(() => ({}));
+    if (r.status === 401) return res.status(502).json({ error: "Anthropic rejected the key. Check ANTHROPIC_API_KEY in Vercel, then redeploy." });
+    if (r.status === 429) return res.status(429).json({ error: "Too many scans at once. Wait a moment and try again." });
     if (!r.ok) return res.status(502).json({ error: (j.error && j.error.message) || "AI request failed" });
     txt = (j.content || []).map(c => c.text || "").join("");
   }
