@@ -396,7 +396,7 @@ async function logout(){await SB.auth.signOut();location.reload()}
 async function boot(){const{data}=await SB.auth.getSession();if(data&&data.session)start()}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ready&&!dirty&&!busy&&!document.querySelector("dialog[open]"))load().then(go).catch(()=>{})});
 let cur="dash",edit=null;
-const peso=n=>"₱"+Math.round(n||0).toLocaleString();
+const peso=n=>{const v=Math.round((+n||0)*100)/100;return "₱"+v.toLocaleString("en-PH",{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2})};
 const nm=(mod,id)=>{const r=db[mod].find(x=>x.id==id);return r?r[M[mod].m]:"—"};
 const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
 const net=r=>M.payroll.c[1](r);
@@ -482,7 +482,7 @@ const _n=new Date(),_ym=_n.toISOString().slice(0,7);
 let PF=_ym+"-01",PT=_ym+"-"+String(new Date(_n.getFullYear(),_n.getMonth()+1,0).getDate()),AO=false,PO="",PS=false;
 function calcPay(f,t,ao){db.ded=db.ded||{};return db.employees.map(e=>{const P=payList(e,empRecs(e,f,t)),S=k=>P.reduce((s,x)=>s+x.p[k],0),rate=+e.rate||0,k=e.id+"|"+f+"|"+t,ded=+db.ded[k]||0,
  hrs=P.reduce((s,x)=>s+(x.p.d>0?(+x.a.hrs||0):0),0),ot=P.reduce((s,x)=>s+(x.p.d>0?(+x.a.ot||0):0),0),days=S("d"),sdays=S("sd"),basic=S("base"),shop=S("shop"),meal=S("meal"),otp=S("otp");
- return{e,days,sdays,hrs:Math.round(hrs*100)/100,ot:Math.round(ot*100)/100,rate,basic,shop,meal,otp,ded,k,pend:0,net:Math.round(basic+shop+meal+otp-ded)}})}
+ return{e,days,sdays,hrs:Math.round(hrs*100)/100,ot:Math.round(ot*100)/100,rate,basic,shop,meal,otp,ded,k,pend:0,net:Math.round((basic+shop+meal+otp-ded)*100)/100}})}
 function setDed(k,v){db.ded=db.ded||{};db.ded[k]=+v||0;save();payView()}
 function payView(){if(PS)return slipsView();const R=calcPay(PF,PT,false).filter(r=>!PO||r.e.id==PO),T=k=>sum(R,r=>r[k]),P=payC();
  $("#view").innerHTML=`<div class="card" style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:end"><div><label>From</label><input type="date" id="pf" value="${PF}"></div><div><label>To</label><input type="date" id="pt" value="${PT}"></div><div><label>Operator</label><select id="po"><option value="">All operators</option>${[...db.employees].sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${e.id}"${e.id==PO?" selected":""}>${e.name}</option>`).join("")}</select></div><div><label>Meal allowance (\u20b1)</label><input type="number" style="width:120px" value="${P.meal}" onchange="setPC('meal',this.value)"></div><div><label>Shop rate (\u20b1)</label><input type="number" style="width:110px" value="${P.shop}" onchange="setPC('shop',this.value)"></div><div><label>Half day (% of daily)</label><input type="number" style="width:110px" value="${Math.round(P.half*100)}" onchange="setPC('half',(+this.value||0)/100)"></div><button onclick="PS=true;payView()">\u{1F9FE} Payslips</button></div>
