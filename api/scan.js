@@ -1,7 +1,8 @@
 // Vercel serverless function: reads a photo of a timesheet (DTR) with AI.
-// In Vercel (Settings > Environment Variables) set one or both:
-//   GEMINI_API_KEY     - FREE key from Google AI Studio (aistudio.google.com)  -> used first
-//   ANTHROPIC_API_KEY  - paid key from console.anthropic.com (needs credit)    -> used if Gemini is not set or fails
+// In Vercel (Settings > Environment Variables) set any of these (tried in this order, next one is used if one fails):
+//   GEMINI_API_KEY     - FREE key from Google AI Studio (aistudio.google.com)
+//   GROQ_API_KEY       - key from console.groq.com (free plan with limits). Optional GROQ_MODEL.
+//   ANTHROPIC_API_KEY  - paid key from console.anthropic.com (needs credit)
 // Optional: GEMINI_MODEL, ANTHROPIC_MODEL (default claude-haiku-5-5; claude-sonnet-5-5 is more accurate).
 const fail = (status, error) => ({ status, error });
 
@@ -27,6 +28,26 @@ async function gemini(key, image, prompt) {
   return { text: parts.map(p => p.text || "").join("") };
 }
 
+// Groq (free plan with limits) - OpenAI-compatible vision API. Model can be changed with GROQ_MODEL.
+async function groq(key, image, prompt) {
+  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { authorization: "Bearer " + key, "content-type": "application/json" },
+    body: JSON.stringify({
+      model: process.env.GROQ_MODEL || "qwen/qwen3.8-27b", temperature: 0, max_completion_tokens: 4000,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: [
+        { type: "text", text: prompt + "\nReply with JSON only." },
+        { type: "image_url", image_url: { url: "data:image/jpeg;base64," + image } } ] }]
+    })
+  });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) return fail(502, "Groq rejected the key. Check GROQ_API_KEY in Vercel, then redeploy.");
+  if (r.status === 429) return fail(429, "Groq free limit reached. Wait a minute and try again.");
+  if (!r.ok) return fail(502, (j.error && j.error.message) || "Groq request failed");
+  return { text: (((j.choices || [])[0] || {}).message || {}).content || "" };
+}
+
 async function claude(key, image, prompt) {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -46,8 +67,8 @@ async function claude(key, image, prompt) {
 }
 
 module.exports = async (req, res) => {
-  const GKEY = process.env.GEMINI_API_KEY, AKEY = process.env.ANTHROPIC_API_KEY;
-  if (req.method === "GET") return res.status(200).json({ ok: true, geminiKeySet: !!GKEY, anthropicKeySet: !!AKEY });
+  const GKEY = process.env.GEMINI_API_KEY, AKEY = process.env.ANTHROPIC_API_KEY, QKEY = process.env.GROQ_API_KEY;
+  if (req.method === "GET") return res.status(200).json({ ok: true, geminiKeySet: !!GKEY, groqKeySet: !!QKEY, anthropicKeySet: !!AKEY });
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   // Only signed-in staff may use this (checks the Supabase login).
@@ -58,12 +79,13 @@ module.exports = async (req, res) => {
   const u = await fetch(SB_URL + "/auth/v1/user", { headers: { apikey: SB_KEY, authorization: "Bearer " + tok } });
   if (!u.ok) return res.status(401).json({ error: "Please sign in again" });
 
-  if (!GKEY && !AKEY) return res.status(500).json({ error: "No AI key is set in Vercel. Add GEMINI_API_KEY (free) or ANTHROPIC_API_KEY, then redeploy." });
+  if (!GKEY && !QKEY && !AKEY) return res.status(500).json({ error: "No AI key is set in Vercel. Add GEMINI_API_KEY or GROQ_API_KEY (both free) or ANTHROPIC_API_KEY, then redeploy." });
   const { image, prompt } = req.body || {};
   if (!image || !prompt) return res.status(400).json({ error: "No image" });
 
   const order = [];
   if (GKEY) order.push(() => gemini(GKEY, image, prompt));
+  if (QKEY) order.push(() => groq(QKEY, image, prompt));
   if (AKEY) order.push(() => claude(AKEY, image, prompt));
   let out = null;
   for (const run of order) { out = await run(); if (out.text) break; } // fall through to the next AI if one fails
