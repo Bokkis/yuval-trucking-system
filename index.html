@@ -204,6 +204,46 @@ tr.sel td{background:color-mix(in srgb,var(--ac) 8%,transparent)}
 .mg{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--bg);border-radius:8px;padding:8px 10px}.mg small{display:block;color:var(--mu);font-size:11px}.mg b{font-size:13px;font-weight:600;white-space:nowrap}
 .mw{font-size:12.5px;background:color-mix(in srgb,var(--wa) 12%,transparent);border-radius:8px;padding:6px 10px}
 .mb{display:flex;gap:6px;margin-top:auto}
+/* ===== premium sidebar + sub tabs ===== */
+nav#nav{background:linear-gradient(180deg,#15120f 0%,#0b0908 100%);color:#cfc7be;border:0;border-right:1px solid #ffffff12;width:256px;padding:18px 14px 14px;display:flex;flex-direction:column;box-shadow:none}
+nav#nav .brand{display:flex;align-items:center;gap:12px;padding:4px 6px 18px;margin:0 0 12px;border:0;border-bottom:1px solid #ffffff14;position:relative}
+nav#nav .brand img{width:44px;height:44px;border-radius:12px;background:#fff;object-fit:cover;box-shadow:0 0 0 1px #ffffff22,0 6px 18px #0008;flex:none}
+nav#nav .brand>div{min-width:0}
+nav#nav .brand b{display:block;color:#fff;font-size:16px;font-weight:650;letter-spacing:.01em;line-height:1.15;text-transform:none}
+nav#nav .brand small{display:block;color:#a89c8f;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-top:3px}
+nav#nav .rl{margin-left:auto;background:#ffffff0d;color:#cfc7be;border:0;box-shadow:none;border-radius:8px;width:26px;height:26px;padding:0;font-size:18px;line-height:1;display:grid;place-items:center;cursor:pointer}nav#nav .rl:hover{background:#ffffff1f;color:#fff}
+nav#nav a{display:flex;align-items:center;gap:12px;padding:9px 10px;margin:3px 0;border-radius:12px;color:#b9afa4;font-size:14px;font-weight:500;position:relative;transition:background .15s,color .15s;background:transparent;box-shadow:none}
+nav#nav a i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#ffffff0d;flex:none;font-style:normal;transition:.15s}
+nav#nav a i svg{width:18px;height:18px}
+nav#nav a:hover{background:#ffffff0a;color:#fff}
+nav#nav a.on{background:linear-gradient(90deg,#ea5a1f2b,#ea5a1f08);color:#fff;font-weight:600}
+nav#nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(#ffb81f,#ea5a1f)}
+nav#nav a.on svg{color:#fff}
+nav#nav a.on i{background:linear-gradient(135deg,#f2711c,#e5342b);color:#fff;box-shadow:0 6px 16px #e5342b55}
+nav#nav a .nb{margin-left:auto;font-style:normal;background:#ea5a1f;color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;min-width:22px;text-align:center}
+nav#nav .nsp{flex:1;min-height:12px}
+nav#nav .nf{display:flex;align-items:center;gap:10px;padding:14px 6px 2px;margin-top:10px;border-top:1px solid #ffffff14}
+nav#nav .nf .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ffb81f,#ea5a1f);color:#1a0f08;font-weight:700;display:grid;place-items:center;flex:none}
+nav#nav .nf b{display:block;color:#fff;font-size:13px;font-weight:600}nav#nav .nf small{color:#a89c8f;font-size:11px}
+nav#nav .nf .lo{margin-left:auto;cursor:pointer;color:#a89c8f;padding:6px 8px;border-radius:8px;font-size:15px}nav#nav .nf .lo:hover{color:#fff;background:#ffffff14}
+#sub{display:flex;gap:4px;padding:4px;background:color-mix(in srgb,var(--tx) 6%,transparent);border-radius:14px;width:max-content;max-width:100%;overflow-x:auto;margin:0 0 20px}
+#sub:empty{display:none}
+#sub a{padding:8px 16px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--mu);cursor:pointer;white-space:nowrap}
+#sub a:hover{color:var(--tx)}
+#sub a.on{background:var(--card);color:var(--tx);font-weight:600;box-shadow:0 1px 2px #0002,0 4px 12px #0000001a}
+main>.top h2{font-size:30px;font-weight:650;letter-spacing:-.03em}
+.kpi,.mcard,.wrap,.card{border-radius:16px}
+@media(min-width:901px){nav#nav{width:256px}
+body.rail nav#nav{width:84px;padding-left:12px;padding-right:12px}
+body.rail nav#nav .brand{flex-direction:column;gap:10px;padding-bottom:14px}
+body.rail nav#nav .brand>div,body.rail nav#nav a span,body.rail nav#nav .nf>div:not(.av){display:none}
+body.rail nav#nav .rl{margin:0;transform:rotate(180deg)}
+body.rail nav#nav a{justify-content:center;padding:8px 0}
+body.rail nav#nav a.on::before{left:-12px}
+body.rail nav#nav a .nb{position:absolute;top:2px;right:6px;min-width:0;width:9px;height:9px;padding:0;font-size:0}
+body.rail nav#nav .nf{flex-direction:column;padding-top:12px}body.rail nav#nav .nf .lo{margin:0}}
+@media(max-width:900px){nav#nav{width:280px;max-width:84vw;padding:16px 12px}nav#nav a.on::before{left:-12px}nav#nav .rl{display:none}nav#nav a{padding:10px}#sub{width:100%}}
+@media print{#sub{display:none!important}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -217,6 +257,7 @@ tr.sel td{background:color-mix(in srgb,var(--ac) 8%,transparent)}
 <div id="ov" onclick="document.body.classList.remove('menu')"></div>
 <div id="tabs"></div>
 <main>
+ <div id="sub"></div>
  <div class="top"><h2 id="ttl"></h2>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
    
@@ -315,12 +356,19 @@ const nm=(mod,id)=>{const r=db[mod].find(x=>x.id==id);return r?r[M[mod].m]:"—"
 const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
 const net=r=>M.payroll.c[1](r);
 function badge(v){const g=["Available","Active","Approved","Done","Resolved","Returned","Contract","Operating","IN","VAT","Half day"],r=["Breakdown","Not operating","Reported","Cancelled","Inactive","Not resolved"],c=g.includes(v)?"ok":r.includes(v)?"bad":["Maintenance","OUT","Standby","Shop rate","In process","Pending","Dispatched","In progress","Quotation","Rented","Scheduled","On leave"].includes(v)?"wa":"";return `<span class="b ${c}">${v}</span>`}
+const GRP=[["dash","Dashboard",["dash"]],["ops","Operations",["fleet","sites","rescue"]],["ppl","People & Payroll",["employees","attendance","payroll"]],["bil","Billing",["invoices","docs"]],["exp","Expenses & Stock",["exp","inventory","stock"]]],GICON={dash:"dash",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Attendance",payroll:"Payroll",invoices:"Invoices",docs:"Quotations",exp:"Expenses",inventory:"Parts inventory",stock:"Stock in / out"};let GLAST={};
+function toggleRail(){document.body.classList.toggle("rail");try{localStorage.setItem("yuvalRail",document.body.classList.contains("rail")?"1":"0")}catch(e){}}
+try{if(localStorage.getItem("yuvalRail")=="1")document.body.classList.add("rail")}catch(e){}
 function nav(){const HIDE=["clients","rentals","maint","receipts"],keys=["dash",...Object.keys(M)].filter(k=>!HIDE.includes(k));if(!keys.includes(cur))cur=keys[0];
- const G=[["",["dash"]],["Operations",["fleet","sites","rescue"]],["People",["employees","attendance","payroll"]],["Money",["invoices","exp","receipts","docs"]],["Stock",["inventory","stock"]]],used=new Set(G.flatMap(g=>g[1])),more=keys.filter(k=>!used.has(k));if(more.length)G.push(["More",more]);
- const lab=k=>k=="dash"?"Dashboard":M[k].t.split(" (")[0],link=k=>`<a class="${k==cur?"on":""}" data-k="${k}">${IC[k]||""}<span>${lab(k)}</span></a>`;
- $("#nav").innerHTML=`<div class="brand"><img src="${LOGO}" alt=""><div><b>Yuval Trucking</b><small>Heavy Equipment Services</small></div></div>`+G.map(([h,ks])=>{const v=ks.filter(k=>keys.includes(k));return v.length?(h?`<div class="ng">${h}</div>`:"")+v.map(link).join(""):""}).join("")+(typeof SB!="undefined"?'<div class="so" onclick="logout()">Sign out</div>':"");
- $("#tabs").innerHTML=["dash","fleet","attendance","payroll"].filter(k=>keys.includes(k)).map(k=>`<a class="${k==cur?"on":""}" data-k="${k}">${IC[k]||""}<span>${lab(k).split(" ")[0]}</span></a>`).join("")+`<a onclick="document.body.classList.toggle('menu')">${ICM}<span>Menu</span></a>`;
- document.querySelectorAll("nav a, #tabs a[data-k]").forEach(a=>a.onclick=()=>{cur=a.dataset.k;$("#q").value="";FE=FF=FT="";AG=false;SK="";QV=null;ECAT="";FC="";ICAT="";PS=false;AST="";RV=false;RCT="";EXV="log";EST="";SEL.clear();go()})}
+ const gs=GRP.map(([id,l,ks])=>({id,l,ks:ks.filter(k=>keys.includes(k))})).filter(g=>g.ks.length),used=new Set(gs.flatMap(g=>g.ks)),more=keys.filter(k=>!used.has(k));if(more.length)gs.push({id:"more",l:"More",ks:more});
+ const cg=gs.find(g=>g.ks.includes(cur));if(cg)GLAST[cg.id]=cur;
+ const td=ltoday(),nr=(db.employees||[]).filter(e=>e.status!="Inactive"&&!(db.attendance||[]).some(a=>a.emp==e.id&&a.date==td)).length,un=(db.invoices||[]).filter(i=>(+i.amount||0)>(+i.paid||0)).length,bc={ppl:nr,bil:un},
+ lab=k=>k=="dash"?"Dashboard":M[k].t.split(" (")[0],tgt=g=>GLAST[g.id]&&g.ks.includes(GLAST[g.id])?GLAST[g.id]:g.ks[0],
+ link=g=>`<a class="${g===cg?"on":""}" data-k="${tgt(g)}" title="${g.l}"><i>${IC[GICON[g.id]||g.ks[0]]||""}</i><span>${g.l}</span>${bc[g.id]?`<em class="nb">${bc[g.id]}</em>`:""}</a>`;
+ $("#nav").innerHTML=`<div class="brand"><img src="${LOGO}" alt=""><div><b>Yuval Trucking</b><small>Heavy Equipment</small></div><button class="rl" type="button" onclick="toggleRail()" title="Collapse menu" aria-label="Collapse menu">‹</button></div>`+gs.map(link).join("")+`<div class="nsp"></div><div class="nf"><div class="av">Y</div><div><b>Administrator</b><small>Cabanatuan City</small></div>${typeof SB!="undefined"?'<span class="lo" onclick="logout()" title="Sign out">⏻</span>':""}</div>`;
+ $("#sub").innerHTML=cg&&cg.ks.length>1?cg.ks.map(k=>`<a class="${k==cur?"on":""}" data-k="${k}">${SL[k]||lab(k)}</a>`).join(""):"";
+ $("#tabs").innerHTML=gs.slice(0,4).map(g=>`<a class="${g===cg?"on":""}" data-k="${tgt(g)}">${IC[GICON[g.id]||g.ks[0]]||""}<span>${g.l.split(" ")[0]}</span></a>`).join("")+`<a onclick="document.body.classList.toggle('menu')">${ICM}<span>Menu</span></a>`;
+ document.querySelectorAll("nav a[data-k], #sub a[data-k], #tabs a[data-k]").forEach(a=>a.onclick=()=>{cur=a.dataset.k;$("#q").value="";FE=FF=FT="";AG=false;SK="";QV=null;ECAT="";FC="";ICAT="";PS=false;AST="";RV=false;RCT="";EXV="log";EST="";SEL.clear();document.body.classList.remove("menu");go()})}
 document.addEventListener("keydown",e=>{if(e.key=="/"&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||"")){const q=$("#q");if(q&&q.offsetParent){e.preventDefault();q.focus()}}});
 function dash(){
  const rev=sum(db.invoices,r=>r.paid),ar=sum(db.invoices,r=>r.amount-r.paid),ex=sum(db.exp,r=>r.amount)+sum(db.maint,r=>r.cost)+sum(db.rescue,r=>r.cost),pay=sum(calcPay("","",false),r=>r.net);
