@@ -68,16 +68,29 @@ async function claude(key, image, prompt) {
 
 module.exports = async (req, res) => {
   const GKEY = process.env.GEMINI_API_KEY, AKEY = process.env.ANTHROPIC_API_KEY, QKEY = process.env.GROQ_API_KEY;
-  if (req.method === "GET") return res.status(200).json({ ok: true, geminiKeySet: !!GKEY, groqKeySet: !!QKEY, anthropicKeySet: !!AKEY });
+  if (req.method === "GET") return res.status(200).json({ ok: true, geminiKeySet: !!GKEY, groqKeySet: !!QKEY, anthropicKeySet: !!AKEY, supabaseVarsSet: !!(process.env.SUPABASE_URL || process.env.SUPABASE_ANON_KEY),
+    // names only (never the values) so a typo or hidden space in a variable name is visible
+    seenNames: Object.keys(process.env).filter(k => /gemini|groq|anthropic|api_key/i.test(k)) });
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   // Only signed-in staff may use this (checks the Supabase login).
-  const SB_URL = process.env.SUPABASE_URL || "https://atkgorpjdiinyycidgqf.supabase.co";
-  const SB_KEY = process.env.SUPABASE_ANON_KEY || "sb_publishable_lE8Ypw1rFpa3VD8i7z6VrA_e04wz6Im";
+  // Tries the Vercel variables first, then the built-in project, so a wrong variable cannot lock everyone out.
+  const DEF = { url: "https://atkgorpjdiinyycidgqf.supabase.co", key: "sb_publishable_lE8Ypw1rFpa3VD8i7z6VrA_e04wz6Im" };
+  const pairs = [];
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) pairs.push({ url: process.env.SUPABASE_URL, key: process.env.SUPABASE_ANON_KEY });
+  pairs.push(DEF);
   const tok = (req.headers.authorization || "").replace("Bearer ", "");
-  if (!tok) return res.status(401).json({ error: "Please sign in" });
-  const u = await fetch(SB_URL + "/auth/v1/user", { headers: { apikey: SB_KEY, authorization: "Bearer " + tok } });
-  if (!u.ok) return res.status(401).json({ error: "Please sign in again" });
+  if (!tok) return res.status(401).json({ error: "Please sign in (no login token was sent)" });
+  let okUser = false, why = "";
+  for (const p of pairs) {
+    try {
+      const u = await fetch(p.url.replace(/\/$/, "") + "/auth/v1/user", { headers: { apikey: p.key, authorization: "Bearer " + tok } });
+      if (u.ok) { okUser = true; break; }
+      const j = await u.json().catch(() => ({}));
+      why = u.status + " " + (j.msg || j.message || j.error_description || j.error || "");
+    } catch (e) { why = "could not reach Supabase: " + e.message; }
+  }
+  if (!okUser) return res.status(401).json({ error: "Please sign in again (Supabase said: " + why.trim() + ")" });
 
   if (!GKEY && !QKEY && !AKEY) return res.status(500).json({ error: "No AI key is set in Vercel. Add GEMINI_API_KEY or GROQ_API_KEY (both free) or ANTHROPIC_API_KEY, then redeploy." });
   const { image, prompt } = req.body || {};
