@@ -1221,7 +1221,7 @@ function orgView(tog,chips,L){const td=ltoday(),G=new Map(),key=e=>{if(OFFROLES.
 const autoOn=()=>{try{return localStorage.getItem("yuvalAuto")=="1"}catch(e){return false}};
 function setAuto(v){try{localStorage.setItem("yuvalAuto",v?"1":"0")}catch(e){}toast(v?"Automatic saving is on. If every name matches an operator, the photo is saved without a check screen.":"Automatic saving is off. You will check each photo before it is saved.")}
 function go(){nav();const d=cur=="dash";$("#ttl").textContent=d?"Dashboard":M[cur].t;$("#mt").textContent=$("#ttl").textContent;document.body.classList.remove("menu");const p=cur=="payroll";$("#add").style.display=d||p||cur=="docs"||cur=="attendance"?"none":"";$("#q").style.display=d||p||cur=="docs"?"none":"";$(".top").style.display="";d?dash():p?payView():cur=="exp"&&RV?reportView():cur=="docs"&&QV?quoteView():table();{const pf=document.getElementById("pf");if(pf&&pf.open&&pf.dataset.mode=="rec"&&cur=="attendance")openRecords(+pf.dataset.id,true)}}
-const NOPAY=["Motorpool","Office","Accountant","Mechanic","Supervisor"],NOEQ=["Welder","Painter","Security"];
+const NOPAY=["Accountant"],NOEQ=["Welder","Painter","Security","Motorpool","Office","Mechanic","Supervisor"];
 function empFx(){const E=$("#frm").elements,ro=E.role.value,h=NOPAY.includes(ro),hp=ro=="Helper",vis=(n,show)=>{const el=E[n];if(!el)return;el.style.display=show?"":"none";if(el.previousElementSibling)el.previousElementSibling.style.display=show?"":"none"};
  vis("equip",!h&&!hp&&!NOEQ.includes(ro));vis("rate",!h);vis("otrate",!h&&!hp);vis("status",!h);vis("helps",hp);
  if(hp){const hs=E.helps,cur0=hs.dataset.init!==undefined?hs.value:String((edit&&db.employees.find(x=>x.id==edit)||{}).helps||""),me=edit;hs.dataset.init="1";
