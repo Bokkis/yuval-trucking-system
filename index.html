@@ -466,7 +466,7 @@ const TB=[
 {t:"invoices",k:"invoices",m:[["ref","invoice_no"],["client","client_id","f"],["rental","rental_id","f"],["amount","amount","n"],["paid","collected","n"],["due","due_date","d"]]},
 {t:"expenses",k:"exp",m:[["desc","description"],["cat","category"],["equip","fleet_id","f"],["emp","employee_id","f"],["mech","mechanic_id","f"],["st","status"],["amount","amount","n"],["date","expense_date","d"],["rcpt","receipt"]]},
 {t:"inventory",k:"inventory",m:[["photo","photo"],["unit","unit"],["cat","category"],["store","storage"],["supplier","supplier"],["part","part"],["qty","qty","n"],["min","min_qty","n"],["cost","unit_cost","n"]]},
-{t:"stock_moves",k:"stock",m:[["date","move_date","d"],["time","move_time","tm"],["part","part_id","f"],["mv","move_type"],["qty","qty","n"],["iname","item_name"],["relto","release_to"],["note","note"]]},
+{t:"stock_moves",k:"stock",m:[["date","move_date","d"],["time","move_time","tm"],["part","part_id","f"],["mv","move_type"],["qty","quantity","n"],["iname","item_name"],["relto","release_to"],["note","note"]]},
 {t:"receipts",k:"receipts",m:[["date","receipt_date","d"],["vt","vat_type"],["tin","tin"],["name","name"],["store","store_no"],["address","address"],["total","total","n"],["ref","ref"],["note","note"]]},
 {t:"maintenance",k:"maint",m:[["task","task"],["equip","fleet_id","f"],["due","service_date","d"],["cost","cost","n"],["status","status"]]},
 {t:"rescue",k:"rescue",m:[["issue","issue"],["equip","fleet_id","f"],["loc","location"],["by","dispatched_to","f"],["cost","cost","n"],["status","status"]]},
@@ -555,11 +555,12 @@ function payPresets(){const P=[["week","This week (Mon–Sun)"],["last","Last we
 function goTodo(k){FE=FF=FT="";AG=false;SK="";ASG="";AST="";MSITE="";MROLE="";MMON="";MGRP=false;try{$("#q").value=""}catch(e){}
  if(k=="norec"){ASG="none";cur="attendance"}else if(k=="unmon"){MMON="todo";cur="attendance"}else if(k=="units"){cur="fleet";FV="cards"}else if(k=="low"){cur="inventory";ICAT="";ILOC="";IMON="";IMV=false}else if(k=="rescue"){cur="rescue"}else if(k=="pay"){const r=payRange("last");PF=r[0];PT=r[1];PS=false;PO="";cur="payroll"}
  go();window.scrollTo(0,0)}
-function todoHTML(){const td=ltoday(),E=db.employees.filter(e=>e.status!="Inactive"&&!OFFROLES.includes(e.role)),
+function todoItems(){const td=ltoday(),E=db.employees.filter(e=>e.status!="Inactive"&&!OFFROLES.includes(e.role)),
  nr=E.filter(e=>!db.attendance.some(a=>a.emp==e.id&&a.date==td)).length,um=E.filter(e=>!monIs(e.id)).length,
  nu=db.fleet.filter(f=>f.status!="Maintenance"&&f.status!="Breakdown"&&!opsOf(f).length).length,
- lw=db.inventory.filter(p=>+p.min>0&&(+p.qty||0)<=+p.min).length,ic=db.rescue.filter(r=>r.status!="Resolved").length,pr=payRange("last"),
- it=[["\u{1F4DD}","Operators with no record today",nr,"norec","Open attendance"],["\u{1F440}","Not yet monitored today",um,"unmon","Start monitoring"],["\u{1F69C}","Units with no operator",nu,"units","Assign operators"],["\u{1F4B0}","Payroll: last week "+pr[0].slice(5)+" to "+pr[1].slice(5),-1,"pay","Open payroll"],["\u{1F4E6}","Parts low on stock",lw,"low","Open inventory"],["\u{1F6DF}","Open rescue incidents",ic,"rescue","Open rescue"]];
+ lw=db.inventory.filter(p=>+p.min>0&&(+p.qty||0)<=+p.min).length,ic=db.rescue.filter(r=>r.status!="Resolved").length,pr=payRange("last");
+ return [["\u{1F4DD}","Operators with no record today",nr,"norec","Open attendance"],["\u{1F440}","Not yet monitored today",um,"unmon","Start monitoring"],["\u{1F69C}","Units with no operator",nu,"units","Assign operators"],["\u{1F4B0}","Payroll: last week "+pr[0].slice(5)+" to "+pr[1].slice(5),-1,"pay","Open payroll"],["\u{1F4E6}","Parts low on stock",lw,"low","Open inventory"],["\u{1F6DF}","Open rescue incidents",ic,"rescue","Open rescue"]]}
+function todoHTML(){const it=todoItems();
  return `<div class="card todo" style="margin-bottom:12px"><div class="top" style="margin-bottom:8px"><b style="font-size:15px">What needs your attention today</b><small style="color:var(--mu)">Click an item to go straight to it</small></div><div class="todog">${it.map(([ic_,l,n,k,a])=>`<button type="button" class="todoi${n==0?" ok":""}" onclick="goTodo('${k}')"><span class="ti">${ic_}</span><span class="tl">${l}</span><span class="tn">${n<0?"➜":n==0?"✓":n}</span><span class="ta">${n==0?"All good":a}</span></button>`).join("")}</div></div>`}
 function qjItems(q){q=q.toLowerCase().trim();const has=k=>k=="dash"||(typeof M!="undefined"&&M[k]),
  P=[["dash","Dashboard","\u{1F3E0}"],["fleet","Fleet / Equipment","\u{1F69C}"],["sites","Sites & Clients","\u{1F4CD}"],["rescue","Rescue","\u{1F6DF}"],["employees","Operators / Employees","\u{1F477}"],["attendance","Attendance & Timesheets","\u{1F4DD}"],["payroll","Payroll","\u{1F4B0}"],["coll","Collection","\u{1F4B5}"],["docs","Quotations","\u{1F4C4}"],["exp","Purchase Order","\u{1F9FE}"],["inventory","Parts inventory","\u{1F4E6}"],["stock","Stock in / out","\u{1F501}"]].filter(x=>has(x[0])&&(!q||x[1].toLowerCase().includes(q))).map(x=>({t:x[2]+" "+x[1],s:"Go to page",f:()=>qjPage(x[0])})),
@@ -639,9 +640,9 @@ function calcPay(f,t,ao){db.ded=db.ded||{};return db.employees.map(e=>{const P=p
  return{e,days,sdays,hrs:Math.round(hrs*100)/100,ot:Math.round(ot*100)/100,rate,basic,shop,meal,otp,ded,k,pend:0,net:Math.round((basic+shop+meal+otp-ded)*100)/100}})}
 function setDed(k,v){db.ded=db.ded||{};db.ded[k]=+v||0;save();payView()}
 function payView(){if(PS)return slipsView();const R=calcPay(PF,PT,false).filter(r=>!PO||r.e.id==PO),T=k=>sum(R,r=>r[k]),P=payC();
- $("#view").innerHTML=`<div class="card" style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:end">${payPresets()}<div><label>From</label><input type="date" id="pf" value="${PF}"></div><div><label>To</label><input type="date" id="pt" value="${PT}"></div><div><label>Operator</label><select id="po"><option value="">All operators</option>${[...db.employees].sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${e.id}"${e.id==PO?" selected":""}>${e.name}</option>`).join("")}</select></div><div><label>Meal allowance (\u20b1)</label><input type="number" style="width:120px" value="${P.meal}" onchange="setPC('meal',this.value)"></div><div><label>Shop rate (\u20b1)</label><input type="number" style="width:110px" value="${P.shop}" onchange="setPC('shop',this.value)"></div><div><label>Half day (% of daily)</label><input type="number" style="width:110px" value="${Math.round(P.half*100)}" onchange="setPC('half',(+this.value||0)/100)"></div><button onclick="PS=true;payView()">\u{1F9FE} Payslips</button></div>
+ $("#view").innerHTML=`<div class="card" style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:end">${payPresets()}<div><label>From</label><input type="date" id="payf" value="${PF}"></div><div><label>To</label><input type="date" id="pt" value="${PT}"></div><div><label>Operator</label><select id="po"><option value="">All operators</option>${[...db.employees].sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${e.id}"${e.id==PO?" selected":""}>${e.name}</option>`).join("")}</select></div><div><label>Meal allowance (\u20b1)</label><input type="number" style="width:120px" value="${P.meal}" onchange="setPC('meal',this.value)"></div><div><label>Shop rate (\u20b1)</label><input type="number" style="width:110px" value="${P.shop}" onchange="setPC('shop',this.value)"></div><div><label>Half day (% of daily)</label><input type="number" style="width:110px" value="${Math.round(P.half*100)}" onchange="setPC('half',(+this.value||0)/100)"></div><button onclick="PS=true;payView()">\u{1F9FE} Payslips</button></div>
  <div class="wrap"><table><tr><th>Operator</th><th>Role</th><th>Days</th><th>Hours</th><th>OT hrs</th><th>Daily rate</th><th>Basic pay</th><th>Shop rate pay</th><th>OT pay</th><th>Meal allowance</th><th>Deductions</th><th>Net pay</th></tr>`+R.map(r=>`<tr><td>${r.e.name}</td><td>${r.e.role||""}</td><td>${r.days}</td><td>${r.hrs}</td><td>${r.ot}</td><td>${peso(r.rate)}</td><td>${peso(r.basic)}</td><td>${peso(r.shop)}${r.sdays?` <small style="color:var(--mu)">(${r.sdays} d)</small>`:""}</td><td>${peso(r.otp)}</td><td>${peso(r.meal)}</td><td><input type="number" style="width:90px" value="${r.ded}" onchange="setDed('${r.k}',this.value)"></td><td><b>${peso(r.net)}</b></td></tr>`).join("")+`<tr><th colspan="2">TOTAL</th><th>${T("days")}</th><th>${T("hrs")}</th><th>${T("ot")}</th><th></th><th>${peso(T("basic"))}</th><th>${peso(T("shop"))}</th><th>${peso(T("otp"))}</th><th>${peso(T("meal"))}</th><th>${peso(T("ded"))}</th><th>${peso(T("net"))}</th></tr></table></div>`;
- $("#pf").onchange=e=>{PF=e.target.value;payView()};$("#pt").onchange=e=>{PT=e.target.value;payView()};$("#po").onchange=e=>{PO=e.target.value;payView()}}
+ $("#payf").onchange=e=>{PF=e.target.value;payView()};$("#pt").onchange=e=>{PT=e.target.value;payView()};$("#po").onchange=e=>{PO=e.target.value;payView()}}
 let FE="",FF="",FT="",AG=false,SK="",SD=1;
 function srt(k){if(SK==k)SD=-SD;else{SK=k;SD=1}table()}
 function invView(){const q=$("#q").value.toLowerCase(),E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),inn={},out={};
@@ -1269,5 +1270,124 @@ boot();
 document.getElementById("llogo").src=LOGO;document.getElementById("mlogo").src=LOGO;
 </script>
 <script>(function(){function fit(){document.querySelectorAll("#view .wrap,#view .hscr").forEach(function(e){if(e.closest(".paper"))return;var t=e.getBoundingClientRect().top+scrollY,h=Math.max(260,innerHeight-Math.min(t,380)-24);e.style.maxHeight=h+"px"})}var tm;function q(){clearTimeout(tm);tm=setTimeout(fit,60)}var v=document.getElementById("view");if(v)new MutationObserver(q).observe(v,{childList:true,subtree:true});addEventListener("resize",q);q()})()</script>
+<style>
+#ybB{position:fixed;right:18px;bottom:18px;z-index:70;width:58px;height:58px;border-radius:50%;border:0;background:var(--ac,#e8470f);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 8px 24px #0006;display:none;place-items:center}#ybB.rd{display:grid}
+#ybB .n{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:#ef4444;color:#fff;font:700 12px Inter,system-ui,sans-serif;display:grid;place-items:center;padding:0 5px;border:2px solid var(--bg,#fff)}
+#ybP{position:fixed;right:18px;bottom:88px;z-index:70;width:400px;max-width:calc(100vw - 24px);height:min(680px,calc(100vh - 110px));display:none;flex-direction:column;background:var(--card,#fff);color:var(--tx,#111);border:1px solid var(--bd,#ddd);border-radius:16px;box-shadow:0 16px 48px #0005;overflow:hidden}
+#ybP.on{display:flex}
+#ybP .h{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--bd,#ddd);background:var(--bg,#f6f6f6)}
+#ybP .h b{font-size:15px}#ybP .h small{display:block;color:var(--mu,#777);font-size:11px}
+#ybP .h button{margin-left:auto;border:0;background:transparent;color:var(--mu,#777);font-size:20px;cursor:pointer}
+#ybM{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ybm{max-width:96%;padding:10px 12px;border-radius:12px;background:var(--bg,#f2f2f2);border:1px solid var(--bd,#ddd);font-size:13px;line-height:1.45;align-self:flex-start}
+.ybm.me{align-self:flex-end;background:var(--ac,#e8470f);color:#fff;border-color:transparent}
+.ybm h4{margin:0 0 6px;font-size:14px}.ybm .ts{font-size:10px;color:var(--mu,#777);margin-top:6px}
+.ybm .kp{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.ybm .kp span{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.ybm .ok{background:#22c55e22;color:#16a34a}.ybm .wa{background:#f59e0b22;color:#d97706}.ybm .no{background:#ef444422;color:#dc2626}.ybm .in{background:#3b82f622;color:#2563eb}
+.ybm .st{border-top:1px solid var(--bd,#ddd);padding:7px 0}.ybm .st:first-of-type{border-top:0}.ybm .sn{display:block}
+.ybm .bt{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}.ybm .bt button,#ybQ button{border:1px solid var(--bd,#ccc);background:var(--card,#fff);color:var(--tx,#111);border-radius:99px;padding:5px 11px;font-size:12px;cursor:pointer}
+.ybm .bt button:hover,#ybQ button:hover{border-color:var(--ac,#e8470f)}
+#ybQ{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--bd,#ddd)}
+#ybF{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--bd,#ddd)}#ybF input{flex:1;min-width:0}#ybF button{border:0;background:var(--ac,#e8470f);color:#fff;border-radius:8px;padding:0 14px;font-weight:600;cursor:pointer}
+@media(max-width:600px){#ybP{right:8px;left:8px;width:auto;bottom:84px}}
+@media print{#ybB,#ybP{display:none!important}}
+@media(max-width:700px){
+main{padding:10px 10px 92px}
+html,body{overflow-x:hidden;max-width:100vw}.rxp{min-width:0}
+#mhead{margin:0 -10px 6px!important;padding:2px 10px 4px!important}
+#alert .alb{padding:7px 10px!important;gap:8px!important;flex-wrap:nowrap!important;align-items:center}
+#alert .alt span{display:none}#alert .alt b{font-size:13px}#alert .alb .s{padding:5px 10px;font-size:12px;white-space:nowrap}
+#sub{overflow-x:auto;white-space:nowrap;scrollbar-width:none;margin-bottom:8px}#sub::-webkit-scrollbar{display:none}#sub a{flex:none}
+.top{flex-wrap:nowrap!important;gap:8px!important;margin-bottom:8px!important;align-items:center}
+.top h2#ttl{display:none}
+.top>div{flex:1;min-width:0;flex-wrap:nowrap!important}
+#q{flex:1;min-width:0;width:auto!important}
+#qjb{font-size:0!important;padding:8px 12px!important;flex:none}#qjb::before{content:"\2315";font-size:18px;line-height:1}
+#add{flex:none;padding:9px 12px}
+.chips{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;white-space:nowrap;padding:6px 12px;font-size:13px}
+.efbar{position:static!important;display:flex;flex-wrap:wrap;gap:0 8px;padding:0!important;border:0!important;background:none!important}
+.efbar>.chips,.efbar>.np{width:100%}
+.efbar>div{margin-bottom:8px!important}.efbar>div:has(select){flex:1 1 calc(50% - 4px);min-width:0}
+.efbar select,select{max-width:none!important}.efbar>div select{width:100%}
+.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.pcard{padding:14px 8px 12px}.pcard .pav{width:56px;height:56px;font-size:20px;margin-bottom:8px}.pname{font-size:13px}
+.card{padding:12px}
+.lsg,.mgrid,.fgrid{grid-template-columns:1fr!important}
+dialog{width:calc(100vw - 16px)!important;max-width:none!important;max-height:92vh}
+input,select,textarea{font-size:16px}
+.rsec h3{font-size:14px}
+button.s{padding:7px 11px}
+}
+@media(max-width:700px){
+#ybB{bottom:78px!important;right:12px!important;width:46px!important;height:46px!important;font-size:21px!important}
+#ybQ{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}#ybQ button{flex:none;white-space:nowrap}
+#ybP{left:8px!important;right:8px!important;width:auto!important;bottom:132px!important;height:calc(100vh - 210px)!important}
+}
+@media(max-width:900px){#burger{display:none!important}#mbar{padding-left:14px}}
+</style>
+<button id="ybB" type="button" title="Yuval Assistant" aria-label="Open assistant">🤖<span class="n" id="ybN" style="display:none"></span></button>
+<div id="ybP" role="dialog" aria-label="Assistant"><div class="h"><span style="font-size:24px">🤖</span><div><b>Yuval Assistant</b><small>Daily & weekly reports · reminders</small></div><button type="button" id="ybX" aria-label="Close">×</button></div>
+<div id="ybM"></div><div id="ybQ"></div><form id="ybF" autocomplete="off"><input id="ybI" placeholder="Ask: report, reminders, payroll, inventory, rescue..."><button>Send</button></form></div>
+<script>
+(function(){
+var K="ybot_v1",MAX=40,msgs=[],st={};
+function ls(g,k,v){try{if(g)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function ready(){return typeof db!="undefined"&&db&&db.employees&&db.employees.length>0&&typeof ltoday=="function"&&typeof liveData=="function"}
+function nowT(){return new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
+function nice(d){return new Date(d+"T12:00:00").toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}
+function siteName(s){return s?(s.client||s.name):"No site"}
+function chip(c,t){return t?'<span class="'+c+'">'+t+'</span>':""}
+function dailyReport(){
+ var td=ltoday(),D=liveData(),rows={};
+ function R(n){return rows[n]=rows[n]||{n:n,op:0,half:0,shop:0,stand:0,off:0,none:0,mt:[],rs:0,rsn:[]}}
+ D.sites.forEach(function(s){var r=R(s.name);s.on.concat(s.off,s.none).forEach(function(x){var a=x.a;if(!x.t)r.none++;else if(a=="Half day")r.half++;else if(a=="Shop rate")r.shop++;else if(a=="Standby")r.stand++;else if(a=="Not operating")r.off++;else r.op++})});
+ var fs=function(f){var s=db.sites.find(function(x){return x.id==f.site});return siteName(s)};
+ db.fleet.forEach(function(f){if(f.status=="Maintenance"||f.status=="Breakdown"){var r=R(fs(f));r.mt.push(f.name+(f.status=="Breakdown"?" (breakdown)":""))}});
+ var newR=0;(db.rescue||[]).forEach(function(x){if(x.status=="Resolved")return;var f=db.fleet.find(function(y){return y.id==x.equip}),r=R(f?fs(f):"No site");r.rs++;r.rsn.push((f?f.name:x.issue||"Incident")+(x.status?" ("+x.status+")":""));if(String(x.id).length>=13&&new Date(+x.id-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10)==td)newR++});
+ var L=Object.keys(rows).map(function(k){return rows[k]}).filter(function(r){return r.op+r.half+r.shop+r.stand+r.off+r.none+r.mt.length+r.rs>0}).sort(function(a,b){return(b.op+b.half+b.shop+b.stand+b.off+b.none)-(a.op+a.half+a.shop+a.stand+a.off+a.none)});
+ var T={op:0,half:0,shop:0,stand:0,off:0,none:0,mt:0,rs:0};L.forEach(function(r){for(var k in T)T[k]+=Array.isArray(r[k])?r[k].length:r[k]});
+ var h='<h4>📋 Daily operator report</h4><div style="color:var(--mu);font-size:12px">'+nice(td)+'</div><div class="kp">'+chip("ok","✅ Operating "+(T.op+T.half))+chip("wa","⏸ Not operating "+(T.stand+T.off))+chip("in","🔧 Shop rate "+T.shop)+chip("wa","🛠 Maintenance "+T.mt)+chip("no","🚨 Rescue "+T.rs)+chip("no","📝 No record "+T.none)+'</div>';
+ h+=L.map(function(r){var p=[];if(r.op)p.push("Operating <b>"+r.op+"</b>");if(r.half)p.push("Half day <b>"+r.half+"</b>");if(r.shop)p.push("Shop rate <b>"+r.shop+"</b>");if(r.stand)p.push("Standby <b>"+r.stand+"</b>");if(r.off)p.push("Not operating <b>"+r.off+"</b>");if(r.none)p.push("No record <b>"+r.none+"</b>");
+  return '<div class="st"><b class="sn">'+esc(r.n)+'</b>'+(p.length?p.join(" · "):"No operators")+(r.mt.length?'<div>🛠 Maintenance: '+esc(r.mt.join(", "))+'</div>':"")+(r.rs?'<div>🚨 Rescue: '+esc(r.rsn.join(", "))+'</div>':"")+'</div>'}).join("")||'<div class="st">No data for today yet.</div>';
+ if(newR)h+='<div class="st">🚨 '+newR+' new rescue incident(s) reported today.</div>';
+ return h+'<div class="bt"><button data-a="goAtt">Open attendance</button><button data-a="copy">Copy</button></div>'}
+function pend(){return todoItems().filter(function(x){return x[3]!="pay"})}
+ function reminders(){var p=pend(),pr=payRange("last"),dow=new Date(ltoday()+"T12:00:00").getDay(),open=p.filter(function(x){return x[2]>0});
+ var h='<h4>⏰ Reminders</h4>';
+ h+=open.length?open.map(function(x){return '<div class="st">'+x[0]+' <b style="display:inline">'+x[2]+'</b> '+x[1]+'<div class="bt"><button data-a="todo:'+x[3]+'">Open</button></div></div>'}).join(""):'<div class="st">✅ All clear. Nothing needs your attention right now.</div>';
+ if(dow==1||dow==2)h+='<div class="st">💰 Payroll for last week ('+pr[0].slice(5)+' to '+pr[1].slice(5)+') is due.<div class="bt"><button data-a="todo:pay">Open payroll</button></div></div>';
+ return h}
+function weeklyInv(){var inv=db.inventory||[],low=inv.filter(function(p){return+p.min>0&&(+p.qty||0)<=+p.min}),val=inv.reduce(function(s,p){return s+(+p.qty||0)*(+p.cost||0)},0),d7=new Date(Date.now()-7*864e5-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10),mv=(db.stock||[]).filter(function(x){return String(x.date)>=d7}),i=0,o=0;mv.forEach(function(x){if(x.mv=="IN")i+=+x.qty||0;else o+=+x.qty||0});
+ var top={};mv.filter(function(x){return x.mv=="OUT"}).forEach(function(x){var n=x.iname||"";if(n)top[n]=(top[n]||0)+(+x.qty||0)});var tl=Object.keys(top).sort(function(a,b){return top[b]-top[a]}).slice(0,5);
+ return '<h4>📦 Weekly inventory report</h4><div style="color:var(--mu);font-size:12px">Last 7 days · '+nice(ltoday())+'</div><div class="kp">'+chip("in","Items "+inv.length)+chip("ok","Stock in "+i)+chip("wa","Stock out "+o)+chip("no","Low stock "+low.length)+'</div><div class="st"><b>Stock value</b>'+php(val)+'</div>'+(low.length?'<div class="st"><b class="sn">Low on stock</b>'+low.slice(0,12).map(function(p){return esc(p.part)+": "+(+p.qty||0)+" left (alert at "+p.min+")"}).join("<br>")+'</div>':'<div class="st">✅ No parts below alert level.</div>')+(tl.length?'<div class="st"><b class="sn">Most used this week</b>'+tl.map(function(n){return esc(n)+" — "+top[n]}).join("<br>")+'</div>':"")+'<div class="bt"><button data-a="todo:low">Open inventory</button></div>'}
+function weeklyPay(){var r=payRange("last"),f=r[0],t=r[1],tot=0,days=0,list=[];
+ db.employees.forEach(function(e){try{var PL=payList(e,empRecs(e,f,t)),s=PL.reduce(function(a,x){return a+x.p.total},0),d=PL.reduce(function(a,x){return a+x.p.d},0);if(d>0||s>0){tot+=s;days+=d;list.push({n:e.name,r:e.role,s:s,d:d})}}catch(x){}});
+ list.sort(function(a,b){return b.s-a.s});
+ return '<h4>💰 Weekly payroll report</h4><div style="color:var(--mu);font-size:12px">'+f+' to '+t+'</div><div class="kp">'+chip("in","Employees paid "+list.length)+chip("ok","Days "+Math.round(days*100)/100)+chip("wa","Total "+php(tot))+'</div>'+(list.slice(0,8).map(function(x){return '<div class="st"><b class="sn">'+esc(x.n)+'</b>'+esc(x.r||"")+" · "+x.d+" day(s) · "+php(x.s)+'</div>'}).join("")||'<div class="st">No attendance recorded for that week.</div>')+(list.length>8?'<div class="st">…and '+(list.length-8)+' more.</div>':"")+'<div class="bt"><button data-a="todo:pay">Open payroll</button></div>'}
+function rescueRep(){var o=(db.rescue||[]).filter(function(r){return r.status!="Resolved"});return '<h4>🛟 Rescue / incidents</h4>'+(o.length?o.map(function(r){var f=db.fleet.find(function(x){return x.id==r.equip});return '<div class="st"><b class="sn">'+esc(r.issue||"Incident")+'</b>'+esc((f?f.name:"")+(r.loc?" · "+r.loc:"")+" · "+(r.status||""))+'</div>'}).join(""):'<div class="st">✅ No open incidents.</div>')+'<div class="bt"><button data-a="todo:rescue">Open rescue</button></div>'}
+function mainRep(){var m=db.fleet.filter(function(f){return f.status=="Maintenance"||f.status=="Breakdown"});return '<h4>🛠 Maintenance</h4>'+(m.length?m.map(function(f){var s=db.sites.find(function(x){return x.id==f.site});return '<div class="st"><b class="sn">'+esc(f.name)+'</b>'+esc(f.status+(s?" · "+siteName(s):""))+'</div>'}).join(""):'<div class="st">✅ No units under maintenance.</div>')+'<div class="bt"><button data-a="todo:units">Open fleet</button></div>'}
+function add(html,me){msgs.push({h:html,me:!!me,t:nowT()});if(msgs.length>MAX)msgs.shift();ls(0,K,msgs);draw()}
+function draw(){var m=document.getElementById("ybM");if(!m)return;m.innerHTML=msgs.map(function(x){return '<div class="ybm'+(x.me?" me":"")+'">'+x.h+'<div class="ts">'+x.t+'</div></div>'}).join("");m.scrollTop=m.scrollHeight}
+function ybBadge(){var n=ready()?pend().reduce(function(s,x){return s+x[2]},0):0,b=document.getElementById("ybN");if(b){b.style.display=n?"grid":"none";b.textContent=n>99?"99+":n}}
+function auto(){if(!ready())return;document.getElementById("ybB").classList.add("rd");var td=ltoday(),s=ls(1,K+"_s")||{},dirty=0,t=new Date(Date.now()-new Date().getTimezoneOffset()*6e4),dow=t.getUTCDay();
+ if(s.d!=td){add(dailyReport());add(reminders());s.d=td;dirty=1}
+ var wk=payRange("week")[0];if(dow>=1&&s.w!=wk){add(weeklyInv());add(weeklyPay());s.w=wk;dirty=1}
+ if(dirty)ls(0,K+"_s",s);ybBadge()}
+function say(q){q=q.toLowerCase();if(!ready())return add("Data is still loading, please try again in a moment.");
+ if(/remind|todo|to-do|task|gawain/.test(q))add(reminders());else if(/pay|salary|sahod/.test(q))add(weeklyPay());else if(/invent|stock|part/.test(q))add(weeklyInv());else if(/rescue|incident|breakdown/.test(q))add(rescueRep());else if(/maint|repair|ayos/.test(q))add(mainRep());else if(/report|today|daily|operator|site|ngayon/.test(q))add(dailyReport());
+ else add('I can send: <b>daily report</b>, <b>reminders</b>, <b>payroll</b>, <b>inventory</b>, <b>rescue</b> or <b>maintenance</b>. Tap a button below.')}
+function init(){var q=document.getElementById("ybQ");q.innerHTML=[["Daily report","daily"],["Reminders","remind"],["Payroll","payroll"],["Inventory","inventory"],["Rescue","rescue"],["Maintenance","maintenance"]].map(function(x){return '<button type="button" data-q="'+x[1]+'">'+x[0]+'</button>'}).join("");
+ q.onclick=function(e){var b=e.target.closest("button");if(!b)return;add(esc(b.textContent),1);say(b.dataset.q)};
+ document.getElementById("ybF").onsubmit=function(e){e.preventDefault();var i=document.getElementById("ybI"),v=i.value.trim();if(!v)return;i.value="";add(esc(v),1);say(v)};
+ document.getElementById("ybM").onclick=function(e){var b=e.target.closest("button[data-a]");if(!b)return;var a=b.dataset.a;if(a=="goAtt"){document.getElementById("ybP").classList.remove("on");cur="attendance";go()}else if(a=="copy"){var t=b.closest(".ybm").innerText;try{navigator.clipboard.writeText(t);b.textContent="Copied ✓"}catch(x){}}else if(a.indexOf("todo:")==0){document.getElementById("ybP").classList.remove("on");goTodo(a.slice(5))}};
+ document.getElementById("ybB").onclick=function(){var p=document.getElementById("ybP");p.classList.toggle("on");if(p.classList.contains("on")){draw();ybBadge()}};
+ document.getElementById("ybX").onclick=function(){document.getElementById("ybP").classList.remove("on")};
+ msgs=ls(1,K)||[];if(!Array.isArray(msgs))msgs=[];draw();
+ var n=0,iv=setInterval(function(){n++;if(ready()){clearInterval(iv);auto()}else if(n>60)clearInterval(iv)},1000);
+ setInterval(function(){auto();ybBadge()},300000)}
+if(document.readyState!="loading")init();else document.addEventListener("DOMContentLoaded",init)})();
+</script>
 </body>
 </html>
