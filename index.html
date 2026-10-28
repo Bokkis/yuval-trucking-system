@@ -362,6 +362,10 @@ body.rail nav#nav .nf{flex-direction:column;padding-top:12px}body.rail nav#nav .
 .mcard.done{border-color:#1f9d55;background:linear-gradient(180deg,#1f9d5512,transparent 60%)}.mb .s{white-space:nowrap;padding-left:10px;padding-right:10px}.mdn{display:inline-block;white-space:nowrap;margin-top:3px;font-size:10.5px;font-weight:700;color:#1f9d55;background:#1f9d5522;border-radius:99px;padding:1px 8px}.mb .s.ok{background:#1f9d55;color:#fff;border-color:#1f9d55}
 .lsl{font-size:12px;color:var(--mu);margin:-2px 0 8px}
 .fop{cursor:pointer;transition:.15s}.fop:hover,.fop:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.efbar{position:sticky;top:0;z-index:30;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 0;margin:0 0 6px;background:var(--bg);border-bottom:1px solid var(--bd)}.efbar>div{margin:0!important}.efbar .chips{margin:0!important}.efbar select{width:auto;min-width:170px;max-width:260px}
+#mhead{position:sticky;top:var(--mb,0px);z-index:40;background:var(--bg);margin:0 -26px 6px;padding:2px 26px 4px;box-shadow:0 1px 0 var(--bd)}@media(max-width:900px){#mhead{margin:0 -14px 6px;padding:2px 14px 4px}}
+#mhead.sc #alert{display:none}#mhead.sc #ttl{font-size:20px}#mhead.sc .top{margin-bottom:6px}
+.efbar{top:var(--hh,0px)!important}
 .lkc{cursor:pointer;transition:transform .12s,box-shadow .12s}.lkc:hover{transform:translateY(-2px);box-shadow:0 0 0 1px var(--ac)}
 .mfl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}.mfl select{width:auto;min-width:170px;max-width:260px}
 .msg{margin:0 0 22px;scroll-margin-top:12px;border-radius:12px;transition:box-shadow .3s}.msg.flash{box-shadow:0 0 0 2px var(--ac)}
@@ -380,6 +384,7 @@ body.rail nav#nav .nf{flex-direction:column;padding-top:12px}body.rail nav#nav .
 <div id="ov" onclick="document.body.classList.remove('menu')"></div>
 <div id="tabs"></div>
 <main>
+ <div id="mhead">
  <div id="alert"></div>
  <div id="sub"></div>
  <div class="top"><h2 id="ttl"></h2>
@@ -388,6 +393,7 @@ body.rail nav#nav .nf{flex-direction:column;padding-top:12px}body.rail nav#nav .
    <input id="q" placeholder="Search   ( / )">
    <button id="add">+ Add</button>
   </div></div>
+ </div>
  <div id="view"></div>
 </main>
 <div id="login" style="position:fixed;inset:0;background:#0c0a09;display:grid;place-items:center;z-index:200;padding:16px;overflow:hidden"><div id="lscene"></div><video id="lvid" autoplay muted loop playsinline preload="auto"><source src="bg.mp4" type="video/mp4" onerror="this.parentNode.remove()"></video><div class="lov"></div><div class="lcard"><div class="lbadge">Fleet &amp; Rental Management</div><img src="${LOGO}" id="llogo" class="llogo"><h2>Yuval Trucking</h2><p class="lsub">Sign in to manage fleet, rentals, payroll and site operations.</p>
@@ -519,6 +525,8 @@ function liveInner(){const{sites,T}=liveData(),tot=T.on+T.off+T.none,chip=(r,c)=
  return `<div class="lvh"><div><b>Today at the sites</b><span class="lvs"><i class="ldot"></i> Live · <span id="lvt">${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span></span></div><button class="s g" onclick="cur='attendance';go()">Open attendance</button></div>
  <div class="lks">${k("Operating today",T.on,"ok","on")}${k("Not operating (standby / off)",T.off,"wa","off")}${k("No record yet",T.none,"no","none")}${k("Total operators",tot,"","")}</div>
  <div class="lsg">${sites.map(s=>{const n=s.on.length+s.off.length+s.none.length,pc=x=>n?x/n*100:0;return `<div class="ls"><div class="lsh"><b>${s.name}</b><span>${s.on.length} of ${n} operating</span></div>${s.loc||s.co?`<div class="lsl">${s.loc&&s.loc!=s.name?"\u{1F4CD} "+s.loc:""}${s.co?(s.loc&&s.loc!=s.name?" \u00b7 ":"")+"\u{1F3E2} "+s.co:""}</div>`:""}<div class="lbar"><i class="ok" style="width:${pc(s.on.length)}%"></i><i class="wa" style="width:${pc(s.off.length)}%"></i><i class="no" style="width:${pc(s.none.length)}%"></i></div><div class="lcs">${s.on.map(r=>chip(r,"on")).join("")}${s.off.map(r=>chip(r,"off")).join("")}${s.none.map(r=>chip(r,"none")).join("")}</div></div>`}).join("")||"<p style='color:var(--mu)'>No operators yet.</p>"}</div>`}
+function setHH(){const m=document.getElementById("mbar"),h=document.getElementById("mhead");if(!h)return;const mb=m&&getComputedStyle(m).display!="none"?m.offsetHeight:0,r=document.documentElement.style;r.setProperty("--mb",mb+"px");r.setProperty("--hh",(mb+h.offsetHeight)+"px")}
+(function(){const h=document.getElementById("mhead");if(!h)return;let st=false;addEventListener("scroll",()=>{const y=scrollY;if(!st&&y>140){st=true;h.classList.add("sc");setHH()}else if(st&&y<20){st=false;h.classList.remove("sc");setHH()}},{passive:true});addEventListener("resize",setHH);if(window.ResizeObserver)new ResizeObserver(setHH).observe(h);setHH()})();
 let DAYK=null;setInterval(()=>{try{const t=ltoday();if(DAYK&&DAYK!=t&&(typeof ready=="undefined"||ready)&&!document.querySelector("dialog[open]")){DAYK=t;if(cur=="dash"||cur=="attendance"||cur=="monitor")go();else if(typeof updLive=="function")updLive()}DAYK=DAYK||t}catch(e){}},30000);
 function updLive(){const e=document.getElementById("lv");if(e)e.innerHTML=liveInner()}
 setInterval(()=>{const e=document.getElementById("lvt");if(e)e.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})},1000);
@@ -1093,7 +1101,7 @@ function employeesView(){const q=$("#q").value.toLowerCase(),S=["Active","On lea
  const roles=[...new Set(L.map(e=>e.role||"No role"))].sort((a,b)=>{const i=x=>{const k=ROLEORD.findIndex(r=>r.toLowerCase()==x.toLowerCase());return k<0?99:k};return i(a)-i(b)||a.localeCompare(b)}),
  rch=`<div style="margin-bottom:14px"><select style="max-width:260px" onchange="ERL=this.value;table()"><option value="">All roles (${L.length})</option>${roles.map(r=>`<option value="${r}"${ERL==r?" selected":""}>${r} (${L.filter(e=>(e.role||"No role")==r).length})</option>`).join("")}</select></div>`,
  sec=roles.filter(r=>!ERL||ERL==r).map(r=>{const g=L.filter(e=>(e.role||"No role")==r);return `<div class="rsec"><h3>${r} <span>${g.length}</span></h3><div class="pgrid">${g.map(card).join("")}</div></div>`}).join("");
- $("#view").innerHTML=tog+chips+(L.length?rch+sec:"<p style='color:var(--mu)'>No one found. Click + Add to add an employee.</p>")}
+ $("#view").innerHTML=`<div class="efbar">${tog+chips+(L.length?rch:"")}</div>`+(L.length?sec:"<p style='color:var(--mu)'>No one found. Click + Add to add an employee.</p>")}
 function pfZoom(src){const b=document.getElementById("pfbig");if(b)b.innerHTML=`<img src="${src}" style="max-width:100%;border-radius:10px;margin-top:6px">`}
 function pfPayslip(id){const d=new Date(),y=d.getFullYear(),m=d.getMonth();PF=y+"-"+String(m+1).padStart(2,"0")+"-01";PT=y+"-"+String(m+1).padStart(2,"0")+"-"+String(new Date(y,m+1,0).getDate());PO=String(id);AO=false;PS=true;document.getElementById("pf").close();cur="payroll";go()}
 function openProfile(id){const e=db.employees.find(x=>x.id==id);if(!e)return;document.getElementById("pf").dataset.mode="";
@@ -1160,7 +1168,7 @@ function orgView(tog,chips,L){const td=ltoday(),G=new Map(),key=e=>{if(OFFROLES.
  const secs=[...db.sites].sort((a,b)=>a.name.localeCompare(b.name)).map(s=>[s,G.get(s.id)||[]]).filter(x=>x[1].length);if(G.get(0))secs.push([null,G.get(0)]);if(G.get(-1))secs.push(["office",G.get(-1)]);
  const sec=([s0,A])=>{const s=s0=="office"?null:s0,offc=s0=="office";A.sort((a,b)=>ord(a.role)-ord(b.role)||a.name.localeCompare(b.name));let last="";
   return `<div class="sitec"><div class="sth"><div><div class="stc">${offc?"Office & support (no site deployment)":s?(s.client||s.name):"No site assigned"}</div>${s?`<div class="sti">\u{1F3E2} ${s.company||"Company not set"}</div><div class="sti">\u{1F6E0}\uFE0F ${s.scope||"Scope of work not set"}</div><div class="sti">\u{1F4CD} ${s.name}</div>`:`<div class="sti">${offc?"No site deployment":"Not linked to a site yet"}</div>`}</div><div class="sti">${A.length} people</div></div><div class="wrap" style="border:0;border-radius:0"><table><tr><th>Designation</th><th>Name</th><th>Equipment</th><th>Cellphone</th><th>Today</th></tr>${A.map(e=>{const f=db.fleet.find(x=>x.id==e.equip),t=db.attendance.filter(a=>a.emp==e.id&&a.date==td).pop(),dsg=e.role||"\u2014",show=dsg!=last;last=dsg;return `<tr style="cursor:pointer" onclick="openProfile(${e.id})"><td>${show?`<b>${dsg}</b>`:""}</td><td>${e.name}</td><td>${f?f.name:"\u2014"}</td><td>${e.phone||"\u2014"}</td><td>${t?badge(t.act||"Operating"):'<span class="b">No record</span>'}</td></tr>`}).join("")}</table></div></div>`};
- $("#view").innerHTML=tog+chips+(secs.length?secs.map(sec).join(""):"<p style='color:var(--mu)'>No one found.</p>")}
+ $("#view").innerHTML=`<div class="efbar">${tog+chips}</div>`+(secs.length?secs.map(sec).join(""):"<p style='color:var(--mu)'>No one found.</p>")}
 const autoOn=()=>{try{return localStorage.getItem("yuvalAuto")=="1"}catch(e){return false}};
 function setAuto(v){try{localStorage.setItem("yuvalAuto",v?"1":"0")}catch(e){}toast(v?"Automatic saving is on. If every name matches an operator, the photo is saved without a check screen.":"Automatic saving is off. You will check each photo before it is saved.")}
 function go(){nav();const d=cur=="dash";$("#ttl").textContent=d?"Dashboard":M[cur].t;$("#mt").textContent=$("#ttl").textContent;document.body.classList.remove("menu");const p=cur=="payroll";$("#add").style.display=d||p||cur=="docs"||cur=="attendance"?"none":"";$("#q").style.display=d||p||cur=="docs"?"none":"";$(".top").style.display="";d?dash():p?payView():cur=="exp"&&RV?reportView():cur=="docs"&&QV?quoteView():table();{const pf=document.getElementById("pf");if(pf&&pf.open&&pf.dataset.mode=="rec"&&cur=="attendance")openRecords(+pf.dataset.id,true)}}
