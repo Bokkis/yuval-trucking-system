@@ -953,7 +953,7 @@ function selAll(on){VIS.forEach(id=>on?SEL.add(id):SEL.delete(id));table()}
 function selHead(){const all=VIS.length&&VIS.every(id=>SEL.has(id));return `<th style="width:34px"><input type="checkbox" style="width:auto" title="Select all shown" ${all?"checked":""} onchange="selAll(this.checked)"></th>`}
 function selBar(){return SEL.size?`<div class="card" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-color:var(--ac)"><b style="font-size:15px;margin:0;display:inline">${SEL.size} selected</b><button class="d" onclick="delSel()">Delete selected</button><button class="g" onclick="SEL.clear();table()">Clear selection</button></div>`:""}
 function delSel(){const n=SEL.size;if(!n)return;$("#cm").textContent="Delete "+n+" monitoring record"+(n>1?"s":"")+"? This cannot be undone.";$("#cy").onclick=()=>{db.attendance=db.attendance.filter(a=>!SEL.has(a.id));SEL.clear();save();$("#cd").close();go();toast("Deleted "+n+" record"+(n>1?"s":""))};$("#cd").showModal()}
-const OPOT=150,otr=e=>(e.role=="Operator"?OPOT:e.role=="Helper"?0:+e.otrate>0?+e.otrate:(+e.rate||0)/8*1.25);
+const OPOT=150,otr=e=>(e.role=="Operator"?OPOT:e.role=="Helper"?0:+e.otrate>0?+e.otrate:(+e.rate||0)/8);
 const otOf=r=>{const k=opKey(r),e=db.employees.find(x=>x.id==r.emp);if(!e||e.role=="Operator")return OPOT;if(SCAN.otr[k]!==undefined)return SCAN.otr[k];return +e.otrate||0};
 function scOtr(k,v){SCAN.otr[decodeURIComponent(k)]=+v||0;scCalc()}
 const siteOf=e=>{const f=db.fleet.find(u=>u.id==e.equip);return(f&&db.sites.find(s=>s.id==f.site))||null};
@@ -1222,7 +1222,7 @@ function dayPay(a,e){const P=payC(),R=+e.rate||0,act=a.act||"Operating";let d=0,
  else if(act=="Shop rate"){sd=1;shop=P.shop}
  if(e.role!==undefined&&e.role!="Operator"){meal=0;shop=0}
  return{d,sd,base,shop,meal,otp,total:base+shop+meal+otp}}
-function empRecs(e,f,t){return db.attendance.filter(a=>a.emp==e.id&&(!f||a.date>=f)&&(!t||a.date<=t)).sort((a,b)=>String(a.date).localeCompare(String(b.date))||a.id-b.id)}
+function empRecs(e,f,t){return db.attendance.filter(a=>a.emp==e.id&&(!f||a.date>=f)&&(!t||a.date<=t)).sort((a,b)=>String(a.date).localeCompare(String(b.date))||a.id-b.id).map(a=>{if((a.act||"Operating")=="Operating"){const x=Math.round(((+a.hrs||0)-8)*100)/100;if(x>0&&(+a.ot||0)<x)a.ot=x}return a})}
 function payList(e,L){const last={};L.forEach(a=>last[a.date]=a.id);return L.map(a=>({a,p:last[a.date]==a.id?dayPay(a,e):{d:0,sd:0,base:0,shop:0,meal:0,otp:0,total:0}}))}
 const rAct=r=>{const h=+r.hrs||0;if(h<=0)return"Standby";return(!r.pm_in&&!r.pm_out&&h<=5)?"Half day":"Operating"};
 function scRowPay(r){const mm=scMeta0(r);return dayPay({act:r.act||"Operating",hrs:r.hrs,ot:r.ot},{rate:rateOf(r),otrate:otOf(r),equip:+mm.equip||0})}
