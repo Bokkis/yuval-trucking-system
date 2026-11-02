@@ -675,7 +675,7 @@ function payView(){if(!SUPU)return supLockScreen("","Payroll");if(PS)return slip
  $("#payf").onchange=e=>{PF=e.target.value;payView()};$("#pt").onchange=e=>{PT=e.target.value;payView()};$("#po").onchange=e=>{PO=e.target.value;payView()}}
 let FE="",FF="",FT="",AG=false,SK="",SD=1;
 function srt(k){if(SK==k)SD=-SD;else{SK=k;SD=1}table()}
-function invView(){if(IMON===""&&!window.__imInit){IMON=ltoday().slice(0,7)}window.__imInit=1;const q=$("#q").value.toLowerCase(),E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),inn={},out={};
+function invView(){stockRelink();if(IMON===""&&!window.__imInit){IMON=ltoday().slice(0,7)}window.__imInit=1;const q=$("#q").value.toLowerCase(),E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),inn={},out={};
  const SNp=invFreeze(),MO=IMON,cm=ltoday().slice(0,7),snM=IMON?SNp[IMON]:null,snP=IMON?SNp[monPrev(IMON)]:null,frozen=!!(IMON&&IMON<cm&&snM),st=MO?MO+"-01":"",en=MO?MO+"-31":"9999-99",aft={},late={};
  (db.stock||[]).forEach(s=>{const d=String(s.date||""),sg=(s.mv=="IN"?1:-1)*(+s.qty||0);if(d>=st&&d<=en){const o=s.mv=="IN"?inn:out;o[s.part]=(o[s.part]||0)+(+s.qty||0)}if(d>=st)aft[s.part]=(aft[s.part]||0)+sg;if(d>en)late[s.part]=(late[s.part]||0)+sg});
  const rows=db.inventory.filter(r=>(!q||[r.part,r.cat,r.store,r.supplier,r.unit].join(" ").toLowerCase().includes(q))&&(!ICAT||(r.cat||"Uncategorized")==ICAT)&&(!ILOC||r.store==ILOC)&&(!IMV||inn[r.id]||out[r.id])&&(!(frozen&&snM[r.id]===undefined)||inn[r.id]||out[r.id])),
@@ -1307,7 +1307,7 @@ $("#sv").onclick=()=>{const mf=$("#frm").elements[M[cur].m];if(mf&&!String(mf.va
  M[cur].f.forEach(f=>{if(f[2]=="i"||f[2]=="im"){o[f[0]]=tmp[f[0]];return}let v=$("#frm").elements[f[0]].value;if(f[2]=="n")v=+v||0;else if(f[2]=="r")v=+v;o[f[0]]=v});if(cur=="attendance"&&o.act=="Leave"){o.hrs=0;o.ot=0;o.ain=o.aout=o.pin=o.pout=o.tin=o.tout="";if(!o.why)o.why="On leave"}if(cur=="attendance"&&o.act=="Pull out"){const t=String(o.why||"").replace(/^pull ?out\s*[-\u2013:]?\s*/i,"").trim();o.act="Not operating";o.why="Pull out"+(t?" \u2013 "+t:"")}if(cur=="attendance"&&o.act=="Operating")o.why="";
  if(cur=="attendance"){if(o.act=="Standby"||o.act=="Not operating"){o.ain=o.aout=o.pin=o.pout=o.tin=o.tout="";o.hrs=0;o.ot=0}o.tin=o.ain||o.pin||"";o.tout=o.pout||o.aout||"";{const e0=db.employees.find(x=>x.id==o.emp),s0_=e0&&siteOf(e0);o.site=s0_?s0_.name:((e0&&e0.place)||o.site||"")}const ns=[o.ain,o.aout,o.pin,o.pout].join("|"),h=sessHrs(o);if(h>0&&(!o.hrs||(edit&&o.hrs==_ph&&_pt!=ns))){o.hrs=h;if(!o.ot||(edit&&_pt!=ns))o.ot=Math.max(0,Math.round((h-8)*100)/100)}}
  if(!edit)db[cur].push(o);
- if(cur=="stock"){const _n=String(o.iname||"").trim().toLowerCase(),_p=db.inventory.find(x=>String(x.part||"").trim().toLowerCase()==_n);o.part=_p?_p.id:0;if(!o.time)o.time=new Date().toTimeString().slice(0,5);stockFx(_old,-1);stockFx(o,1)}
+ if(cur=="stock"){const _n=String(o.iname||"").trim().toLowerCase(),_p=db.inventory.find(x=>String(x.part||"").trim().toLowerCase()==_n);o.part=_p?_p.id:stockMake(o);if(!o.time)o.time=new Date().toTimeString().slice(0,5);stockFx(_old,-1);stockFx(o,1)}
  if(cur=="employees"&&NOPAY.includes(o.role)){o.equip=0;o.rate=0;o.otrate=0}if(cur=="employees"&&NOEQ.includes(o.role))o.equip=0;
  if(cur=="employees"){if(o.role=="Helper"){const op=db.employees.find(x=>x.id==o.helps);o.rate=+o.rate>0?+o.rate:700;o.otrate=0;o.equip=op?op.equip||0:0}else o.helps=0;if(NOPAY.includes(o.role))o.helps=0}
  if(cur=="employees"){const f=db.fleet.find(x=>x.id==o.equip),s=f&&db.sites.find(x=>x.id==f.site);if(s)o.place=s.name}
@@ -1777,6 +1777,11 @@ function monPrev(m){var y=+m.slice(0,4),n=+m.slice(5)-1;if(n<1){n=12;y--}return 
 function invFreeze(){var cur=ltoday().slice(0,7),S=invSnapGet(),ch=0,first=["2026-10"].concat((db.stock||[]).map(function(x){return String(x.date||"").slice(0,7)}).filter(function(x){return /^\d{4}-\d{2}$/.test(x)})).sort()[0],m=first;
  while(m<cur){if(!S[m]){var en=m+"-31",late={},o={};(db.stock||[]).forEach(function(s){if(String(s.date||"")>en)late[s.part]=(late[s.part]||0)+(s.mv=="IN"?1:-1)*(+s.qty||0)});db.inventory.forEach(function(r){o[r.id]=Math.round(((+r.qty||0)-(late[r.id]||0))*100)/100});S[m]=o;ch=1}var y=+m.slice(0,4),n=+m.slice(5)+1;if(n>12){n=1;y++}m=y+"-"+String(n).padStart(2,"0")}
  if(ch){db.invm=JSON.stringify(S);try{save()}catch(e){}}return S}
+</script>
+<script>
+/* ===== Stock In/Out for an item that is not in the inventory yet: add it automatically ===== */
+function stockMake(o){var n=String(o.iname||"").trim();if(!n)return 0;var p=db.inventory.find(function(x){return String(x.part||"").trim().toLowerCase()==n.toLowerCase()});if(p)return p.id;var id=Date.now()+Math.floor(Math.random()*1000);db.inventory.push({id:id,part:n.toUpperCase(),qty:0,unit:"pcs",cat:"Other",store:"",supplier:"",min:0,cost:0,photo:""});return id}
+function stockRelink(){var ch=0;(db.stock||[]).forEach(function(r){if(db.inventory.find(function(x){return x.id==r.part}))return;if(!String(r.iname||"").trim())return;r.part=stockMake(r);if(r.part){stockFx(r,1);ch=1}});if(ch)save();return ch}
 </script>
 </body>
 </html><script>
