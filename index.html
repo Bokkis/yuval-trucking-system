@@ -599,7 +599,7 @@ function dash(){
  const mx=Math.max(rev,ar,ex,pay,1),bar=(l,v)=>`<div class="bar"><span>${l}</span><i style="width:${v/mx*60}%"></i>${peso(v)}</div>`;
  const fc=ST.map(s=>[s,db.fleet.filter(f=>f.status==s).length]),fm=Math.max(...fc.map(x=>x[1]),1);
  const alerts=[...low.map(p=>`<div class="al">Low stock: ${p.part} (${p.qty} left, min ${p.min})</div>`),...exp.map(d=>`<div class="al">Expiring/expired: ${d.title} — ${nm("fleet",d.equip)} (${d.expiry})</div>`),...open.map(r=>`<div class="al r">Open incident: ${r.issue} (${r.status})</div>`),...bd.map(f=>`<div class="al r">Breakdown: ${f.name}</div>`),...db.invoices.filter(i=>i.amount>i.paid&&i.due&&new Date(i.due)<today).map(i=>`<div class="al">Overdue invoice ${i.ref}: ${peso(i.amount-i.paid)}</div>`)];
- $("#view").innerHTML=`<div class="hero"><div><h1>Fleet &amp; Rental Command Center</h1><p>${new Date().toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · Cabanatuan City, Nueva Ecija</p></div><img src="${LOGO}" alt=""></div><div class="grid">${card("Equipment deployed",db.fleet.filter(f=>f.status=="Rented").length)}${card("Equipment available",db.fleet.filter(f=>f.status=="Available").length)}${card("Dispatch operators",new Set([...db.employees.filter(e=>db.fleet.some(f=>f.id==e.equip&&f.status=="Rented")).map(e=>e.id),...db.rescue.filter(r=>r.status=="Dispatched").map(r=>r.by)]).size)}${card("All equipment",db.fleet.length)}</div>${todoHTML()}<div id="lv" class="lv">${liveInner()}</div>
+ $("#view").innerHTML=`<div class="hero"><div><h1>Fleet &amp; Rental Command Center</h1><p>${new Date().toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · Cabanatuan City, Nueva Ecija</p></div><img src="${LOGO}" alt=""></div><div class="grid">${(()=>{const td=ltoday(),E=db.employees.filter(e=>e.status!="Inactive"&&!OFFROLES.includes(e.role)&&e.role!="Mechanic"),T=db.attendance.filter(a=>a.date==td),wk=new Set(T.filter(a=>["Operating","Half day","Shop rate"].includes(a.act||"Operating")).map(a=>a.emp)).size,nl=E.filter(e=>!T.some(a=>a.emp==e.id)).length,ov=db.invoices.filter(i=>i.amount>i.paid&&i.due&&new Date(i.due)<today),att=db.fleet.filter(f=>f.status=="Maintenance"||f.status=="Breakdown").length,k=(l,v,s,pg,c)=>`<div class="card kcl"${pg?` onclick="cur='${pg}';go()${pg=="docs"?";open_(null)":""}" style="cursor:pointer"`:""}><small>${l}</small><b${c?` style="color:${c}"`:""}>${v}</b><small class="ks">${s}</small></div>`;return k("Units under repair",att,att?"maintenance / broken down":"all units running ✓","fleet",att?"#dc2626":"")+k("Expenses",peso(ex),"purchases, repairs & rescue","")+k("Payroll",peso(pay),"total net pay","payroll")+k("Quotation","＋ Create","make a new quotation (one page)","docs")})()}</div>${todoHTML()}<div id="lv" class="lv">${liveInner()}</div>
  ${mapHTML()}<div class="two"><div class="card"><b style="font-size:15px">Finance overview</b>${bar("Collected",rev)}${bar("Receivable",ar)}${bar("Expenses",ex)}${bar("Payroll",pay)}</div>
  <div class="card"><b style="font-size:15px">Fleet status</b>${fc.map(([s,n])=>`<div class="bar"><span>${s}</span><i style="width:${n/fm*60}%;min-width:4px"></i>${n}</div>`).join("")}</div>
  <div class="card"><b style="font-size:15px">Alerts (${alerts.length})</b>${alerts.join("")||"<p>All clear ✅</p>"}</div></div>`}
@@ -790,12 +790,12 @@ async function qPdf(){const src=document.querySelector(".paper"),q=db.quotes.fin
   if(L.type=="date"&&v)v=new Date(v+"T00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"}).replace(/ /g,"-");
   if(ta){s.style.cssText="margin-top:4px";v.split("\n").forEach(l=>{const d=document.createElement("div");d.textContent=l||"\u00a0";d.style.whiteSpace="pre-wrap";s.appendChild(d)})}else s.textContent=v;n.replaceWith(s)});
  cl.querySelectorAll(".np").forEach(e=>e.remove());box.appendChild(cl);document.body.appendChild(box);
- try{const c=await html2canvas(cl,{scale:2,backgroundColor:"#ffffff"}),P=new window.jspdf.jsPDF({unit:"pt",format:"a4"}),pw=P.internal.pageSize.getWidth(),ph=P.internal.pageSize.getHeight(),m=20,uw=pw-2*m,uh=ph-2*m-12,f=uw/c.width,H=Math.floor(uh/f),top=cl.getBoundingClientRect().top,cut=new Set();
+ try{const c=await html2canvas(cl,{scale:2,backgroundColor:"#ffffff"}),P=new window.jspdf.jsPDF({unit:"pt",format:"a4"}),pw=P.internal.pageSize.getWidth(),ph=P.internal.pageSize.getHeight(),m=20,uw=pw-2*m,uh=ph-2*m-12,f=Math.min(uw/c.width,uh/c.height),H=Math.ceil(uh/f)+2,top=cl.getBoundingClientRect().top,cut=new Set();
   cl.querySelectorAll("*").forEach(n=>{const b=Math.round((n.getBoundingClientRect().bottom-top)*2);if(b>0&&b<c.height)cut.add(b)});
   const cuts=[...cut].sort((a,b)=>a-b),pages=[];let y0=0;
   while(c.height-y0>H){const lim=y0+H;let y1=0;for(const b of cuts){if(b>lim)break;if(b>y0+H*.4)y1=b}if(!y1)y1=lim;pages.push([y0,y1]);y0=y1}
   pages.push([y0,c.height]);
-  pages.forEach(([a,b],i)=>{if(i)P.addPage();const s=document.createElement("canvas");s.width=c.width;s.height=b-a;s.getContext("2d").drawImage(c,0,a,c.width,b-a,0,0,c.width,b-a);P.addImage(s.toDataURL("image/jpeg",.95),"JPEG",m,m,uw,(b-a)*f);if(pages.length>1){P.setFontSize(8);P.setTextColor(120);P.text("Page "+(i+1)+" of "+pages.length,pw-m,ph-10,{align:"right"})}});
+  pages.forEach(([a,b],i)=>{if(i)P.addPage();const s=document.createElement("canvas");s.width=c.width;s.height=b-a;s.getContext("2d").drawImage(c,0,a,c.width,b-a,0,0,c.width,b-a);P.addImage(s.toDataURL("image/jpeg",.95),"JPEG",m+(uw-c.width*f)/2,m,c.width*f,(b-a)*f);if(pages.length>1){P.setFontSize(8);P.setTextColor(120);P.text("Page "+(i+1)+" of "+pages.length,pw-m,ph-10,{align:"right"})}});
   const blob=P.output("blob"),name="Quotation-"+(q.no||"draft")+".pdf",dl=(typeof claude!="undefined"&&claude.use)?await claude.use("downloads"):null;
   if(dl){await dl.save({filename:name,data:blob});toast("PDF ready")}
   else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast("PDF downloaded")}
@@ -2145,6 +2145,74 @@ main{padding:20px 24px}
 <script>
 function subRole(e){var r=e.role||"No role";if(r=="Boom truck")return "Boom Truck Operator";if(r=="Trailer")return "Trailer Operator";if(r!="Operator")return r;var f=(db.fleet||[]).find(function(x){return x.id==e.equip}),t=f?((f.type||"")+" "+(f.name||"")):"";if(/boom/i.test(t))return "Boom Truck Operator";if(/crane/i.test(t))return "Crane Operator";if(/trailer/i.test(t))return "Trailer Operator";return r}
 try{["Boom Truck Operator","Crane Operator","Trailer Operator"].forEach(function(n,i){if(ROLEORD.indexOf(n)<0)ROLEORD.splice(ROLEORD.indexOf("Operator")+1+i,0,n)})}catch(e){}
+</script>
+<style id="flist">
+.flt{border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:var(--card);margin-bottom:16px}
+.flh,.flr{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(150px,1.4fr) minmax(130px,1.1fr) minmax(130px,1.1fr) 120px;gap:12px;align-items:center;padding:9px 14px}
+.flh{background:var(--bg);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);border-bottom:1px solid var(--bd)}
+.flr{border-top:1px solid var(--bd);border-left:4px solid transparent}
+.flh+.flr{border-top:0}
+.flr:hover{background:var(--bg)}
+.flr.on{border-left-color:#16a34a}.flr.bd{border-left-color:#dc2626}.flr.sb{border-left-color:#f59e0b}.flr.av{border-left-color:#94a3b8}.flr.pu{border-left-color:#a855f7;opacity:.85}
+.flr{font-size:14px!important}.flr .fs,.flr .fc,.flr .no{font-size:13.5px!important}.flr b{font-size:14px}.flr small{color:var(--mu);display:block;font-size:12px}
+.flr .fu b{display:block}
+.flr .fop2{cursor:pointer;min-width:0}
+.flr .fop2 b{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.flr .fa{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.flr .fa button{padding:5px 12px;font-size:13px}
+.flr .no{color:var(--mu);font-weight:600}
+.flr mark{background:#fde68a;color:inherit;border-radius:3px;padding:0 1px}
+.fgb{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 12px;font-size:13px;color:var(--mu)}
+.fgb .chip{padding:5px 12px;font-size:13px}
+.fcnt{margin-left:auto;font-weight:600}
+@media(max-width:760px){.flh{display:none}.flr{grid-template-columns:1fr auto;gap:4px 10px}.flr .fu{grid-column:1}.flr .fa{grid-column:2;grid-row:1}.flr .fop2,.flr .fs,.flr .fc{grid-column:1/-1}.flr .fs:before{content:"Site: ";color:var(--mu)}.flr .fc:before{content:"Client: ";color:var(--mu)}}
+</style>
+<script>
+var GB="type";
+function fleetView(){
+ var q=$("#q").value.toLowerCase().trim(),C=[["Heavy Equipment","🏗️"],["Trucks","🚛"],["Cranes","🏗"]],
+ W={"Rented":"Rented (on job)","Maintenance":"Under repair","Breakdown":"Broken down"},
+ hl=function(s){s=String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;");if(!q)return s;var i=s.toLowerCase().indexOf(q);return i<0?s:s.slice(0,i)+"<mark>"+s.slice(i,i+q.length)+"</mark>"+s.slice(i+q.length)},
+ L=db.fleet.map(function(f){var o=opsOf(f),st=db.sites.find(function(x){return x.id==f.site})||null;return{f:f,o:o,st:st,txt:[f.name,f.type,f.plate,f.city,f.prov,f.status,st&&st.name,st&&st.client,st&&st.company].concat(o.map(function(e){return e.name})).join(" ").toLowerCase()}}).filter(function(x){return(!q||x.txt.indexOf(q)>-1)&&(!FS||x.f.status==FS)}),
+ row=function(x){var f=x.f,e=x.o[0],st=x.st,ac=actOf(f.id),cl=f.status=="Breakdown"?"bd":f.status=="Maintenance"?"sb":f.status=="Pulled out"?"pu":f.status=="Available"?"av":"on",
+  sn=f.status=="Rented"||st?(st?st.name:""):"",cn=st?[st.client,st.company].filter(Boolean).join(" · "):"",stt=W[f.status]||f.status;
+  return '<div class="flr '+cl+'"><div class="fu"><b>'+hl(f.name)+'</b><small>'+hl(f.type||"")+' · '+hl(f.plate||"No plate")+'</small><span style="margin-top:3px;display:inline-block">'+badge(f.status).replace(/>Rented</,">Rented (on job)<").replace(/>Maintenance</,">Under repair<").replace(/>Breakdown</,">Broken down<")+'</span></div>'+
+  '<div class="fop2" role="button" tabindex="0" title="Click to assign operators" onclick="opPick('+f.id+')"><b>'+(e?hl(e.name)+(ac?" "+badge(ac):""):'<span class="no">None — click to assign</span>')+'</b>'+(e?'<small>'+(e.phone?hl(e.phone):"No cellphone")+(x.o.length>1?" · +"+(x.o.length-1)+" more":"")+'</small>':"")+'</div>'+
+  '<div class="fs">'+(sn?hl(sn):'<span class="no">—</span>')+'</div><div class="fc">'+(cn?hl(cn):'<span class="no">—</span>')+'</div>'+
+  '<div class="fa">'+(f.status=="Pulled out"?'<button class="s" style="background:#16a34a;color:#fff" onclick="backGarage('+f.id+')">✔ Back in garage</button>':"")+(PA&&f.status=="Available"?'<button class="s" style="background:#16a34a;color:#fff" onclick="paAssign('+f.id+')">✔ Assign here</button>':"")+'<button class="s g" onclick="open_('+f.id+')">Edit</button><button class="s d" onclick="del('+f.id+')">✕</button></div></div>'},
+ srt=function(a,b){return a.f.name.localeCompare(b.f.name)||((a.o[0]||{}).name||"").localeCompare((b.o[0]||{}).name||"")},
+ tbl=function(A){return '<div class="flt"><div class="flh"><span>Unit</span><span>Operator</span><span>Site</span><span>Client</span><span></span></div>'+A.sort(srt).map(row).join("")+'</div>'},
+ chipB=function(on,js,t,n){return '<button class="chip'+(on?" on":"")+'" onclick="'+js+'">'+t+(n!=null?' <b>'+n+'</b>':"")+'</button>'},
+ base=L.filter(function(x){return(!FC||fcat(x.f.type)==FC)}),
+ h='<div class="chips" style="margin-bottom:10px">'+chipB(!FC,"FC='';FTY='';table()","All",L.length)+C.map(function(c){return chipB(FC==c[0],"FC='"+c[0]+"';FTY='';table()",c[0],L.filter(function(x){return fcat(x.f.type)==c[0]}).length)}).join("")+
+ (function(){var T={};base.forEach(function(x){var k=x.f.type||"Other";T[k]=(T[k]||0)+1});var ks=Object.keys(T).sort();if(FTY&&!T[FTY])FTY="";return '<select class="ftysel" onchange="FTY=this.value;table()" title="Filter by equipment type"><option value="">All equipment types ('+ks.length+')</option>'+ks.map(function(k){return '<option value="'+k.replace(/"/g,"&quot;")+'"'+(k==FTY?" selected":"")+'>'+k+' ('+T[k]+')</option>'}).join("")+'</select>'})()+'</div>';
+ var V=base.filter(function(x){return!FTY||(x.f.type||"Other")==FTY});
+ h+='<div class="fgb"><span>Group by:</span>'+[["type","Equipment type"],["site","Site"],["client","Client"],["status","Status"],["none","No groups (A–Z)"]].map(function(g){return '<button class="chip'+(GB==g[0]?" on":"")+'" onclick="GB=\''+g[0]+'\';table()">'+g[1]+'</button>'}).join("")+'<span class="fcnt">Showing '+V.length+' of '+db.fleet.length+' units</span></div>';
+ var G={},ord=[];
+ V.forEach(function(x){var k;if(GB=="type")k=x.f.type||"Other";else if(GB=="site")k=x.st?x.st.name:"Not on a site";else if(GB=="client")k=x.st&&(x.st.client||x.st.company)?(x.st.client||x.st.company):"No client";else if(GB=="status")k=W[x.f.status]||x.f.status;else k="All units";if(!G[k]){G[k]=[];ord.push(k)}G[k].push(x)});
+ ord.sort(function(a,b){if(GB=="status"){var o=["Available","Rented (on job)","Under repair","Broken down","Pulled out"];return o.indexOf(a)-o.indexOf(b)}var na=/^(Not on|No client)/.test(a),nb=/^(Not on|No client)/.test(b);return na-nb||a.localeCompare(b)});
+ ord.forEach(function(k){h+=(GB=="none"?"":'<div class="sec">'+hl(k)+' <small>'+G[k].length+'</small></div>')+tbl(G[k])});
+ if(PA){var pe=db.employees.find(function(x){return x.id==PA});if(pe)h='<div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:#16a34a22;border:1px solid #16a34a;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><b style="flex:1">Pick an available unit for '+pe.name+' — press “Assign here”.</b><button class="s" onclick="paCancel()">Cancel</button></div>'+h}
+ $("#view").innerHTML=h+(V.length?"":"<p style='color:var(--mu)'>No equipment found.</p>")}
+</script>
+<style>.kcl .ks{display:block;margin-top:2px;color:var(--mu);font-size:12px}.kcl:hover{border-color:var(--ac)!important}</style><style>#qjb{display:none!important}.paper [contenteditable]{outline:0;border-radius:3px}.paper [contenteditable]:hover{background:#fff8c4}.paper [contenteditable]:focus{background:#fff3a0}@media print{.paper [contenteditable]:hover,.paper [contenteditable]:focus{background:transparent}}</style>
+<script>
+function qj(){}
+(function(){
+ var oo=open_;open_=function(id){if(typeof cur!="undefined"&&cur=="docs"&&!id)return qNew();return oo.apply(this,arguments)};
+ function fit(){var p=document.querySelector(".paper");if(!p||p.dataset.fit)return;p.dataset.fit="1";
+  var ta=[].slice.call(p.querySelectorAll("textarea")),W=Math.floor((210-16)*96/25.4),H=Math.floor((297-16)*96/25.4)-6;
+  p.style.maxWidth="none";p.style.padding="0";p.style.border="0";p.style.width=W+"px";ta.forEach(function(t){t.style.height="auto";t.style.height=t.scrollHeight+4+"px"});
+  p.style.minHeight="0";var h=p.scrollHeight,z=Math.max(.3,Math.min(1.45,H/h));p.style.zoom=z;p.style.width=Math.floor(W/z)+"px";p.style.minHeight=Math.floor(H/z)+"px"}
+ function undo(){var p=document.querySelector(".paper");if(!p||!p.dataset.fit)return;delete p.dataset.fit;p.style.zoom=p.style.width=p.style.maxWidth=p.style.padding=p.style.border="";p.style.minHeight=Math.round(p.offsetWidth*1.414)+"px";p.querySelectorAll("textarea").forEach(function(t){t.style.height="auto";t.style.height=t.scrollHeight+4+"px"})}
+ window.addEventListener("beforeprint",fit);window.addEventListener("afterprint",undo);
+ qPrint=function(){if(!document.querySelector(".paper"))return print();fit();setTimeout(function(){print();setTimeout(function(){if(!matchMedia("print").matches)undo()},600)},80)};
+ function edit(){if(typeof cur=="undefined"||cur!="docs")return;var p=document.querySelector(".paper");if(!p||p.dataset.ed)return;p.dataset.ed="1";db.qh=db.qh||{};p.style.display="flex";p.style.flexDirection="column";p.style.minHeight=Math.round(p.offsetWidth*1.414)+"px";var lc=p.lastElementChild;if(lc)lc.style.marginTop="auto";
+  var els=[[p.querySelector("div[style*='font-size:38px']"),"t"],[p.querySelector("div[style*='ffeb00'][style*='font-size:13px']"),"s"],[p.querySelector("div[style*='text-align:center;font-weight:700;margin:8px 0']"),"q"],[p.querySelector("div[style*='min-width:240px']"),"c"]];
+  els.forEach(function(x){var e=x[0];if(!e)return;e.contentEditable="true";e.spellcheck=false;if(db.qh[x[1]])e.textContent=db.qh[x[1]];e.addEventListener("input",function(){db.qh[x[1]]=e.textContent});e.addEventListener("blur",function(){save()});e.addEventListener("keydown",function(ev){if(ev.key=="Enter")ev.preventDefault()})})}
+ var t=table;table=function(){var r=t.apply(this,arguments);try{edit()}catch(e){}return r};
+ var qv=quoteView;quoteView=function(){var r=qv.apply(this,arguments);try{edit()}catch(e){}return r};
+})();
 </script>
 </body>
 </html><script>
