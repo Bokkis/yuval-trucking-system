@@ -1935,7 +1935,7 @@ main{padding:20px 24px}
  function ls(){try{return localStorage.getItem("yb_big")=="1"}catch(e){return false}}
  function setBig(b){P.classList.toggle("big",b);try{localStorage.setItem("yb_big",b?"1":"0")}catch(e){}ex.textContent=b?"⤡":"⤢";ex.title=b?"Make smaller":"Make bigger"}
  var ex=document.createElement("button");ex.type="button";ex.className="hb";ex.onclick=function(){setBig(!P.classList.contains("big"))};
- var pr=document.createElement("button");pr.type="button";pr.className="hb";pr.textContent="🖨";pr.title="Print a report";pr.onclick=function(e){e.stopPropagation();var m=document.getElementById("ybMenu");if(m){m.remove();return}m=document.createElement("div");m.id="ybMenu";m.innerHTML='<b>Print which report?</b><button data-k="mon">\ud83d\udccb Monitoring (today)</button><button data-k="pay">\ud83d\udcb0 Payroll (last week)</button><button data-k="res">\ud83d\udedf Rescue</button><button data-k="invd">\ud83d\udce6 Inventory \u2014 Today</button><button data-k="inv">\ud83d\udce6 Inventory \u2014 Weekly</button><button data-k="sd">\ud83d\udce5 Stock In/Out \u2014 Daily</button><button data-k="sw">\ud83d\udce5 Stock In/Out \u2014 Weekly</button>';P.appendChild(m);m.onclick=function(ev){var b=ev.target.closest("button[data-k]");if(!b)return;m.remove();printSheet(SH[b.dataset.k]())}};document.addEventListener("click",function(e){var m=document.getElementById("ybMenu");if(m&&!e.target.closest("#ybMenu"))m.remove()});
+ var pr=document.createElement("button");pr.type="button";pr.className="hb";pr.textContent="🖨";pr.title="Print a report";pr.onclick=function(e){e.stopPropagation();var m=document.getElementById("ybMenu");if(m){m.remove();return}m=document.createElement("div");m.id="ybMenu";m.innerHTML='<b>Print which report?</b><button data-k="mon">\ud83d\udccb Monitoring (today)</button><button data-k="pay">\ud83d\udcb0 Payroll (last week)</button><button data-k="res">\ud83d\udedf Rescue</button><button data-k="invd">\ud83d\udce6 Inventory \u2014 Today</button><button data-k="inv">\ud83d\udce6 Inventory \u2014 Weekly</button><button data-k="sd">\ud83d\udce5 Stock In/Out \u2014 Daily</button><button data-k="sw">\ud83d\udce5 Stock In/Out \u2014 Weekly</button>';P.appendChild(m);m.onclick=function(ev){var b=ev.target.closest("button[data-k]");if(!b)return;m.remove();if(b.dataset.k=="pay"&&!isPR())return gate();printSheet(SH[b.dataset.k]())}};document.addEventListener("click",function(e){var m=document.getElementById("ybMenu");if(m&&!e.target.closest("#ybMenu"))m.remove()});
  H.insertBefore(ex,X);H.insertBefore(pr,X);setBig(ls());
 
  function E(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -1987,6 +1987,12 @@ main{padding:20px 24px}
   var B=document.getElementById("ybPrint");B.innerHTML=h;document.body.classList.add("ybpr");
   var done=function(){document.body.classList.remove("ybpr");B.innerHTML="";window.removeEventListener("afterprint",done)};window.addEventListener("afterprint",done);
   setTimeout(function(){window.print();setTimeout(done,1500)},80)}
+ function isPR(){return window.ROLE=="payroll"}
+ function gate(){if(document.getElementById("ybGate"))return;var d=document.createElement("div");d.id="ybGate";d.innerHTML='<div class="gb"><div style="font-size:34px">🔒</div><h3>Payroll Officer login</h3><p>Payroll is private. Only the <b>Payroll Officer</b> can open it.</p><p style="font-size:13px;color:var(--mu)">'+(typeof SB!="undefined"?"You will be signed out of Administrator and taken to the login screen for Payroll Officer.":"Preview: this will switch to the Payroll Officer account.")+'</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button type="button" id="ybGo">Go to Payroll Officer login</button><button type="button" class="g" id="ybNo">Cancel</button></div></div>';document.body.appendChild(d);
+  document.getElementById("ybNo").onclick=function(){d.remove()};d.onclick=function(e){if(e.target==d)d.remove()};
+  document.getElementById("ybGo").onclick=async function(){d.remove();P.classList.remove("on");if(typeof SB!="undefined"){try{localStorage.setItem("yt_role","payroll")}catch(e){}try{await clearAuth()}catch(e){}location.reload()}else{demoRole()}}}
+ function lockMsg(m){if(isPR()||m.dataset.lk)return;var t=((m.querySelector("h4")||{}).textContent||"");if(!/payroll/i.test(t))return;m.dataset.lk="1";m.innerHTML='<h4>💰 Payroll report</h4><div class="st">🔒 Payroll is private. Only the Payroll Officer can see this.</div><div class="bt"><button type="button" class="ybpl">🔒 Payroll Officer login</button></div>'}
+ M.addEventListener("click",function(e){var b=e.target.closest(".ybpl,button[data-a='todo:pay']");if(!b||isPR())return;e.stopImmediatePropagation();e.preventDefault();gate()},true);
  function reps(){return Array.prototype.filter.call(M.querySelectorAll(".ybm:not(.me)"),function(m){return m.querySelector("h4")})}
  function printReps(list){var L=Array.prototype.filter.call(list,function(m){return m.querySelector("h4")});if(!L.length){if(typeof toast=="function")toast("No report to print yet");return}
   var d=new Date(),ds=d.toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric",year:"numeric"}),ts=d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
@@ -1996,8 +2002,8 @@ main{padding:20px 24px}
   var B=document.getElementById("ybPrint");B.innerHTML=h;document.body.classList.add("ybpr");
   var done=function(){document.body.classList.remove("ybpr");B.innerHTML="";window.removeEventListener("afterprint",done)};window.addEventListener("afterprint",done);
   setTimeout(function(){window.print();setTimeout(done,1500)},80)}
- function decorate(){reps().forEach(function(m){if(m.querySelector(".ybpb"))return;var b=document.createElement("button");b.type="button";b.className="ybpb";b.textContent=/inventory/i.test((m.querySelector("h4")||{}).textContent||"")?"🖨 Print weekly":"🖨 Print";var bt=m.querySelector(".bt");if(!bt){bt=document.createElement("div");bt.className="bt";m.insertBefore(bt,m.querySelector(".ts"))}bt.appendChild(b);if(/inventory/i.test((m.querySelector("h4")||{}).textContent||"")){var b2=document.createElement("button");b2.type="button";b2.className="ybpb";b2.dataset.k="invd";b2.textContent="🖨 Print today";bt.appendChild(b2)}})}
- M.addEventListener("click",function(e){var b=e.target.closest(".ybpb");if(!b)return;e.stopPropagation();var m=b.closest(".ybm"),t=((m.querySelector("h4")||{}).textContent||"");var k=/Daily operator/.test(t)?"mon":/payroll/i.test(t)?"pay":/inventory/i.test(t)?"inv":/Rescue/i.test(t)?"res":"";if(b.dataset.k)printSheet(SH[b.dataset.k]());else if(k)printSheet(SH[k]());else printReps([m])},true);
+ function decorate(){Array.prototype.forEach.call(M.querySelectorAll(".ybm:not(.me)"),lockMsg);reps().forEach(function(m){if(m.dataset.lk)return;if(m.querySelector(".ybpb"))return;var b=document.createElement("button");b.type="button";b.className="ybpb";b.textContent=/inventory/i.test((m.querySelector("h4")||{}).textContent||"")?"🖨 Print weekly":"🖨 Print";var bt=m.querySelector(".bt");if(!bt){bt=document.createElement("div");bt.className="bt";m.insertBefore(bt,m.querySelector(".ts"))}bt.appendChild(b);if(/inventory/i.test((m.querySelector("h4")||{}).textContent||"")){var b2=document.createElement("button");b2.type="button";b2.className="ybpb";b2.dataset.k="invd";b2.textContent="🖨 Print today";bt.appendChild(b2)}})}
+ M.addEventListener("click",function(e){var b=e.target.closest(".ybpb");if(!b)return;e.stopPropagation();var m=b.closest(".ybm"),t=((m.querySelector("h4")||{}).textContent||"");var k=/Daily operator/.test(t)?"mon":/payroll/i.test(t)?"pay":/inventory/i.test(t)?"inv":/Rescue/i.test(t)?"res":"";if(b.dataset.k=='pay'&&!isPR())gate();else if(b.dataset.k)printSheet(SH[b.dataset.k]());else if(k)printSheet(SH[k]());else printReps([m])},true);
  new MutationObserver(decorate).observe(M,{childList:true});decorate();
 })();
 </script>
@@ -2010,6 +2016,45 @@ main{padding:20px 24px}
 #ybPrint .sg{display:flex;gap:30px;margin-top:40px}#ybPrint .sg div{flex:1;text-align:center;font-size:14px;font-weight:700}#ybPrint .sg span{display:block;border-bottom:2px solid #111;height:34px;margin-bottom:6px}}</style>
 <style>#ybMenu{position:absolute;right:12px;top:64px;z-index:5;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:0 10px 30px #0004;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:230px}#ybMenu b{font-size:12px;color:var(--mu);padding:2px 6px}#ybMenu button{text-align:left;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;padding:10px 12px;font-size:14px;cursor:pointer}#ybMenu button:hover{border-color:var(--ac)}
 @media print{#ybPrint tr.tt td{background:#eee!important;font-size:16px}}</style>
+<style>#ybGate{position:fixed;inset:0;z-index:200;background:#0009;display:grid;place-items:center;padding:16px}#ybGate .gb{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:16px;padding:26px 24px;max-width:400px;text-align:center;box-shadow:0 20px 60px #0008}#ybGate h3{margin:6px 0 8px;font-size:20px}#ybGate p{margin:6px 0}#ybGate button{padding:11px 16px;font-size:14px}</style>
+<style>
+.pgrid{grid-template-columns:repeat(auto-fill,minmax(235px,1fr))!important;gap:8px!important}
+.pcard{display:grid!important;grid-template-columns:46px 1fr auto;grid-template-areas:"av nm nm" "av rl ds" "av eq eq";align-self:start;column-gap:11px;row-gap:1px;align-items:center;text-align:left!important;padding:9px 12px!important;border-radius:12px!important;position:relative;border-left:4px solid var(--rc,var(--bd))!important;min-height:0}
+.pcard .pav{grid-area:av;width:46px!important;height:46px!important;font-size:17px!important;margin:0!important;box-shadow:none!important;border:2px solid var(--bd)}
+.pcard.ds-norec .pav{border-color:#f59e0b}.pcard.ds-duty .pav,.pcard.ds-done .pav,.pcard.ds-rec .pav{border-color:#22c55e}.pcard.ds-leave .pav,.pcard.ds-off .pav{border-color:#64748b}
+.pcard .pname{grid-area:nm;font-size:13.5px!important;font-weight:650;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcard .prole{grid-area:rl;font-size:12px;color:var(--mu)}
+.pcard .peq{grid-area:eq;font-size:11.5px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
+.pcard .peq:empty{display:none}
+.pcard .dsb{grid-area:ds;margin:0!important;padding:2px 8px!important;font-size:10.5px!important;white-space:nowrap}
+.pcard>.pcl{display:none!important}
+.pcard.pullp .pcl{display:block!important;grid-column:1/4;margin-top:6px}.pcard.pullp::after{display:none!important}.pcard.pullp .prole::after{content:" \00b7  PULL OUT";color:#f87171;font-weight:700}
+.pcard.pullp::after{font-size:18px!important}
+.rsec{margin:0 0 16px!important}
+.rsec h3{font-size:13px!important;text-transform:uppercase;letter-spacing:.6px;color:var(--mu);border-bottom:1px solid var(--bd)!important;padding-bottom:6px!important;margin-bottom:8px!important}
+.rsec h3 span{background:var(--tx)!important;color:var(--bg)!important;font-size:11px!important;padding:1px 8px;border-radius:99px}
+.pplbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0}
+.pplbar input{max-width:340px;border-radius:99px;padding:10px 16px;font-size:14px}
+.pplbar .cnt{color:var(--mu);font-size:13px}
+.pplbar .rc{display:flex;gap:6px;flex-wrap:wrap}
+.pplbar .rc button{padding:5px 11px;font-size:12px}
+</style>
+<script>
+(function(){
+ var Q="",RF="";
+ function apply(){var v=document.getElementById("view");if(!v)return;var q=Q.trim().toLowerCase(),n=0,tot=0;
+  v.querySelectorAll(".rsec").forEach(function(sec){var vis=0;sec.querySelectorAll(".pcard").forEach(function(c){tot++;var ok=(!q||c.textContent.toLowerCase().indexOf(q)>-1);c.style.display=ok?"":"none";if(ok){vis++;n++}});sec.style.display=vis?"":"none"});
+  var c=document.getElementById("pplc");if(c)c.textContent=(q?"Showing "+n+" of "+tot:tot+" employees")}
+ function build(){if(typeof cur=="undefined"||cur!="employees")return;var v=document.getElementById("view");if(!v||v.querySelector(".pplbar"))return;var first=v.querySelector(".rsec");if(!first)return;
+  var b=document.createElement("div");b.className="pplbar";b.innerHTML='<input id="pplq" type="search" placeholder="🔎 Find employee: name, role, machine..." autocomplete="off"><span class="cnt" id="pplc"></span><div class="rc" id="pplr"></div>';first.parentNode.insertBefore(b,first);
+  var i=b.querySelector("input");i.value=Q;i.oninput=function(){Q=i.value;apply()};
+  var R=document.getElementById("pplr");v.querySelectorAll(".rsec h3").forEach(function(h){var t=h.firstChild.textContent.trim(),sec=h.closest(".rsec"),a=document.createElement("button");a.type="button";a.className="chip";a.textContent=t+" "+sec.querySelectorAll(".pcard").length;a.onclick=function(){sec.scrollIntoView({behavior:"smooth",block:"start"})};R.appendChild(a)});
+  v.querySelectorAll(".pcard").forEach(function(c){var m=c.getAttribute("style");});
+  apply()}
+ var t=table;table=function(){var r=t.apply(this,arguments);try{build()}catch(e){}return r};
+ try{build()}catch(e){}
+})();
+</script>
 </body>
 </html><script>
 var MV="list",MNEED=false;
