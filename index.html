@@ -534,7 +534,7 @@ function nav(){const HIDE=["clients","rentals","maint","receipts","invoices","ex
  $("#tabs").innerHTML=gs.slice(0,4).map(g=>`<a class="${g===cg?"on":""}" data-k="${tgt(g)}">${IC[GICON[g.id]||g.ks[0]]||""}<span>${g.l.split(" ")[0]}</span></a>`).join("")+`<a onclick="document.body.classList.toggle('menu')">${ICM}<span>Menu</span></a>`;
  document.querySelectorAll("nav a[data-k], #sub a[data-k], #tabs a[data-k]").forEach(a=>a.onclick=()=>{cur=a.dataset.k;ASG="";$("#q").value="";FE=FF=FT="";AG=false;SK="";QV=null;ECAT="";FC="";ICAT="";PS=false;AST="";RV=false;RCT="";EXV="log";EST="";SEL.clear();document.body.classList.remove("menu");go()})}
 document.addEventListener("keydown",e=>{if(e.key=="/"&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||"")){const q=$("#q");if(q&&q.offsetParent){e.preventDefault();q.focus()}}});
-const OFFROLES=["Office","Accountant","Motorpool","Security","Welder","Painter"];
+const OFFROLES=["Office","Accountant","Motorpool","Security","Welder","Painter","Dispatcher"];
 function liveData(){const td=ltoday(),S={},T={on:0,off:0,none:0};
  db.employees.filter(e=>e.status!="Inactive"&&!OFFROLES.includes(e.role)).forEach(e=>{const L=db.attendance.filter(a=>a.emp==e.id&&a.date==td),t=L[L.length-1],ss=(t&&t.site&&db.sites.find(x=>x.name==t.site))||siteOf(e),nmS=ss?(ss.client||ss.name):((t&&t.site)||e.place||"No site assigned"),ky=ss?"s"+ss.id:nmS,a=t?(t.act||"Operating"):"",g=!t?"none":(a=="Operating"||a=="Half day"||a=="Shop rate")?"on":"off",o=S[ky]=S[ky]||{name:nmS,loc:ss?ss.name:"",co:ss?(ss.company||""):"",on:[],off:[],none:[]};o[g].push({e,t,a});T[g]++});
  return{sites:Object.values(S).sort((a,b)=>(b.on.length+b.off.length+b.none.length)-(a.on.length+a.off.length+a.none.length)||a.name.localeCompare(b.name)),T}}
@@ -1004,7 +1004,7 @@ function monKpis(){const td=ltoday(),E=db.employees.filter(e=>e.status!="Inactiv
  return `<div class="kpis">${k("Operators",E.length,"","")}${k("Operating",cnt("Operating"),"ok","Operating")}${k("Half day",cnt("Half day"),"ok","Half day")}${k("Shop rate",cnt("Shop rate"),"wa","Shop rate")}${k("Standby",cnt("Standby"),"wa","Standby")}${k("Not operating",cnt("Not operating"),"bd","Not operating")}${k("No record today",none,"","none")}</div>`}
 const ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")},uniq=A=>A.filter((x,i)=>A.filter(z=>z.date==x.date).pop()===x);
 function profiles(){const td=mday(),mI=id=>monIs(id,td),ym=td.slice(0,7),R2=x=>Math.round(x*100)/100,
- rows=[...db.employees].filter(e=>e.status!="Inactive").sort((a,b)=>a.name.localeCompare(b.name)).map(e=>{const A=db.attendance.filter(a=>a.emp==e.id),T=A.filter(a=>a.date==td),t=T[T.length-1],mo=uniq(A.filter(a=>a.date>=ago(29)&&a.date<=td));return{e,t,mo,f:db.fleet.find(x=>x.id==e.equip),s:siteOf(e),st:t?(t.act||"Operating"):"none"}}).map(r=>(r.sn=r.s?r.s.name:(canonSite(r.e.place)||"No site"),r)),
+ rows=[...db.employees].filter(e=>e.status!="Inactive").sort((a,b)=>a.name.localeCompare(b.name)).map(e=>{const A=db.attendance.filter(a=>a.emp==e.id),T=A.filter(a=>a.date==td),t=T[T.length-1],mo=uniq(A.filter(a=>a.date>=ago(29)&&a.date<=td));return{e,t,mo,f:db.fleet.find(x=>x.id==e.equip),s:siteOf(e),st:t?(t.act||"Operating"):"none"}}).map(r=>{if(OFFROLES.includes(r.e.role)){r.s=null;r.sn="Office";r.f=null}else r.sn=r.s?r.s.name:(canonSite(r.e.place)||"No site");return r}),
  q0=(($("#q")||{}).value||"").toLowerCase().trim(),
  base=rows.filter(r=>(!AST||r.st==AST)&&(!ASG||grpOf(r.st)==ASG)),
  sites=[...new Set(rows.map(r=>r.sn))].sort((a,b)=>(a=="No site")-(b=="No site")||a.localeCompare(b)),
@@ -1286,7 +1286,7 @@ function orgView(tog,chips,L){const td=ltoday(),G=new Map(),key=e=>{if(OFFROLES.
 const autoOn=()=>{try{return localStorage.getItem("yuvalAuto")=="1"}catch(e){return false}};
 function setAuto(v){try{localStorage.setItem("yuvalAuto",v?"1":"0")}catch(e){}toast(v?"Automatic saving is on. If every name matches an operator, the photo is saved without a check screen.":"Automatic saving is off. You will check each photo before it is saved.")}
 function go(){nav();const d=cur=="dash";$("#ttl").textContent=d?"Dashboard":M[cur].t;$("#mt").textContent=$("#ttl").textContent;if(cur=="fleet")$("#ttl").innerHTML=fleetChips();document.body.classList.remove("menu");const p=cur=="payroll";$("#add").style.display=d||p||cur=="docs"||cur=="dtr"||cur=="attendance"||cur=="po"||cur=="pof"?"none":"";$("#q").style.display=d||p||cur=="docs"||cur=="dtr"||cur=="po"||cur=="pof"?"none":"";$(".top").style.display="";d?dash():cur=="dtr"?dtrView():cur=="pof"?pofView():cur=="po"?poView():p?payView():cur=="exp"&&RV?reportView():cur=="docs"&&QV?quoteView():table();{const pf=document.getElementById("pf");if(pf&&pf.open&&pf.dataset.mode=="rec"&&cur=="attendance")openRecords(+pf.dataset.id,true)}}
-const NOPAY=["Accountant"],NOEQ=["Welder","Painter","Security","Motorpool","Office","Mechanic","Supervisor"];
+const NOPAY=["Accountant"],NOEQ=["Welder","Painter","Security","Motorpool","Office","Mechanic","Supervisor","Dispatcher"];
 function empFx(){const E=$("#frm").elements,ro=E.role.value,h=NOPAY.includes(ro),hp=ro=="Helper",vis=(n,show)=>{const el=E[n];if(!el)return;el.style.display=show?"":"none";if(el.previousElementSibling)el.previousElementSibling.style.display=show?"":"none"};
  vis("equip",!h&&!hp&&!NOEQ.includes(ro));vis("trailer",false);vis("rate",!h);vis("otrate",!h&&!hp&&ro!="Operator");vis("status",!h);vis("helps",hp);
  if(hp){const hs=E.helps,cur0=hs.dataset.init!==undefined?hs.value:String((edit&&db.employees.find(x=>x.id==edit)||{}).helps||""),me=edit;hs.dataset.init="1";
@@ -2121,6 +2121,27 @@ main{padding:20px 24px}
  var t=table;table=function(){var r=t.apply(this,arguments);try{deco2()}catch(e){}return r};try{deco2()}catch(e){}
 })();
 </script>
+<script>
+(function(){
+ var Q="";
+ function apply(){var v=document.getElementById("view");if(!v)return;var q=Q.trim().toLowerCase(),n=0,tot=0;
+  v.querySelectorAll(".mcard,.mlist tbody tr").forEach(function(c){if(c.querySelector("th"))return;tot++;var ok=!q||c.textContent.toLowerCase().indexOf(q)>-1;c.style.display=ok?"":"none";if(ok)n++});
+  var c=document.getElementById("monc");if(c)c.textContent=q?"Showing "+n+" of "+tot:tot+" employees"}
+ function build(){if(typeof cur=="undefined"||cur!="attendance")return;var v=document.getElementById("view");if(!v||v.querySelector("#monq"))return;var ref=v.querySelector(".mh2");if(!ref)return;
+  var sel=v.querySelector('select[aria-label="Filter by role"]');
+  var b=document.createElement("div");b.className="pplbar";b.innerHTML='<input id="monq" type="search" placeholder="🔎 Find employee: name, role, machine..." autocomplete="off"><span class="cnt" id="monc"></span><div class="rc" id="monr"></div>';ref.parentNode.insertBefore(b,ref);
+  var i=b.querySelector("input"),qq=document.getElementById("q");i.value=Q=(qq?qq.value:Q);i.oninput=function(){Q=i.value;if(qq)qq.value=Q;table()};if(Q&&document.activeElement!=i){}
+  var R=b.querySelector("#monr");
+  if(sel){Array.prototype.slice.call(sel.options).forEach(function(o){if(!o.value)return;var m=/^(.*) \((\d+)\)$/.exec(o.textContent.trim()),a=document.createElement("button");a.type="button";a.className="chip"+(o.selected?" on":"");a.textContent=m?m[1]+" "+m[2]:o.textContent;a.onclick=function(){MROLE=(MROLE==o.value?"":o.value);table()};R.appendChild(a)});sel.style.display="none"}
+  var sh=/(\d+) shown/.exec((ref.textContent||""));var c=b.querySelector("#monc");if(c)c.textContent=(sh?sh[1]:"0")+" employees"+(Q?" found":"");if(Q&&!window.__monx){var ch=false;v.querySelectorAll(".msg").forEach(function(e){if(e.querySelector(".msh.col")){MCOL[e.dataset.site]=false;ch=true}});if(ch){window.__monx=1;table();window.__monx=0;return}}if(Q&&window.__monf){i.focus();try{i.setSelectionRange(Q.length,Q.length)}catch(e){}}}
+ var t=table;table=function(){var f=document.activeElement&&document.activeElement.id=="monq";if(!window.__monx)window.__monf=f;var r=t.apply(this,arguments);try{build()}catch(e){}return r};try{build()}catch(e){}
+})();
+</script>
+<style>.pplbar .rc .chip.on{background:var(--tx)!important;color:var(--bg)!important}</style>
+<script>
+(function(){var t=table;table=function(){var r=t.apply(this,arguments);try{if(cur=="attendance"){document.querySelectorAll('#view .msg[data-site="Office"] .msh b').forEach(function(b){b.textContent=b.textContent.replace("\ud83d\udccd","\ud83c\udfe2")});document.querySelectorAll('#view .msg[data-site="Office"] .msh small').forEach(function(s){s.textContent="Office staff \u00b7 stays at the office (no site deployment)"})}}catch(e){}return r}})();
+</script>
+<style>.msg[data-site="Office"] .msh button{display:none!important}</style>
 </body>
 </html><script>
 var MV="list",MNEED=false;
