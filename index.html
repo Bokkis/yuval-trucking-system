@@ -2339,9 +2339,9 @@ function cfDl(id){var f=cfL().find(function(x){return x.id==id});if(!f)return;va
 function cfOpen(id){var f=cfL().find(function(x){return x.id==id});if(!f)return;toast("Opening...");cfLib(function(){try{CFWB=XLSX.read(f.data,{type:"base64"});CFOPEN=id;CFSH=0;cfView()}catch(e){toast("Could not open this file: "+e.message)}})}
 function cfViewer(){var f=cfL().find(function(x){return x.id==CFOPEN});if(!f||!CFWB){CFOPEN=null;return cfView()}
  var N=CFWB.SheetNames,ws=CFWB.Sheets[N[CFSH]],R=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:""}),q=((document.getElementById("cfq")||{}).value||"").toLowerCase(),MX=3000,cut=R.length>MX;
- var rows=R.slice(0,MX),w=rows.reduce(function(m,r){return Math.max(m,r.length)},0);
+ while(R.length&&!R[R.length-1].some(function(c){return String(c).trim()!==""}))R.pop();cut=R.length>MX;var rows=R.slice(0,MX),w=rows.reduce(function(m,r){for(var i=r.length;i>0;i--)if(String(r[i-1]).trim()!=="")return Math.max(m,i);return m},0);
  var col=function(i){var s="";i++;while(i>0){var m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
- $("#view").innerHTML='<div class="cfw"><div class="np" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button class="g" onclick="CFOPEN=null;CFWB=null;cfView()">← Back to files</button><b style="flex:1;min-width:140px">'+cfE(f.name)+'</b><input id="cfq" placeholder="Search in this sheet" value="'+cfE(q)+'" oninput="cfFilter()" style="max-width:240px"><button onclick="cfDl('+f.id+')">⬇ Download</button><button class="g" onclick="window.print()">🖨 Print</button></div>'+
+ $("#view").innerHTML='<div class="cfw cfwide"><div class="np" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button class="g" onclick="CFOPEN=null;CFWB=null;cfView()">← Back to files</button><b style="flex:1;min-width:140px">'+cfE(f.name)+'</b><input id="cfq" placeholder="Search in this sheet" value="'+cfE(q)+'" oninput="cfFilter()" style="max-width:240px"><button onclick="cfDl('+f.id+')">⬇ Download</button><button class="g" onclick="window.print()">🖨 Print</button></div>'+
  (N.length>1?'<div class="cvs">'+N.map(function(n,i){return '<button class="s'+(i==CFSH?" on":" g")+'" onclick="CFSH='+i+';cfViewer()">'+cfE(n)+'</button>'}).join("")+'</div>':"")+
  '<div class="cvw"><table id="cft"><tr><th></th>'+Array.apply(null,Array(w)).map(function(_,i){return '<th>'+col(i)+'</th>'}).join("")+'</tr>'+rows.map(function(r,ri){return '<tr><th>'+(ri+1)+'</th>'+Array.apply(null,Array(w)).map(function(_,i){return '<td>'+cfE(r[i])+'</td>'}).join("")+'</tr>'}).join("")+'</table></div>'+(cut?'<p style="color:var(--mu);font-size:12px">Showing the first '+MX+' rows. Use Download to see everything.</p>':"")+'</div>';
  cfFilter()}
@@ -2350,7 +2350,7 @@ function cfFilter(){var q=((document.getElementById("cfq")||{}).value||"").toLow
  var g=go;go=function(){if(cur!="cfile"){CFOPEN=null;CFWB=null}var r=g.apply(this,arguments);if(cur=="cfile"){$("#add").style.display="none";$("#q").style.display="none"}return r}})();
 try{if(typeof ready!="undefined"?ready:true)nav()}catch(e){}
 </script>
-</body>
+<style>.cfw.cfwide{max-width:none;width:100%}.cfwide .cvw{width:100%;height:calc(100vh - 215px);min-height:360px;max-height:none}.cfwide .cvw table{width:100%;font-size:13.5px}.cfwide .cvw td{padding:6px 10px}.cfwide #cfq{flex:1;max-width:340px}@media(max-width:700px){.cfwide .cvw{height:calc(100vh - 290px)}}@media print{.cfwide .cvw{height:auto;max-height:none;overflow:visible}}</style></body>
 </html><script>
 var MV="list",MNEED=false;
 function monMk(id,td){var e=db.employees.find(function(x){return x.id==id}),s=siteOf(e);return {id:Date.now()+Math.floor(Math.random()*100000),emp:id,date:td,act:"Operating",ain:"",aout:"",pin:"",pout:"",tin:"",tout:"",hrs:0,ot:0,why:"",site:s?s.name:((e&&canonSite(e.place))||""),rem:""}}
