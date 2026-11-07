@@ -2600,7 +2600,7 @@ window.calcPay=function(f,t,ao){var R=_cp.apply(this,arguments),td=ltoday();
 /* payroll: show the commission computation per trip */
 (function(){var _pv=window.payView;
 window.payView=function(){var r=_pv.apply(this,arguments);
- try{if(typeof PS!="undefined"&&PS)return r;var R=calcPay(PF,PT,false).filter(function(x){return x.com&&(!PO||x.e.id==PO)&&(!PSITE||psiteOf(x.e)==PSITE)&&(!PROLE||proleOk(x.e))});if(!R.length)return r;
+ try{if(typeof PS!="undefined"&&PS)return r;if(PROLE&&PROLE.charAt(0)!="@"&&PROLE!="Boom truck"&&PROLE!="Trailer")return r;var R=calcPay(PF,PT,false).filter(function(x){return x.com&&(!PO||x.e.id==PO)&&(!PSITE||psiteOf(x.e)==PSITE)&&(!PROLE||proleOk(x.e))});if(!R.length)return r;
   var T=dspL(),f=function(v){return peso(v)},tot=0,sa=0,se=0,rows="";
   R.forEach(function(x){var L=T.filter(function(t){return t.emp==x.e.id&&t.back&&t.back>=PF&&t.back<=PT});
    L.forEach(function(t){var a=+t.amt||0,e=+t.exp||0,n=a-e,c=0;sa+=a;se+=e;rows+='<tr><td style="text-align:left"><b>'+dspE(x.e.name)+'</b><small style="display:block;color:var(--mu)">'+dspE(x.e.role||"")+'</small></td><td style="text-align:left">'+dspE(t.site||"—")+'<small style="display:block;color:var(--mu)">'+dspND(t.out)+' → '+dspND(t.back)+' · '+dspN(t.out,t.back)+' d</small></td><td>'+f(a)+'</td><td>− '+f(e)+'</td><td>'+f(n)+'</td><td>× 0.10</td><td><b style="color:#4ade80">'+f(Math.max(0,n)*DSPC)+'</b></td></tr>'});
