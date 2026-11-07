@@ -2770,31 +2770,49 @@ window.slipHTML=function(r){var e=r.e;if(!crnOp(e))return _sh.apply(this,argumen
 #lpay i{position:absolute;bottom:-60px;font:800 34px Inter,sans-serif;color:#5eead4;opacity:0;animation:lpup linear infinite;font-style:normal;text-shadow:0 0 18px #2dd4bf88}
 @keyframes lpspin{to{transform:rotate(360deg)}}
 @keyframes lpup{0%{transform:translateY(0) rotate(-12deg);opacity:0}12%{opacity:.5}85%{opacity:.35}100%{transform:translateY(-115vh) rotate(14deg);opacity:0}}
-#login.pr #lpay{opacity:1}
-#login.pr #lvid,#login.pr #lscene{opacity:0}
+#login.lpr #lpay{opacity:1}
+#login.lpr #lvid,#login.lpr #lscene{opacity:0}
 #lvid,#lscene{transition:opacity .8s ease}
-#login.pr .lov{background:linear-gradient(180deg,rgba(2,18,17,.35),rgba(2,18,17,.2) 45%,rgba(2,18,17,.6))}
+#login.lpr .lov{background:linear-gradient(180deg,rgba(2,18,17,.35),rgba(2,18,17,.2) 45%,rgba(2,18,17,.6))}
 .lcard{transition:border-color .5s,box-shadow .5s,background .5s}
-#login.pr .lcard{background:linear-gradient(160deg,rgba(12,36,34,.86),rgba(6,22,21,.9))!important;border-color:#2dd4bf55!important;box-shadow:0 20px 60px #0d948855,0 0 0 1px #2dd4bf33 inset!important}
-#login.pr .lcard:before{background:repeating-linear-gradient(135deg,#2dd4bf 0 10px,#06201f 10px 20px)}
-#login.pr .lbadge{color:#5eead4;border-color:#5eead455;background:#5eead414}
-#login.pr .lseg{background:#0b2523;border-color:#1f4a45}
-#login.pr .lseg button.on{background:#0d9488!important;border-color:#5eead4!important;box-shadow:0 0 0 3px rgba(45,212,191,.3)!important}
-#login.pr .lgo{color:#fff!important;background:linear-gradient(180deg,#14b8a6,#0d9488)!important;box-shadow:0 8px 20px #0d948877,0 1px 0 #ffffff40 inset!important}
-#login.pr .lin input:focus{border-color:#2dd4bf;box-shadow:0 0 0 3px #2dd4bf33}
-#login.pr .lin:focus-within>svg{stroke:#2dd4bf}
-.lcard.lflip{animation:lflip .55s cubic-bezier(.2,.8,.2,1)}
-@keyframes lflip{0%{transform:perspective(900px) rotateY(-14deg) scale(.96);opacity:.55}100%{transform:none;opacity:1}}
+#login.lpr .lcard{background:linear-gradient(160deg,rgba(12,36,34,.86),rgba(6,22,21,.9))!important;border-color:#2dd4bf55!important;box-shadow:0 20px 60px #0d948855,0 0 0 1px #2dd4bf33 inset!important}
+#login.lpr .lcard:before{background:repeating-linear-gradient(135deg,#2dd4bf 0 10px,#06201f 10px 20px)}
+#login.lpr .lbadge{color:#5eead4;border-color:#5eead455;background:#5eead414}
+#login.lpr .lseg{background:#0b2523;border-color:#1f4a45}
+#login.lpr .lseg button.on{background:#0d9488!important;border-color:#5eead4!important;box-shadow:0 0 0 3px rgba(45,212,191,.3)!important}
+#login.lpr .lgo{color:#fff!important;background:linear-gradient(180deg,#14b8a6,#0d9488)!important;box-shadow:0 8px 20px #0d948877,0 1px 0 #ffffff40 inset!important}
+#login.lpr .lin input:focus{border-color:#2dd4bf;box-shadow:0 0 0 3px #2dd4bf33}
+#login.lpr .lin:focus-within>svg{stroke:#2dd4bf}
+</style><style>
+/* admin side: a tower crane lifts the Yuval logo onto a building going up */
+#lcrane{position:absolute;right:0;bottom:0;width:min(100vw,720px);height:auto;pointer-events:none;opacity:.95;transition:opacity .8s ease}
+#login.lpr #lcrane{opacity:0}
+#lcrane .tr{animation:crT 18s ease-in-out infinite}
+#lcrane .cb{transform-box:fill-box;transform-origin:50% 0;animation:crCab 18s ease-in-out infinite}
+#lcrane .ld{animation:crLd 18s ease-in-out infinite}
+#lcrane .pl{animation:crPl 18s linear infinite}
+#lcrane .ldv{animation:crVis 18s linear infinite}
+@keyframes crT{0%,14%{transform:translateX(170px)}42%,86%{transform:translateX(470px)}100%{transform:translateX(170px)}}
+@keyframes crCab{0%,14%{transform:scaleY(226)}34%,48%{transform:scaleY(40)}70%,86%{transform:scaleY(101)}100%{transform:scaleY(226)}}
+@keyframes crLd{0%,14%{transform:translateY(226px)}34%,48%{transform:translateY(40px)}70%,86%{transform:translateY(101px)}100%{transform:translateY(226px)}}
+@keyframes crVis{0%,80%{opacity:1}82%,99%{opacity:0}100%{opacity:1}}
+@keyframes crPl{0%,80%{opacity:0}84%,97%{opacity:1}99%,100%{opacity:0}}
+.lcard.lflipin,.lcard{backface-visibility:hidden}
 </style>
+<script>window.__LCSVG="<svg id=\"lcrane\" viewBox=\"0 0 600 400\" preserveAspectRatio=\"xMaxYMax meet\" aria-hidden=\"true\"><defs><pattern id=\"lcl\" width=\"14\" height=\"14\" patternUnits=\"userSpaceOnUse\"><path d=\"M0 0L14 14M14 0L0 14\" stroke=\"#e8a33a\" stroke-width=\"1.2\"/></pattern><linearGradient id=\"lcb\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3a2c26\"/><stop offset=\"1\" stop-color=\"#1c1411\"/></linearGradient></defs>\n<rect x=\"0\" y=\"380\" width=\"600\" height=\"20\" fill=\"#1a1310\"/>\n<g><rect x=\"408\" y=\"255\" width=\"124\" height=\"125\" fill=\"url(#lcb)\" stroke=\"#e8a33a\" stroke-width=\"2\"/>\n<g fill=\"#ffcf70\" opacity=\".75\"><rect x=\"420\" y=\"270\" width=\"16\" height=\"12\"/><rect x=\"448\" y=\"270\" width=\"16\" height=\"12\"/><rect x=\"476\" y=\"270\" width=\"16\" height=\"12\"/><rect x=\"504\" y=\"270\" width=\"16\" height=\"12\"/><rect x=\"420\" y=\"302\" width=\"16\" height=\"12\"/><rect x=\"448\" y=\"302\" width=\"16\" height=\"12\"/><rect x=\"476\" y=\"302\" width=\"16\" height=\"12\"/><rect x=\"504\" y=\"302\" width=\"16\" height=\"12\"/><rect x=\"420\" y=\"334\" width=\"16\" height=\"12\"/><rect x=\"476\" y=\"334\" width=\"16\" height=\"12\"/></g></g>\n<rect x=\"364\" y=\"86\" width=\"14\" height=\"294\" fill=\"url(#lcl)\" stroke=\"#e8a33a\" stroke-width=\"2\"/>\n<rect x=\"352\" y=\"70\" width=\"38\" height=\"16\" fill=\"#e8a33a\"/>\n<rect x=\"120\" y=\"70\" width=\"440\" height=\"8\" fill=\"#e8a33a\"/><path d=\"M120 78L560 78L470 70L130 70Z\" fill=\"#f2b24a\" opacity=\".0\"/>\n<path d=\"M122 78L350 70M360 70L558 78\" stroke=\"#e8a33a\" stroke-width=\"1.4\"/>\n<rect x=\"340\" y=\"40\" width=\"10\" height=\"30\" fill=\"#e8a33a\"/><path d=\"M345 40L130 74M345 40L555 76\" stroke=\"#e8a33a\" stroke-width=\"1.2\"/>\n<rect x=\"318\" y=\"62\" width=\"30\" height=\"16\" fill=\"#6b5a4a\"/>\n<g class=\"tr\"><rect x=\"-8\" y=\"78\" width=\"16\" height=\"8\" fill=\"#2a2018\" stroke=\"#e8a33a\"/><rect class=\"cb\" x=\"-1\" y=\"84\" width=\"2\" height=\"1\" fill=\"#f4e3c2\"/>\n<g class=\"ld\"><g class=\"ldv\"><rect x=\"-5\" y=\"84\" width=\"10\" height=\"8\" fill=\"#e8a33a\"/><path d=\"M-30 100L0 92L30 100\" stroke=\"#f4e3c2\" stroke-width=\"1.3\" fill=\"none\"/><image href=\"\" class=\"lcimg\" x=\"-30\" y=\"98\" width=\"60\" height=\"60\" preserveAspectRatio=\"xMidYMid slice\" clip-path=\"inset(0 round 8px)\"/><rect x=\"-30\" y=\"98\" width=\"60\" height=\"60\" rx=\"8\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\"/></g></g></g>\n<g class=\"pl\"><image href=\"\" class=\"lcimg\" x=\"470\" y=\"185\" width=\"60\" height=\"60\" preserveAspectRatio=\"xMidYMid slice\"/><rect x=\"470\" y=\"185\" width=\"60\" height=\"60\" rx=\"8\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\"/></g>\n<g><image href=\"\" class=\"lcimg\" x=\"150\" y=\"320\" width=\"0\" height=\"0\"/></g></svg>";</script>
 <script>
-(function(){var o=window.lRole,T={};
-function scene(){var l=document.getElementById("login");if(!l||document.getElementById("lpay"))return;var d=document.createElement("div");d.id="lpay";var h="";for(var i=0;i<16;i++)h+='<i style="left:'+(3+i*6.2)+'%;font-size:'+(22+(i*7)%26)+'px;animation-duration:'+(11+(i*5)%9)+'s;animation-delay:-'+((i*3)%13)+'s">₱</i>';d.innerHTML=h;var ov=l.querySelector(".lov");l.insertBefore(d,ov||l.firstChild)}
-function apply(r,anim){var l=document.getElementById("login");if(!l)return;scene();var c=l.querySelector(".lcard"),b=l.querySelector(".lbadge"),s=l.querySelector(".lsub"),pr=r=="payroll";
- if(b&&!T.b){T.b=b.innerHTML;T.s=s?s.innerHTML:""}
- l.classList.toggle("pr",pr);if(b)b.innerHTML=pr?"Payroll Portal":T.b;if(s)s.innerHTML=pr?"Sign in to review attendance, verify payroll and release payslips.":T.s;
- if(anim&&c){c.classList.remove("lflip");void c.offsetWidth;c.classList.add("lflip")}}
-window.lRole=function(r){var x=o.apply(this,arguments);apply(r,true);return x};
-function init(){var r=window.LROLE;try{r=r||localStorage.getItem("yt_role")}catch(e){}apply(r||"admin",false)}
+(function(){var o=window.lRole,T={},cur="";
+function scene(){var l=document.getElementById("login");if(!l)return;
+ if(!document.getElementById("lpay")){var d=document.createElement("div");d.id="lpay";var h="";for(var i=0;i<16;i++)h+='<i style="left:'+(3+i*6.2)+'%;font-size:'+(22+(i*7)%26)+'px;animation-duration:'+(11+(i*5)%9)+'s;animation-delay:-'+((i*3)%13)+'s">₱</i>';d.innerHTML=h;l.insertBefore(d,l.querySelector(".lov")||l.firstChild)}
+ if(!document.getElementById("lcrane")){var w=document.createElement("div");w.innerHTML=window.__LCSVG;var sv=w.firstChild;l.insertBefore(sv,l.querySelector(".lov")||l.firstChild);var src=window.LOGO||(typeof LOGO!="undefined"?LOGO:"");sv.querySelectorAll(".lcimg").forEach(function(im){im.setAttribute("href",src)})}}
+function theme(r){var l=document.getElementById("login"),b=l.querySelector(".lbadge"),s=l.querySelector(".lsub"),pr=r=="payroll";if(b&&!T.b){T.b=b.innerHTML;T.s=s?s.innerHTML:""}
+ l.classList.toggle("lpr",pr);if(b)b.innerHTML=pr?"Payroll Portal":T.b;if(s)s.innerHTML=pr?"Sign in to review attendance, verify payroll and release payslips.":T.s}
+window.lRole=function(r){var l=document.getElementById("login"),self=this,args=arguments;if(!l||!l.querySelector(".lcard"))return o.apply(self,args);scene();
+ if(r==cur){return o.apply(self,args)}var first=!cur;cur=r;var c=l.querySelector(".lcard");
+ if(first||!c.animate){theme(r);return o.apply(self,args)}
+ var a=c.animate([{transform:"perspective(900px) rotateY(0deg)"},{transform:"perspective(900px) rotateY(90deg)"}],{duration:240,easing:"ease-in",fill:"forwards"});
+ a.onfinish=function(){theme(r);o.apply(self,args);var b=c.animate([{transform:"perspective(900px) rotateY(-90deg)"},{transform:"perspective(900px) rotateY(0deg)"}],{duration:340,easing:"cubic-bezier(.2,.8,.2,1)"});a.cancel()}};
+function init(){var r=window.LROLE;try{r=r||localStorage.getItem("yt_role")}catch(e){}r=r||"admin";var l=document.getElementById("login");if(!l)return;scene();cur=r;theme(r)}
 if(document.readyState=="loading")document.addEventListener("DOMContentLoaded",init);else init();setTimeout(init,600)})();
 </script>
 </body>
