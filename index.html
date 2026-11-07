@@ -498,7 +498,7 @@ async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=f
   for(const T of [...TB].reverse()){if(T.k=="coll"&&NOCOLL)continue;const old=snap[T.t],ids=new Set(db[T.k].map(o=>String(o.id))),del=Object.keys(old).filter(i=>!ids.has(i));
    if(del.length){for(let i=0;i<del.length;i+=100){const{error}=await SB.from(T.t).delete().in("id",del.slice(i,i+100));if(error)throw error}del.forEach(i=>delete old[i])}}
   for(const k of Object.keys(db.ded)){if(db.ded[k]!==dsn[k]){const[e,f,to]=k.split("|"),{error}=await SB.from("payroll_deductions").upsert({employee_id:+e,period_from:f,period_to:to,amount:+db.ded[k]||0},{onConflict:"employee_id,period_from,period_to"});if(error)throw error;dsn[k]=db.ded[k]}}
-  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
+  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
   saveBanner("");setSt("\u25cf Saved","#1f9d55")}catch(e){setSt("Save failed","#d64545");toast("Save failed: "+(e.message||e));saveBanner(e.message||String(e))}
  busy=false;if(dirty)save()}
 function lEye(){const p=document.getElementById("lpw");p.type=p.type=="password"?"text":"password"}
@@ -2634,6 +2634,30 @@ window.slipHTML=function(r){var e=r.e;if(!cmOp(e))return _sh.apply(this,argument
   +(P.length?'<div style="font-size:11.5px;color:#555;margin-top:6px">Not included yet: '+P.map(function(t){return dspE(t.site||"—")+' (out '+t.out+(t.back?', back '+t.back:', still working')+')'}).join('; ')+' — commission is paid in the week the unit is back in the garage.</div>':'')
   +'<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:12px;margin:10px 0 2px;padding-top:8px;border-top:2px solid #111"><span style="font-weight:700;letter-spacing:.06em">NET PAY</span><b style="font-size:22px">'+f(r.net)+'</b></div>'
   +paSlipNote(e)+'<div class="sig"><div>Prepared by<br><br>______________________</div><div>Received by: '+dspE(e.name)+'<br><br>______________________<br><small>Signature over printed name</small></div></div></div>'}catch(x){return _sh.apply(this,arguments)}}})();
+</script>
+<script>
+/* Dispatch tracker security: PIN accounts for the secretary / authorised office staff */
+var DSPU="",DSPF=0,DSPT0=0;try{DSPU=sessionStorage.getItem("yuvaldsp")||""}catch(e){}
+function dspPm(){try{return JSON.parse(db.dsppin||"{}")||{}}catch(e){return{}}}
+function dspElig(){return(db.employees||[]).filter(function(e){return["Office","Dispatcher","Supervisor","Accountant"].indexOf(e.role)>-1&&e.status!="Inactive"})}
+function dspOk(){return !!(DSPU||(typeof SUPU!="undefined"&&SUPU))}
+(function(){var _dh=window.dspHTML;
+window.dspHTML=function(){var H=_dh.apply(this,arguments);if(!H)return H;var P=dspPm(),ks=Object.keys(P);
+ if(!ks.length)return H.replace("</h3>",'</h3><div style="background:rgba(245,158,11,.12);border:1px solid #f59e0b;border-radius:8px;padding:7px 10px;margin:6px 0;font-size:12.5px;color:#f59e0b">⚠ Not protected yet. Anyone can open this page. Create the secretary account: <b>Payroll → Administrator → Dispatch accounts</b>.</div>');
+ if(dspOk())return H.replace("</h3>",'</h3><div style="font-size:12px;color:var(--mu);margin:2px 0 6px">🔓 Signed in: <b>'+dspE(DSPU||SUPU)+'</b> · <a href="#" style="color:#eab308" onclick="dspLock();return false">🔒 Lock</a></div>');
+ return '<div class="dsp" id="dsp"><h3>🔒 Dispatch tracker</h3><div style="color:var(--mu);font-size:13px;margin-bottom:10px">Trip amounts and commissions are private. Only the secretary or authorised staff can open this.</div><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><div><label>Name</label><select id="dsp_n">'+ks.map(function(n){return '<option>'+dspE(n)+'</option>'}).join("")+'</select></div><div><label>PIN</label><input id="dsp_p" type="password" inputmode="numeric" maxlength="6" autocomplete="off" style="width:130px;text-align:center" onkeydown="if(event.key===\'Enter\')dspUnlock()"></div><button class="s" style="background:#f59e0b!important;color:#111!important" onclick="dspUnlock()">🔓 Unlock</button></div><div id="dsp_m" style="color:#dc2626;font-size:13px;min-height:18px;margin-top:6px"></div></div>'}})();
+async function dspUnlock(){var n=document.getElementById("dsp_n").value,p=document.getElementById("dsp_p").value,m=document.getElementById("dsp_m"),P=dspPm();
+ if(Date.now()<DSPT0){m.textContent="Too many tries. Wait "+Math.ceil((DSPT0-Date.now())/1000)+" s.";return}
+ if(P[n]!==await supHash("dsp:"+n,p)){DSPF++;if(DSPF>=5){DSPF=0;DSPT0=Date.now()+30000;m.textContent="Too many tries. Locked for 30 seconds."}else m.textContent="Wrong PIN ("+(5-DSPF)+" tries left).";return}
+ DSPF=0;DSPU=n;try{sessionStorage.setItem("yuvaldsp",n)}catch(e){}table()}
+function dspLock(){DSPU="";try{sessionStorage.removeItem("yuvaldsp")}catch(e){}if(typeof SUPU!="undefined"&&SUPU&&typeof supLock=="function"){}table()}
+async function dspAccSet(n){var p=prompt("Set dispatch PIN for "+n+" (4-6 digits)");if(p==null)return;if(!/^\d{4,6}$/.test(p))return toast("PIN must be 4 to 6 digits");var P=dspPm();P[n]=await supHash("dsp:"+n,p);db.dsppin=JSON.stringify(P);save();toast("Dispatch account ready for "+n);supAdminScreen()}
+function dspAccDel(n){if(!confirm("Remove the dispatch account of "+n+"?"))return;var P=dspPm();delete P[n];db.dsppin=JSON.stringify(P);save();if(DSPU==n)dspLock();supAdminScreen()}
+(function(){var _sa=window.supAdminScreen;
+window.supAdminScreen=function(){var r=_sa.apply(this,arguments);
+ try{if(!SUPAOK)return r;var c=document.querySelector("#view .card");if(!c)return r;var P=dspPm(),L=dspElig(),q=function(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'")};
+  c.insertAdjacentHTML("beforeend",'<div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:12px"><b style="font-size:15px">🚚 Dispatch accounts</b><div style="color:var(--mu);font-size:13px;margin:4px 0 8px">Who can open the Dispatch tracker (trip amounts and commissions). Give one to the secretary. Office, Dispatcher, Supervisor and Accountant staff can have one. Once at least one account exists, the tracker is locked for everyone else.</div>'
+   +(L.length?L.map(function(e){var h=!!P[e.name];return '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--bd)"><div style="flex:1"><b>'+dspE(e.name)+'</b><br><small style="color:var(--mu)">'+dspE(e.role||"")+'</small></div>'+(h?'<span class="b ok">Account active</span><button class="s" onclick="dspAccSet(\''+q(e.name)+'\')">Reset PIN</button><button class="s d" onclick="dspAccDel(\''+q(e.name)+'\')">Remove</button>':'<span class="b wa">No account</span><button class="s" style="background:#16a34a;color:#fff" onclick="dspAccSet(\''+q(e.name)+'\')">+ Create account</button>')+'</div>'}).join(""):'<div style="color:#dc2626">No Office, Dispatcher, Supervisor or Accountant staff yet. Add the secretary in People first (role Office).</div>')+'</div>')}catch(x){}return r}})();
 </script>
 </body>
 </html><script>
