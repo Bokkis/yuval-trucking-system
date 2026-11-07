@@ -2617,6 +2617,24 @@ window.payView=function(){var r=_pv.apply(this,arguments);
   hide(v.querySelector("table.ptb"),N,1);v.querySelectorAll("table.rsum").forEach(function(t){hide(t,N,0)});
   [].slice.call(v.querySelectorAll("div")).forEach(function(d){if(/Operators only/.test(d.textContent)&&d.children.length==0)d.style.display="none";if(/Half day \(% of daily\)/.test(d.textContent)&&d.querySelector("input")&&d.children.length<=2)d.style.display="none"})}catch(x){}return r}})();
 </script>
+<script>
+/* payslip of boom truck / crane / trailer operators: trips and commission instead of daily attendance */
+(function(){var _sh=window.slipHTML;
+window.slipHTML=function(r){var e=r.e;if(!cmOp(e))return _sh.apply(this,arguments);
+ try{var f=function(v){return peso(v)},T=dspL().filter(function(t){return t.emp==e.id&&t.back&&t.back>=PF&&t.back<=PT}).sort(function(a,b){return a.back.localeCompare(b.back)}),
+  P=dspL().filter(function(t){return t.emp==e.id&&t.out<=PT&&!(t.back&&t.back>=PF&&t.back<=PT)&&(t.back||ltoday())>=PF}),
+  u=db.fleet.find(function(x){return x.id==e.equip}),sa=0,se=0,days=0;
+  var rows=T.map(function(t){var a=+t.amt||0,x=+t.exp||0;sa+=a;se+=x;days+=dspN(t.out,t.back);return '<tr><td>'+dspE(t.site||"—")+'</td><td style="white-space:nowrap">'+t.out+'</td><td style="white-space:nowrap">'+t.back+'</td><td>'+dspN(t.out,t.back)+'</td><td>'+f(a)+'</td><td>'+f(x)+'</td><td>'+f(Math.max(0,a-x))+'</td></tr>'}).join("")||'<tr><td colspan="7">No trip returned to the garage in this period.</td></tr>',
+  net=Math.max(0,sa-se),com=net*DSPC;
+  return '<div class="slip"><div class="sh"><img src="'+(db.logo||LOGO)+'"><div><div class="sn">YUVAL TRUCKING</div><div class="ss">Heavy Equipment Services · Purok 6, Barangay Talipapa, Cabanatuan City, Nueva Ecija</div></div><div class="st">PAYSLIP</div></div>'
+  +'<div class="sg"><div><b>Employee:</b> '+dspE(e.name)+'</div><div><b>Role:</b> '+dspE(typeof subRole=="function"?subRole(e):e.role)+'</div><div><b>Period:</b> '+PF+' to '+PT+'</div><div><b>Pay basis:</b> Commission (0.10 of net trip)</div><div><b>Equipment:</b> '+(u?dspE(u.name):"—")+'</div><div><b>Trips:</b> '+T.length+' · '+days+' day'+(days==1?"":"s")+'</div></div>'
+  +'<table><tr><th>Project / site</th><th>Dispatched</th><th>Back in garage</th><th>Days</th><th>Trip amount</th><th>Expenses</th><th>Net trip</th></tr>'+rows
+  +(T.length?'<tr style="font-weight:700"><td colspan="4" style="text-align:right">TOTAL</td><td>'+f(sa)+'</td><td>'+f(se)+'</td><td>'+f(net)+'</td></tr>':'')+'</table>'
+  +(T.length?'<div style="text-align:right;margin:8px 0 0;font-size:13px">Net trip '+f(net)+' × 0.10 = <b>'+f(com)+'</b> commission'+(r.ded?' · Deductions − '+f(r.ded):'')+'</div>':'')
+  +(P.length?'<div style="font-size:11.5px;color:#555;margin-top:6px">Not included yet: '+P.map(function(t){return dspE(t.site||"—")+' (out '+t.out+(t.back?', back '+t.back:', still working')+')'}).join('; ')+' — commission is paid in the week the unit is back in the garage.</div>':'')
+  +'<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:12px;margin:10px 0 2px;padding-top:8px;border-top:2px solid #111"><span style="font-weight:700;letter-spacing:.06em">NET PAY</span><b style="font-size:22px">'+f(r.net)+'</b></div>'
+  +paSlipNote(e)+'<div class="sig"><div>Prepared by<br><br>______________________</div><div>Received by: '+dspE(e.name)+'<br><br>______________________<br><small>Signature over printed name</small></div></div></div>'}catch(x){return _sh.apply(this,arguments)}}})();
+</script>
 </body>
 </html><script>
 var MV="list",MNEED=false;
