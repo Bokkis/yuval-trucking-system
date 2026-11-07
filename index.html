@@ -853,13 +853,15 @@ let FV="cards",FC="";
 const fcat=t=>/crane/i.test(t||"")?"Cranes":/truck|trailer/i.test(t||"")?"Trucks":"Heavy Equipment";
 
 let OPQ="";
+function opCat(f){var t=String(f.type||"").toLowerCase(),n=String(f.name||"").toLowerCase();if(t=="trailer"||/trailer/.test(n))return "trailer";if(t=="crane"||/boom|crane/.test(n))return "boom";if(t=="truck"||t=="dump truck")return "truck";return "heavy"}
+function opElig(e,f){var c=opCat(f);if(c=="trailer")return e.role=="Trailer"||(e.role=="Operator"&&typeof cmOp=="function"&&cmOp(e)&&typeof dspTy=="function"&&dspTy(e)=="Trailer");if(c=="boom")return e.role=="Boom truck"||(e.role=="Operator"&&typeof cmOp=="function"&&cmOp(e)&&typeof dspTy=="function"&&dspTy(e)!="Trailer");if(c=="truck")return e.role=="Driver";return e.role=="Operator"&&!(typeof cmOp=="function"&&cmOp(e))}
 function opPick(fid){const f=db.fleet.find(x=>x.id==fid);if(!f)return;let d=document.getElementById("opdlg");if(!d){d=document.createElement("dialog");d.id="opdlg";d.className="chdlg";d.style.width="min(520px,96vw)";d.addEventListener("click",e=>{if(e.target==d)d.close()});document.body.appendChild(d)}
  const E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),mine=opsOf(f),q=OPQ.toLowerCase(),
- pool=db.employees.filter(e=>e.status!="Inactive"&&["Operator","Driver"].includes(e.role)&&e.equip!=fid&&(!q||(e.name||"").toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name)),
+ pool=db.employees.filter(e=>e.status!="Inactive"&&opElig(e,f)&&e.equip!=fid&&(!q||(e.name||"").toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name)),
  row=(e,asg)=>{const cu=db.fleet.find(x=>x.id==e.equip);return `<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-top:1px solid var(--bd)">${e.photo?`<img src="${e.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:`<span class="av2" style="width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--bg);font-weight:700">${E((e.name||"?")[0])}</span>`}<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${E(e.name)}</div><small style="color:var(--mu)">${E(e.role||"")}${!asg&&cu?" · on "+E(cu.name):""}${!asg&&!cu?" · not assigned":""}</small></div>${asg?`<button class="s d" onclick="opSet(${fid},${e.id},0)">Remove</button>`:(cu&&cu.id!=fid?`<small style="color:#f59e0b;text-align:right;max-width:150px">\u{1F512} Already on ${E(cu.name)}. Remove him there first</small>`:`<button class="s" onclick="opSet(${fid},${e.id},1)">Assign</button>`)}</div>`};
  d.innerHTML=`<h3 style="margin:0 0 2px">Assign operator</h3><p style="color:var(--mu);font-size:13px;margin:0 0 10px">${E(f.name)}${f.plate?" · "+E(f.plate):""}</p>
  <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin-bottom:2px">Assigned (${mine.length})</div>${mine.length?mine.map(e=>row(e,1)).join(""):'<div style="color:var(--mu);font-size:13px;padding:8px 0">No operator assigned yet.</div>'}
- <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin:14px 0 6px">Add operator / driver</div><input id="opq" placeholder="Search name…" value="${E(OPQ)}" oninput="OPQ=this.value;opPick(${fid});const i=document.getElementById('opq');i.focus();i.setSelectionRange(i.value.length,i.value.length)" style="margin-bottom:6px">
+ <div style="font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--mu);text-transform:uppercase;margin:14px 0 6px">Add ${{trailer:"trailer operator",boom:"boom truck / crane operator",truck:"driver",heavy:"heavy equipment operator"}[opCat(f)]}</div><input id="opq" placeholder="Search name…" value="${E(OPQ)}" oninput="OPQ=this.value;opPick(${fid});const i=document.getElementById('opq');i.focus();i.setSelectionRange(i.value.length,i.value.length)" style="margin-bottom:6px">
  <div style="max-height:36vh;overflow:auto">${pool.map(e=>row(e,0)).join("")||'<div style="color:var(--mu);font-size:13px;padding:8px 0">No one found.</div>'}</div>
  <div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" onclick="document.getElementById('opdlg').close()">Done</button></div>`;if(!d.open)d.showModal()}
 function opSet(fid,eid,on){const e=db.employees.find(x=>x.id==eid),f=db.fleet.find(x=>x.id==fid);if(!e||!f)return;e.equip=on?fid:0;db.employees.filter(h=>h.role=="Helper"&&h.helps==eid).forEach(h=>h.equip=on?fid:0);save();table();opPick(fid);toast(on?e.name+" assigned to "+f.name:e.name+" removed from "+f.name)}
@@ -2219,7 +2221,7 @@ try{["Boom Truck Operator","Crane Operator","Trailer Operator"].forEach(function
 @media(max-width:760px){.flh{display:none}.flr{grid-template-columns:1fr auto;gap:4px 10px}.flr .fu{grid-column:1}.flr .fa{grid-column:2;grid-row:1}.flr .fop2,.flr .fs,.flr .fc{grid-column:1/-1}.flr .fs:before{content:"Site: ";color:var(--mu)}.flr .fc:before{content:"Client: ";color:var(--mu)}}
 </style>
 <script>
-var GB="type";
+var GB="client";
 function fleetView(){
  var q=$("#q").value.toLowerCase().trim(),C=[["Heavy Equipment","🏗️"],["Trucks","🚛"],["Cranes","🏗"]],
  W={"Rented":"Rented (on job)","Maintenance":"Under repair","Breakdown":"Broken down"},
@@ -2232,15 +2234,15 @@ function fleetView(){
   '<div class="fs">'+(sn?hl(sn):'<span class="no">—</span>')+'</div><div class="fc">'+(cn?hl(cn):'<span class="no">—</span>')+'</div>'+
   '<div class="fa">'+(f.status=="Pulled out"?'<button class="s" style="background:#16a34a;color:#fff" onclick="backGarage('+f.id+')">✔ Back in garage</button>':"")+(PA&&f.status=="Available"?'<button class="s" style="background:#16a34a;color:#fff" onclick="paAssign('+f.id+')">✔ Assign here</button>':"")+''+((f.status=="Maintenance"||f.status=="Breakdown")?'<button class="s" style="background:#16a34a;color:#fff" onclick="repDone('+f.id+')">✔ Repair done</button>':"")+(f.status=="Rented"?'<button class="s g" onclick="rentSet('+f.id+')" title="Set the included rent hours">⏱ Rent hrs</button>':"")+'<button class="s g" onclick="open_('+f.id+')">Edit</button><button class="s d" onclick="del('+f.id+')">✕</button></div></div>'},
  srt=function(a,b){return a.f.name.localeCompare(b.f.name)||((a.o[0]||{}).name||"").localeCompare((b.o[0]||{}).name||"")},
- tbl=function(A){return '<div class="flt"><div class="flh"><span>Unit</span><span>Operator</span><span>Site</span><span>Client</span><span></span></div>'+A.sort(srt).map(row).join("")+'</div>'},
+ tbl=function(A){return '<div class="flt'+(GB=="client"?" nocl":"")+'"><div class="flh"><span>Unit</span><span>Operator</span><span>Site</span><span>Client</span><span></span></div>'+A.sort(srt).map(row).join("")+'</div>'},
  chipB=function(on,js,t,n){return '<button class="chip'+(on?" on":"")+'" onclick="'+js+'">'+t+(n!=null?' <b>'+n+'</b>':"")+'</button>'},
  base=L.filter(function(x){return(!FC||fcat(x.f.type)==FC)}),
- h='<div class="chips" style="margin-bottom:10px">'+chipB(!FC,"FC='';FTY='';table()","All",L.length)+C.map(function(c){return chipB(FC==c[0],"FC='"+c[0]+"';FTY='';table()",c[0],L.filter(function(x){return fcat(x.f.type)==c[0]}).length)}).join("")+
+ FC="";h='<div class="chips" style="margin-bottom:10px">'+
  (function(){var T={};base.forEach(function(x){var k=x.f.type||"Other";T[k]=(T[k]||0)+1});var ks=Object.keys(T).sort();if(FTY&&!T[FTY])FTY="";return '<select class="ftysel" onchange="FTY=this.value;table()" title="Filter by equipment type"><option value="">All equipment types ('+ks.length+')</option>'+ks.map(function(k){return '<option value="'+k.replace(/"/g,"&quot;")+'"'+(k==FTY?" selected":"")+'>'+k+' ('+T[k]+')</option>'}).join("")+'</select>'})()+'</div>';
  var V=base.filter(function(x){return!FTY||(x.f.type||"Other")==FTY});
- h+='<div class="fgb"><span>Group by:</span>'+[["type","Equipment type"],["site","Site"],["client","Client"],["status","Status"],["none","No groups (A–Z)"]].map(function(g){return '<button class="chip'+(GB==g[0]?" on":"")+'" onclick="GB=\''+g[0]+'\';table()">'+g[1]+'</button>'}).join("")+'<span class="fcnt">Showing '+V.length+' of '+db.fleet.length+' units</span></div>';
+ 
  var G={},ord=[];
- V.forEach(function(x){var k;if(GB=="type")k=x.f.type||"Other";else if(GB=="site")k=x.st?x.st.name:"Not on a site";else if(GB=="client")k=x.st&&(x.st.client||x.st.company)?(x.st.client||x.st.company):"No client";else if(GB=="status")k=W[x.f.status]||x.f.status;else k="All units";if(!G[k]){G[k]=[];ord.push(k)}G[k].push(x)});
+ V.forEach(function(x){var k;if(GB=="type")k=x.f.type||"Other";else if(GB=="site")k=x.st?x.st.name:"Not on a site";else if(GB=="client")k=x.st&&(x.st.client||x.st.company)?(x.st.client||x.st.company):"No client (not rented)";else if(GB=="status")k=W[x.f.status]||x.f.status;else k="All units";if(!G[k]){G[k]=[];ord.push(k)}G[k].push(x)});
  ord.sort(function(a,b){if(GB=="status"){var o=["Available","Rented (on job)","Under repair","Broken down","Pulled out"];return o.indexOf(a)-o.indexOf(b)}var na=/^(Not on|No client)/.test(a),nb=/^(Not on|No client)/.test(b);return na-nb||a.localeCompare(b)});
  ord.forEach(function(k){h+=(GB=="none"?"":'<div class="sec">'+hl(k)+' <small>'+G[k].length+'</small></div>')+tbl(G[k])});
  if(PA){var pe=db.employees.find(function(x){return x.id==PA});if(pe)h='<div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:#16a34a22;border:1px solid #16a34a;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><b style="flex:1">Pick an available unit for '+pe.name+' — press “Assign here”.</b><button class="s" onclick="paCancel()">Cancel</button></div>'+h}
@@ -2674,6 +2676,30 @@ M.dsptr={t:"Dispatch Trucks",m:"no",f:[]};SL.dsptr="Dispatch Trucks";GICON.dis="
 (function(){if(!GRP.some(function(x){return x[0]=="dis"})){var i=GRP.findIndex(function(x){return x[0]=="mon"});GRP.splice(i+1,0,["dis","Dispatch Trucks",["dsptr"]])}})();
 (function(){var t=table;table=function(){if(cur=="dsptr"){var q=document.getElementById("q"),ad=document.getElementById("add");if(q){q.value="";q.style.display="none"}if(ad)ad.style.display="none";var v=document.getElementById("view"),h=dspHTML();v.innerHTML=h||'<div class="card" style="color:var(--mu)">No boom truck, crane or trailer operators yet. Add them in People (role Boom truck or Trailer, or an Operator assigned to a boom truck, crane or trailer).</div>';return}return t.apply(this,arguments)}})();
 try{nav()}catch(e){}
+</script>
+<style>.nocl .flh,.nocl .flr{grid-template-columns:minmax(150px,1.3fr) minmax(150px,1.4fr) minmax(130px,1.1fr) 120px}.nocl .fc,.nocl .flh span:nth-child(4){display:none}.sec{font-size:15px!important}</style>
+<script>
+/* rent hours: asked when a unit is assigned, shown in Fleet, and a warning when almost done */
+var RENTWARN=0.8;
+function rentNear(){return db.fleet.filter(function(f){if(f.status!="Rented")return false;var u=rentUsed(f);return u&&u.hrs>0&&u.used<u.hrs&&u.used>=u.hrs*RENTWARN})}
+function rentLeft(f){var u=rentUsed(f);return u?Math.max(0,Math.round((u.hrs-u.used)*10)/10):0}
+(function(){
+ var ag=asgGo;asgGo=function(eid,fid){var r=ag.apply(this,arguments);try{if(!rentL()[fid])setTimeout(function(){rentSet(fid)},250)}catch(e){}return r};
+ var os=opSet;opSet=function(fid,eid,on){var r=os.apply(this,arguments);try{if(on&&!rentL()[fid])setTimeout(function(){rentSet(fid)},250)}catch(e){}return r};
+ var ti=todoItems;todoItems=function(){var a=ti.apply(this,arguments);a.push(["⏳","Rent hours almost done",rentNear().length,"rentnear","Check"]);return a};
+ var gt=goTodo;goTodo=function(k){if(k=="rentnear"){rentNearAsk();return}return gt.apply(this,arguments)};
+ var t=table;table=function(){var r=t.apply(this,arguments);try{rentUI()}catch(e){console.error(e)}return r};
+})();
+function rentNearAsk(){var L=rentNear(),d=pqD();if(!L.length){toast("No rent is almost done");return}
+ d.innerHTML='<div class="pqw"><h3>⏳ Rent hours almost done</h3><div class="pqs">These units have used 80% or more of their rent hours.</div>'+L.map(function(f){var u=rentUsed(f),pc=Math.min(100,Math.round(u.used/u.hrs*100));return '<div style="padding:8px 0;border-top:1px solid var(--bd)"><b>'+dspE(f.name)+'</b><div style="font-size:12.5px;color:var(--mu)">'+u.used+' of '+u.hrs+' hrs used · <b style="color:#f59e0b">'+rentLeft(f)+' hrs left</b></div><div style="height:6px;background:var(--bg);border-radius:9px;margin:5px 0"><div style="height:6px;border-radius:9px;background:#f59e0b;width:'+pc+'%"></div></div><button class="s" style="background:#16a34a;color:#fff" onclick="rentRenewNow('+f.id+')">🔁 Renew</button></div>'}).join("")+'<div class="pqf"><button class="s g" onclick="document.getElementById(\'pqd\').close()">Close</button></div></div>';d.showModal()}
+function rentRenewNow(fid){var f=db.fleet.find(function(x){return x.id==fid});window.__pq={f:f,ops:db.employees.filter(function(e){return e.equip==fid}),go:function(){}};pqRenewForm()}
+function rentUI(){var v=document.getElementById("view");if(!v)return;var old=document.getElementById("rentwarn");if(old)old.remove();
+ if(cur=="fleet"){[].slice.call(v.querySelectorAll(".flr")).forEach(function(row){var fa=row.querySelector(".fa"),fu=row.querySelector(".fu");if(!fa||!fu||fu.querySelector(".rhp"))return;var m=/rentSet\((\d+)\)/.exec(fa.innerHTML);if(!m)return;var f=db.fleet.find(function(x){return x.id==m[1]});if(!f)return;var u=rentUsed(f),h;
+  if(u){var pc=Math.min(100,Math.round(u.used/u.hrs*100)),c=u.used>=u.hrs?"#dc2626":u.used>=u.hrs*RENTWARN?"#f59e0b":"#16a34a";h='<span class="rhp" style="display:block;margin-top:4px;font-size:12px;color:'+c+';font-weight:700">⏱ '+u.used+' / '+u.hrs+' hrs'+(u.used>=u.hrs?' · complete':u.used>=u.hrs*RENTWARN?' · almost done ('+rentLeft(f)+' left)':'')+'</span><span class="rhp" style="display:block;height:4px;background:var(--bg);border-radius:9px;margin-top:3px;max-width:170px"><span style="display:block;height:4px;border-radius:9px;background:'+c+';width:'+pc+'%"></span></span>'}
+  else h='<a href="#" class="rhp" style="display:block;margin-top:4px;font-size:12px;color:#eab308" onclick="rentSet('+f.id+');return false">⏱ Set rent hours</a>';
+  fu.insertAdjacentHTML("beforeend",h)})}
+ if(cur=="fleet"||cur=="attendance"){var N=rentNear(),D=rentDue();if(N.length||D.length){var h='<div id="rentwarn" class="card" style="margin-bottom:12px;border-left:5px solid '+(D.length?"#dc2626":"#f59e0b")+'"><b>'+(D.length?"⏱ Rent hours complete":"⏳ Rent hours almost done")+'</b><div style="font-size:13px;margin-top:4px">'+D.map(function(f){return dspE(f.name)+' — complete'}).concat(N.map(function(f){return dspE(f.name)+' — '+rentLeft(f)+' hrs left'})).join(' · ')+'</div><div style="margin-top:6px"><button class="s" onclick="'+(D.length?"rentAsk("+D[0].id+")":"rentNearAsk()")+'">Open</button></div></div>';v.insertAdjacentHTML("afterbegin",h);
+  var k="rw"+ltoday()+N.map(function(f){return f.id}).join("-");try{if(!sessionStorage.getItem(k)){sessionStorage.setItem(k,"1");toast("⏳ Rent hours almost done: "+N.map(function(f){return f.name+" ("+rentLeft(f)+" hrs left)"}).join(", "))}}catch(e){}}}}
 </script>
 </body>
 </html><script>
