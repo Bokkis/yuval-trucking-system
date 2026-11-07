@@ -30,22 +30,34 @@ async function gemini(key, image, prompt) {
 
 // Groq (free plan with limits) - OpenAI-compatible vision API. Model can be changed with GROQ_MODEL.
 async function groq(key, image, prompt) {
-  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { authorization: "Bearer " + key, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: process.env.GROQ_MODEL || "qwen/qwen3.8-27b", temperature: 0, max_completion_tokens: 4000,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: [
-        { type: "text", text: prompt + "\nReply with JSON only." },
-        { type: "image_url", image_url: { url: "data:image/jpeg;base64," + image } } ] }]
-    })
-  });
-  const j = await r.json().catch(() => ({}));
-  if (r.status === 401) return fail(502, "Groq rejected the key. Check GROQ_API_KEY in Vercel, then redeploy.");
-  if (r.status === 429) return fail(429, "Groq free limit reached. Wait a minute and try again.");
-  if (!r.ok) return fail(502, (j.error && j.error.message) || "Groq request failed");
-  return { text: (((j.choices || [])[0] || {}).message || {}).content || "" };
+  // "Over capacity" is temporary: retry with a growing wait, then try a backup vision model.
+  const models = [process.env.GROQ_MODEL || "qwen/qwen3.8-27b", "meta-llama/llama-4-scout-17b-16e-instruct"];
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let last = fail(502, "Groq request failed");
+  for (const model of models) {
+    for (let t = 0; t < 3; t++) {
+      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { authorization: "Bearer " + key, "content-type": "application/json" },
+        body: JSON.stringify({
+          model, temperature: 0, max_completion_tokens: 4000,
+          response_format: { type: "json_object" },
+          messages: [{ role: "user", content: [
+            { type: "text", text: prompt + "\nReply with JSON only." },
+            { type: "image_url", image_url: { url: "data:image/jpeg;base64," + image } } ] }]
+        })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 401) return fail(502, "Groq rejected the key. Check GROQ_API_KEY in Vercel, then redeploy.");
+      if (r.ok) return { text: (((j.choices || [])[0] || {}).message || {}).content || "" };
+      const msg = (j.error && j.error.message) || "";
+      last = r.status === 429 && !/capacity/i.test(msg) ? fail(429, "Groq free limit reached. Wait a minute and try again.") : fail(502, msg || "Groq request failed");
+      const busy = r.status === 429 || r.status === 503 || r.status === 500 || /capacity|overloaded/i.test(msg);
+      if (!busy) break; // a real error (e.g. model not found): go to the next model
+      if (t < 2) await sleep(1500 * Math.pow(2, t)); // 1.5 s, then 3 s
+    }
+  }
+  return last;
 }
 
 async function claude(key, image, prompt) {
