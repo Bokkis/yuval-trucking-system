@@ -2763,6 +2763,40 @@ window.slipHTML=function(r){var e=r.e;if(!crnOp(e))return _sh.apply(this,argumen
 .lseg button.on::before{content:"\2713  ";font-weight:800}
 .lseg button:not(.on):hover{opacity:1;color:#fff!important}
 </style>
+<style>
+/* login: Payroll Officer side switches the whole scene (background, card, theme) */
+#lpay{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease;overflow:hidden;background:radial-gradient(120% 90% at 20% 10%,#0e5a4d 0%,#0a3a35 40%,#06201f 100%)}
+#lpay:before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg at 50% 50%,#14b8a655,#0d948800,#34d39955,#0d948800,#14b8a655);animation:lpspin 26s linear infinite;filter:blur(60px)}
+#lpay i{position:absolute;bottom:-60px;font:800 34px Inter,sans-serif;color:#5eead4;opacity:0;animation:lpup linear infinite;font-style:normal;text-shadow:0 0 18px #2dd4bf88}
+@keyframes lpspin{to{transform:rotate(360deg)}}
+@keyframes lpup{0%{transform:translateY(0) rotate(-12deg);opacity:0}12%{opacity:.5}85%{opacity:.35}100%{transform:translateY(-115vh) rotate(14deg);opacity:0}}
+#login.pr #lpay{opacity:1}
+#login.pr #lvid,#login.pr #lscene{opacity:0}
+#lvid,#lscene{transition:opacity .8s ease}
+#login.pr .lov{background:linear-gradient(180deg,rgba(2,18,17,.35),rgba(2,18,17,.2) 45%,rgba(2,18,17,.6))}
+.lcard{transition:border-color .5s,box-shadow .5s,background .5s}
+#login.pr .lcard{background:linear-gradient(160deg,rgba(12,36,34,.86),rgba(6,22,21,.9))!important;border-color:#2dd4bf55!important;box-shadow:0 20px 60px #0d948855,0 0 0 1px #2dd4bf33 inset!important}
+#login.pr .lcard:before{background:repeating-linear-gradient(135deg,#2dd4bf 0 10px,#06201f 10px 20px)}
+#login.pr .lbadge{color:#5eead4;border-color:#5eead455;background:#5eead414}
+#login.pr .lseg{background:#0b2523;border-color:#1f4a45}
+#login.pr .lseg button.on{background:#0d9488!important;border-color:#5eead4!important;box-shadow:0 0 0 3px rgba(45,212,191,.3)!important}
+#login.pr .lgo{color:#fff!important;background:linear-gradient(180deg,#14b8a6,#0d9488)!important;box-shadow:0 8px 20px #0d948877,0 1px 0 #ffffff40 inset!important}
+#login.pr .lin input:focus{border-color:#2dd4bf;box-shadow:0 0 0 3px #2dd4bf33}
+#login.pr .lin:focus-within>svg{stroke:#2dd4bf}
+.lcard.lflip{animation:lflip .55s cubic-bezier(.2,.8,.2,1)}
+@keyframes lflip{0%{transform:perspective(900px) rotateY(-14deg) scale(.96);opacity:.55}100%{transform:none;opacity:1}}
+</style>
+<script>
+(function(){var o=window.lRole,T={};
+function scene(){var l=document.getElementById("login");if(!l||document.getElementById("lpay"))return;var d=document.createElement("div");d.id="lpay";var h="";for(var i=0;i<16;i++)h+='<i style="left:'+(3+i*6.2)+'%;font-size:'+(22+(i*7)%26)+'px;animation-duration:'+(11+(i*5)%9)+'s;animation-delay:-'+((i*3)%13)+'s">₱</i>';d.innerHTML=h;var ov=l.querySelector(".lov");l.insertBefore(d,ov||l.firstChild)}
+function apply(r,anim){var l=document.getElementById("login");if(!l)return;scene();var c=l.querySelector(".lcard"),b=l.querySelector(".lbadge"),s=l.querySelector(".lsub"),pr=r=="payroll";
+ if(b&&!T.b){T.b=b.innerHTML;T.s=s?s.innerHTML:""}
+ l.classList.toggle("pr",pr);if(b)b.innerHTML=pr?"Payroll Portal":T.b;if(s)s.innerHTML=pr?"Sign in to review attendance, verify payroll and release payslips.":T.s;
+ if(anim&&c){c.classList.remove("lflip");void c.offsetWidth;c.classList.add("lflip")}}
+window.lRole=function(r){var x=o.apply(this,arguments);apply(r,true);return x};
+function init(){var r=window.LROLE;try{r=r||localStorage.getItem("yt_role")}catch(e){}apply(r||"admin",false)}
+if(document.readyState=="loading")document.addEventListener("DOMContentLoaded",init);else init();setTimeout(init,600)})();
+</script>
 </body>
 </html><script>
 var MV="list",MNEED=false;
