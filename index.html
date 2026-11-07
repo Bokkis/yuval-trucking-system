@@ -2756,6 +2756,13 @@ window.slipHTML=function(r){var e=r.e;if(!crnOp(e))return _sh.apply(this,argumen
 .pcard .dsb{display:none!important}
 .pcard.pullp .prole::after{content:none!important}
 </style>
+<style>
+/* login: clearly show which side (Administrator / Payroll Officer) is selected */
+.lseg button{background:transparent!important;color:#a89c8f!important;border:1px solid transparent!important;opacity:.75;transition:.15s}
+.lseg button.on{background:#e2461a!important;color:#fff!important;border-color:#ff8a5c!important;opacity:1;box-shadow:0 0 0 3px rgba(226,70,26,.3)}
+.lseg button.on::before{content:"\2713  ";font-weight:800}
+.lseg button:not(.on):hover{opacity:1;color:#fff!important}
+</style>
 </body>
 </html><script>
 var MV="list",MNEED=false;
