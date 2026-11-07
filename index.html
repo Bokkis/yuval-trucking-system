@@ -2452,6 +2452,27 @@ function dspUndo(id){var T=dspL(),t=T.find(function(x){return x.id==id});if(!t)r
  dspW(T.filter(function(x){return x.id!=id}));go();toast("Done")}
 (function(){var t=table;table=function(){var r=t.apply(this,arguments);try{if(cur=="attendance"){var v=document.getElementById("view"),o=document.getElementById("dsp");if(o)o.remove();var h=dspHTML();if(v&&h)v.insertAdjacentHTML("afterbegin",h)}}catch(e){console.error(e)}return r}})();
 </script>
+<style>.mst{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 12px}.mst>div{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px}.mst b{display:block;font-size:26px;line-height:1.1}.mst span{font-size:12px;color:var(--mu)}.mst .g b{color:#22c55e}.mst .r b{color:#ef4444}.mst .a b{color:#f59e0b}.mtb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px;color:var(--mu);font-size:13px}.mtb .chip{font-size:13px}.msg .msh.gh .gt b{font-size:18px}.msg .msh.gh .gch{font-size:12.5px;padding:4px 11px}.msg .msh.gh .gtg{font-size:12.5px;font-weight:700;color:var(--ac);white-space:nowrap;padding:4px 4px 4px 8px}.msg .msh.gh{border-left:1px solid var(--bd)!important}.msg .msh.gh:hover{border-color:var(--tx)!important}.msg .msh.gh .gbar{display:none!important}.msg .msh.gh .gs button.chip{font-size:12.5px;padding:5px 12px}@media(max-width:700px){.mst{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
+<script>
+(function(){var t=table;table=function(){var r=t.apply(this,arguments);try{if(cur=="attendance")monTidy()}catch(e){console.error(e)}return r};
+window.monTidy=function(){var v=document.getElementById("view");if(!v)return;var G=[].slice.call(v.querySelectorAll(".msg")).filter(function(g){return !g.closest("#dsp")});if(!G.length)return;
+ var T={op:0,off:0,nr:0,tot:0,md:0};
+ G.forEach(function(g){var h=g.querySelector(".msh.gh");if(!h||h.dataset.tidy)return;h.dataset.tidy=1;var s={op:0,nr:0,tot:0,a:0,b:0,off:0},col=h.classList.contains("col");
+  [].slice.call(h.querySelectorAll(".gch")).forEach(function(c){var x=c.textContent.trim(),n=parseInt(x)||0,m;
+   if(/total$/.test(x)){s.tot=n;c.style.display="none"}
+   else if(/operating$/.test(x)){s.op=n;c.textContent="● "+n+" operating"}
+   else if(/no record$/.test(x)){s.nr=n;c.textContent="○ "+n+" no record yet"}
+   else if(/off$/.test(x)){s.off=n;c.textContent=n+" not operating"}
+   else if(m=/^[✓✔]\s*(\d+)\/(\d+)/.exec(x)){s.a=+m[1];s.b=+m[2];c.textContent="Monitored "+s.a+" of "+s.b;c.className="gch "+(s.a>=s.b&&s.b?"ok":"mu");c.removeAttribute("title")}});
+  T.op+=s.op;T.off+=s.off;T.nr+=s.nr;T.tot+=s.tot||s.b;T.md+=s.a;
+  h.style.borderLeftColor=s.nr?"#ef4444":(s.b&&s.a<s.b)?"#f59e0b":"#22c55e";
+  var b=h.querySelector("button.chip");if(b)b.textContent="Show only this site";
+  var gs=h.querySelector(".gs");if(gs){var tg=document.createElement("span");tg.className="gtg";tg.textContent=col?"Show operators ▾":"Hide ▴";gs.appendChild(tg)}
+  var sm=h.querySelector(".gt small");if(sm&&!/\d+ operator/.test(sm.textContent)){}
+ });
+ if(!document.getElementById("mst")){var ref=v.querySelector(".mh2");if(ref){var d=document.createElement("div");d.id="mst";d.innerHTML='<div class="mst"><div class="g"><b>'+T.op+'</b><span>Operating today</span></div><div class="a"><b>'+T.off+'</b><span>Not operating</span></div><div class="r"><b>'+T.nr+'</b><span>No record yet — needs attention</span></div><div><b>'+T.md+' / '+T.tot+'</b><span>Monitored</span></div></div><div class="mtb"><span>Click a site to open its operators.</span><button type="button" class="chip" onclick="mcolAll(false)">Open all sites</button><button type="button" class="chip" onclick="mcolAll(true)">Close all sites</button></div>';ref.insertAdjacentElement("afterend",d)}}
+};})();
+</script>
 </body>
 </html><script>
 var MV="list",MNEED=false;
