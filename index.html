@@ -2493,7 +2493,7 @@ function dspHist(eid){var e=db.employees.find(function(x){return x.id==eid}),td=
 function dspOpen(eid,back){var dd=document.getElementById("dspd");if(dd){dd.style.maxWidth="";dd.style.width=""}var e=db.employees.find(function(x){return x.id==eid}),f=db.fleet.find(function(x){return x.id==e.equip}),o=dspL().filter(function(t){return t.emp==eid&&!t.back}).pop(),d=document.getElementById("dspd");
  if(!d){d=document.createElement("dialog");d.id="dspd";document.body.appendChild(d)}
  var sites=(db.sites||[]).map(function(s){return '<option value="'+dspE(s.name)+'">'+dspE([s.client,s.company].filter(Boolean).join(" · "))+'</option>'}).join("");
- d.innerHTML='<h3 style="margin:0 0 4px">'+(back?"✔ Back in garage":"🚚 Dispatch unit")+'</h3><div style="color:var(--mu);font-size:13px">'+dspE(e.name)+(f?" · "+dspE(f.name):"")+(back&&o?'<br>Project: <b style="color:var(--tx)">'+dspE(o.site||"—")+'</b> · out '+dspND(o.out):"")+'</div>'+(back?"":'<label>Project / site</label><input id="dsps" list="dspl" placeholder="Pick or type the project / site"><datalist id="dspl">'+sites+'</datalist>')+'<label>'+(back?"Date back in garage":"Date dispatched")+'</label><input type="date" id="dspdt" value="'+ltoday()+'" max="'+ltoday()+'"><label>Trip amount ₱</label><input type="number" id="dspa" min="0" step="any" placeholder="e.g. 300000" value="'+((o&&o.amt)||"")+'" oninput="dspPrev()"><label>Total expenses ₱ (fuel, toll, meals, etc. for the whole trip)</label><input type="number" id="dspx" min="0" step="any" placeholder="0" value="'+((o&&o.exp)||"")+'" oninput="dspPrev()"><div id="dspc" style="color:#4ade80;font-size:12.5px;font-weight:700;margin-top:3px"></div><label>Note (optional)</label><input id="dspn" placeholder="e.g. lifting job, 3-day project"><div class="row"><button class="s g" onclick="document.getElementById(\'dspd\').close()">Cancel</button><button class="s" style="background:#16a34a!important;color:#fff!important" onclick="dspSave('+eid+','+(back?1:0)+')">Save</button></div>';
+ d.innerHTML='<h3 style="margin:0 0 4px">'+(back?"✔ Back in garage":"🚚 Dispatch unit")+'</h3><div style="color:var(--mu);font-size:13px">'+dspE(e.name)+(f?" · "+dspE(f.name):"")+(back&&o?'<br>Project: <b style="color:var(--tx)">'+dspE(o.site||"—")+'</b> · out '+dspND(o.out):"")+'</div>'+(back?"":'<label>Project / site</label><input id="dsps" list="dspl" placeholder="Pick or type the project / site"><datalist id="dspl">'+sites+'</datalist>')+'<label>'+(back?"Date back in garage":"Date dispatched")+'</label><input type="date" id="dspdt" value="'+ltoday()+'" max="'+ltoday()+'"><label>Trip amount ₱</label><input type="number" id="dspa" min="0" step="any" placeholder="e.g. 300000" value="'+((o&&o.amt)||"")+'" oninput="dspPrev()">'+(back?'<label>Total expenses ₱ (fuel, toll, meals, etc. for the whole trip)</label><input type="number" id="dspx" min="0" step="any" placeholder="0" value="'+((o&&o.exp)||"")+'" oninput="dspPrev()"><div id="dspc" style="color:#4ade80;font-size:12.5px;font-weight:700;margin-top:3px"></div>':'<div style="color:var(--mu);font-size:12px;margin-top:6px">Expenses are entered when the unit is back in the garage.</div>')+'<label>Note (optional)</label><input id="dspn" placeholder="e.g. lifting job, 3-day project"><div class="row"><button class="s g" onclick="document.getElementById(\'dspd\').close()">Cancel</button><button class="s" style="background:#16a34a!important;color:#fff!important" onclick="dspSave('+eid+','+(back?1:0)+')">Save</button></div>';
  d.showModal()}
 function dspSave(eid,back){var e=db.employees.find(function(x){return x.id==eid}),f=db.fleet.find(function(x){return x.id==e.equip}),dt=document.getElementById("dspdt").value||ltoday(),nt=(document.getElementById("dspn").value||"").trim(),T=dspL();
  if(back){var o=T.filter(function(t){return t.emp==eid&&!t.back}).pop();if(!o)return;if(dt<o.out){toast("Date is earlier than the dispatch date");return}o.back=dt;var am=+(document.getElementById("dspa")||{}).value||0;if(am)o.amt=am;o.exp=+(document.getElementById("dspx")||{}).value||0;if(nt)o.note=(o.note?o.note+" · ":"")+nt;
@@ -2734,6 +2734,28 @@ window.slipHTML=function(r){var e=r.e;if(!crnOp(e))return _sh.apply(this,argumen
   +'<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:12px;margin:10px 0 2px;padding-top:8px;border-top:2px solid #111"><span style="font-weight:700;letter-spacing:.06em">NET PAY</span><b style="font-size:22px">'+f(r.net)+'</b></div>'
   +paSlipNote(e)+'<div class="sig"><div>Prepared by<br><br>______________________</div><div>Received by: '+dspE(e.name)+'<br><br>______________________<br><small>Signature over printed name</small></div></div></div>'}catch(x){return _sh.apply(this,arguments)}}})();
 </script>
+<style>
+/* Employees page: calm, neutral look - no loud ring / fill colours that pull the eye */
+.pcard,.pcard.ds-duty,.pcard.ds-done,.pcard.ds-rec,.pcard.ds-norec,.pcard.ds-leave,.pcard.ds-off,.pcard.pullp{background:var(--card)!important;border:1px solid var(--bd)!important;box-shadow:none!important}
+.pcard:hover{border-color:color-mix(in srgb,var(--tx) 30%,var(--bd))!important}
+.pcard .pav,.pcard.ds-duty .pav,.pcard.ds-done .pav,.pcard.ds-rec .pav,.pcard.ds-norec .pav,.pcard.ds-leave .pav,.pcard.ds-off .pav,.pcard.pullp .pav{box-shadow:none!important;border:1px solid var(--bd)!important;opacity:1!important}
+.pcard div.pav:not(img){background:color-mix(in srgb,var(--tx) 8%,var(--card))!important;color:var(--mu)!important}
+.pcard .dsb,.pcard .dsb.ok,.pcard .dsb.wa,.pcard .dsb.mu{background:transparent!important;color:var(--mu)!important;font-weight:500!important;padding:2px 0!important}
+.pcard.pullp *{color:inherit!important}
+.pcard.pullp .pname{color:var(--tx)!important}
+.pcard.pullp .prole,.pcard.pullp .peq{color:var(--mu)!important}
+.pcard.pullp .prole::after{color:var(--mu)!important;font-weight:500!important}
+.pcard.pullp::after{display:none!important}
+.nusec{background:transparent!important;border:1px solid var(--bd)!important}
+.nusec h3{border-bottom:1px solid var(--bd)!important}
+.pcard>.asgb,.pcard.pullp .s.ra,.nusec .pcard .s.ra,.pcard .asgb{background:transparent!important;color:var(--tx)!important;border:1px solid var(--bd)!important;box-shadow:none!important;font-weight:600!important}
+.pcard>.asgb:hover,.pcard.pullp .s.ra:hover{border-color:var(--tx)!important}
+.pcard.pullp .s{background:transparent!important;border-color:var(--bd)!important}
+.pcard.pullp div.pav:not(img){background:color-mix(in srgb,var(--tx) 8%,var(--card))!important;color:var(--mu)!important}
+/* People = profiles only: no daily status (Done today / Recorded) - that belongs in Monitoring */
+.pcard .dsb{display:none!important}
+.pcard.pullp .prole::after{content:none!important}
+</style>
 </body>
 </html><script>
 var MV="list",MNEED=false;
