@@ -425,7 +425,7 @@ const M={
  dtr:{t:"DTR Form",m:"site",f:[]},
  po:{t:"Purchase Orders",m:"no",f:[]},
  pof:{t:"Purchase Order Form",m:"no",f:[]},
- fleet:{t:"Fleet / Equipment",m:"name",f:[["name","Name"],["type","Type","s",["Truck","Dump Truck","Excavator","Backhoe","Bulldozer","Wheel Loader","Grader","Crane","Loader","Trailer"]],["plate","Plate / ID"],["site","Dispatched site","r","sites"],["status","Status","s",ST]],x:[["Operator",r=>opsOf(r).map(e=>e.name).join(", ")||"—"],["Operator cellphone",r=>opsOf(r).map(e=>e.phone||"—").join(", ")||"—"],["Operator rate / day",r=>opsOf(r).map(e=>peso(e.rate)).join(", ")||"—"]]},
+ fleet:{t:"Fleet / Equipment",m:"name",f:[["name","Name"],["type","Type","s",["Truck","Dump Truck","Excavator","Backhoe","Bulldozer","Wheel Loader","Grader","Crane","Loader","Road Roller","Trailer"]],["plate","Plate / ID"],["site","Dispatched site","r","sites"],["status","Status","s",ST]],x:[["Operator",r=>opsOf(r).map(e=>e.name).join(", ")||"—"],["Operator cellphone",r=>opsOf(r).map(e=>e.phone||"—").join(", ")||"—"],["Operator rate / day",r=>opsOf(r).map(e=>peso(e.rate)).join(", ")||"—"]]},
  sites:{t:"Sites & Clients",m:"name",f:[["name","Site / location"],["client","Client name"],["company","Company name"],["scope","Scope of work"]]},
  clients:{t:"Clients",m:"name",f:[["name","Client"],["contact","Contact person"],["phone","Cellphone no."],["alt","Another cellphone no."],["address","Address"],["place","Job site / place"],["op","Operator","r","employees"],["equip","Equipment","r","fleet"]]},
  rentals:{t:"Rentals (Quotation → Contract)",m:"project",f:[["project","Project"],["client","Client","r","clients"],["equip","Equipment","r","fleet"],["start","Start","d"],["end","End","d"],["stage","Stage","s",["Quotation","Contract","Active","Returned","Cancelled"]],["amount","Amount (₱)","n"]]},
@@ -518,7 +518,7 @@ const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
 const net=r=>M.payroll.c[1](r);
 const ACK={"Operating":"op","Half day":"half","Shop rate":"shop","Standby":"stby","Not operating":"off","Leave":"mnt","Maintenance":"mnt"};
 function badge(v){const g=["Available","Active","Approved","Done","Resolved","Returned","Contract","Operating","IN","VAT","Half day"],r=["Breakdown","Not operating","Reported","Cancelled","Inactive","Not resolved"],c=g.includes(v)?"ok":r.includes(v)?"bad":["Maintenance","OUT","Standby","Shop rate","In process","Pending","Dispatched","In progress","Quotation","Rented","Scheduled","On leave","Leave"].includes(v)?"wa":"";return `<span class="b ${c}${ACK[v]?" ac-"+ACK[v]:""}">${v}</span>`}
-const GRP=[["dash","Dashboard",["dash"]],["ops","Operations",["fleet","sites"]],["res","Rescue",["rescue"]],["ppl","People",["employees"]],["mon","Monitoring",["attendance"]],["pay","Payroll",["payroll"]],["bil","Documents",["docs","dtr"]],["exp","Parts & Stock",["inventory","stock","po"]]],GICON={mon:"attendance",pay:"payroll",dash:"dash",res:"rescue",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Monitoring",payroll:"Payroll",invoices:"Invoices",coll:"Collection",docs:"Quotations",dtr:"DTR Form",exp:"Purchase Order",inventory:"Parts inventory",stock:"Stock in / out",po:"Purchase orders",pof:"Purchase Order Form"};let GLAST={},ALDX="";
+const GRP=[["dash","Dashboard",["dash"]],["ops","Fleet / Site Clients",["fleet","sites"]],["res","Rescue",["rescue"]],["ppl","People",["employees"]],["mon","Monitoring",["attendance"]],["pay","Payroll",["payroll"]],["bil","Documents",["docs","dtr"]],["exp","Parts & Stock",["inventory","stock","po"]]],GICON={mon:"attendance",pay:"payroll",dash:"dash",res:"rescue",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Monitoring",payroll:"Payroll",invoices:"Invoices",coll:"Collection",docs:"Quotations",dtr:"DTR Form",exp:"Purchase Order",inventory:"Parts inventory",stock:"Stock in / out",po:"Purchase orders",pof:"Purchase Order Form"};let GLAST={},ALDX="";
 function toggleRail(){document.body.classList.toggle("rail");try{localStorage.setItem("yuvalRail",document.body.classList.contains("rail")?"1":"0")}catch(e){}}
 try{if(localStorage.getItem("yuvalRail")=="1")document.body.classList.add("rail")}catch(e){}
 function nav(){const HIDE=["clients","rentals","maint","receipts","invoices","exp","coll"],keys=["dash",...Object.keys(M)].filter(k=>!HIDE.includes(k)&&(window.ROLE=="payroll"?k=="payroll":k!="payroll")),PR=window.ROLE=="payroll";document.body.classList.toggle("proly",PR);if(!keys.includes(cur))cur=keys[0];
@@ -1591,7 +1591,7 @@ function pappView(){if(!SUPU)return supLockScreen("","Payroll approval");var R=c
   var pill=none?'<span class="b">Not operating</span>':bad?'<span class="b bad">⚠ '+bad+' to check</span>':'<span class="b ok">✓ Looks fine</span>';
   rows+='<tr><td><b>'+r.e.name+'</b><br><small style="color:var(--mu)">'+(r.e.role||"")+'</small></td><td>'+r.days+'</td><td>'+r.hrs+'</td><td>'+r.ot+'</td><td>'+peso(r.net)+'</td><td>'+pill+'</td><td><button class="s" onclick="paToggle('+r.e.id+')">'+(PAX[r.e.id]?"Hide":"Review")+' daily</button></td><td><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" '+(ver?"checked":"")+' onchange="paVer('+r.e.id+',this.checked)"> Verified</label></td></tr>';
   if(PAX[r.e.id]){var last={};L.forEach(function(a){last[a.date]=a.id});
-   rows+='<tr><td colspan="8" style="background:var(--bg);padding:8px 12px"><table class="rsum" style="width:100%"><tr><th style="text-align:left">Date</th><th style="text-align:left">Activity</th><th>Morning</th><th>Afternoon</th><th>Hours</th><th>OT</th><th>Day pay</th><th style="text-align:left">Check</th><th></th></tr>'+(I.length?I.map(function(x){var a=x.a,p=dayPay(a,r.e),c=last[a.date]==a.id;return '<tr><td style="text-align:left">'+D(a.date)+'</td><td style="text-align:left">'+badgeE(a)+'</td><td>'+ses(a.ain||(!a.pin&&!a.pout?a.tin:""),a.aout)+'</td><td>'+ses(a.pin,a.pout)+'</td><td>'+(a.hrs||0)+'</td><td>'+(a.ot||0)+'</td><td>'+(c?peso(p.total):"<small>not counted</small>")+'</td><td style="text-align:left;white-space:normal;color:'+(x.p.length?"#dc2626":"#16a34a")+'">'+(x.v?'\u2713 Verified <a style="cursor:pointer;text-decoration:underline;font-size:11px;color:var(--mu)" onclick="recVer('+a.id+',false)">undo</a>':x.p.length?x.p.join(" \u00b7 ")+' <button class="s" style="margin-left:6px" onclick="recVer('+a.id+',true)">\u2713 Verified</button>'+(x.p.indexOf("Duplicate date")>-1?' <button class="s d" style="margin-left:4px" onclick="dupDel('+a.id+')">\u{1F5D1} Delete</button>':""):"OK")+'</td><td><button class="s g" onclick="open_('+a.id+')">Edit</button></td></tr>'}).join(""):'<tr><td colspan="9" style="text-align:left;color:var(--mu)">No attendance records in this period.</td></tr>')+'</table></td></tr>'}});
+   rows+='<tr><td colspan="8" style="background:var(--bg);padding:8px 12px"><table class="rsum" style="width:100%"><tr><th style="text-align:left">Date</th><th style="text-align:left">Activity</th><th>Morning</th><th>Afternoon</th><th>Hours</th><th>OT</th><th>Day pay</th><th style="text-align:left">Check</th><th></th></tr>'+(I.length?I.map(function(x){var a=x.a,p=dayPay(a,r.e),c=last[a.date]==a.id;return '<tr><td style="text-align:left">'+D(a.date)+'</td><td style="text-align:left">'+badgeE(a)+'</td><td>'+ses(a.ain||(!a.pin&&!a.pout?a.tin:""),a.aout)+'</td><td>'+ses(a.pin,a.pout)+'</td><td>'+(a.hrs||0)+'</td><td>'+(a.ot||0)+'</td><td>'+(c?peso(p.total):"<small>not counted</small>")+'</td><td style="text-align:left;white-space:normal;color:'+(x.p.length?"#dc2626":"#16a34a")+'">'+(x.v?'\u2713 Verified <a style="cursor:pointer;text-decoration:underline;font-size:11px;color:var(--mu)" onclick="recVer('+a.id+',false)">undo</a>':x.p.length?x.p.join(" \u00b7 ")+' <button class="s" style="margin-left:6px" onclick="recVer('+a.id+',true)">\u2713 Verified</button>'+(x.p.indexOf("Duplicate date")>-1?' <button class="s d" style="margin-left:4px" onclick="dupDel('+a.id+')">\u{1F5D1} Delete</button>':""):"OK")+'</td><td><button class="s g" onclick="payEdit('+a.id+')">Edit</button></td></tr>'}).join(""):'<tr><td colspan="9" style="text-align:left;color:var(--mu)">No attendance records in this period.</td></tr>')+'</table></td></tr>'}});
  var locked=o.st=="approved";
  $("#view").innerHTML='<div class="card" style="margin-bottom:12px;border-left:5px solid '+B.c+'"><b style="font-size:15px">'+B.t+'</b><div style="color:var(--mu);font-size:13px;margin-top:3px">'+(B.x||"")+'</div></div>'
  +'<div class="card" style="margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:end"><div style="width:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><small style="color:var(--mu)">Payroll period:</small>'+P.map(function(p){var r=payRange(p[0]),on=r[0]==PF&&r[1]==PT;return '<button class="chip'+(on?" on":"")+'" onclick="paPreset(\''+p[0]+'\')">'+p[1]+'</button>'}).join("")+'</div><div><label>From</label><input type="date" value="'+PF+'" onchange="PF=this.value;PAX={};pappView()"></div><div><label>To</label><input type="date" value="'+PT+'" onchange="PT=this.value;PAX={};pappView()"></div>'
@@ -1643,7 +1643,7 @@ function payChk(r){var o=paGet()[paKey()]||{},V=o.v||{},L=empRecs(r.e,PF,PT),I=p
  D=function(d){try{return new Date(d+"T00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}catch(x){return d}},
  h='<td class="np nw">'+(ver&&!PAX[r.e.id]?'<span class="b ok">\u2713 Verified payroll</span>':pill+' <button class="s" onclick="paToggle('+r.e.id+')">'+(PAX[r.e.id]?"Hide":"Review")+'</button>')+'</td><td class="np"><label style="display:flex;gap:5px;align-items:center;cursor:pointer;white-space:nowrap;font-weight:'+(ver?"400":"700")+';color:'+(ver?"var(--ok)":"var(--wa)")+'"><input type="checkbox" '+(ver?"checked":"")+' onchange="paVer('+r.e.id+',this.checked)"> '+(ver?"Verified":"Not verified")+'</label></td>',X='';
  if(PAX[r.e.id]){var last={};L.forEach(function(a){last[a.date]=a.id});
-  X+='<tr class="np"><td colspan="14" style="background:var(--bg);padding:8px 12px"><div style="position:sticky;left:12px;width:min(880px,calc(100vw - 340px))"><table class="rsum" style="width:100%"><tr><th style="text-align:left">Date</th><th style="text-align:left">Activity</th><th>Morning</th><th>Afternoon</th><th>Hours</th><th>OT</th><th>Day pay</th><th style="text-align:left">Check</th><th></th></tr>'+(I.length?I.map(function(x){var a=x.a,p=dayPay(a,r.e),c=last[a.date]==a.id;return '<tr><td style="text-align:left">'+D(a.date)+'</td><td style="text-align:left">'+badgeE(a)+'</td><td>'+ses(a.ain||(!a.pin&&!a.pout?a.tin:""),a.aout)+'</td><td>'+ses(a.pin,a.pout)+'</td><td>'+(a.hrs||0)+'</td><td>'+(a.ot||0)+'</td><td>'+(c?peso(p.total):"<small>not counted</small>")+'</td><td style="text-align:left;white-space:normal;color:'+(x.p.length?"#dc2626":"#16a34a")+'">'+(x.v?'\u2713 Verified <a style="cursor:pointer;text-decoration:underline;font-size:11px;color:var(--mu)" onclick="recVer('+a.id+',false)">undo</a>':x.p.length?x.p.join(" \u00b7 ")+' <button class="s" style="margin-left:6px" onclick="recVer('+a.id+',true)">\u2713 Verified</button>'+(x.p.indexOf("Duplicate date")>-1?' <button class="s d" style="margin-left:4px" onclick="dupDel('+a.id+')">\u{1F5D1} Delete</button>':""):"OK")+'</td><td><button class="s g" onclick="open_('+a.id+')">Edit</button></td></tr>'}).join(""):'<tr><td colspan="9" style="text-align:left;color:var(--mu)">No attendance records in this period.</td></tr>')+'</table></div></td></tr>'}
+  X+='<tr class="np"><td colspan="14" style="background:var(--bg);padding:8px 12px"><div style="position:sticky;left:12px;width:min(880px,calc(100vw - 340px))"><table class="rsum" style="width:100%"><tr><th style="text-align:left">Date</th><th style="text-align:left">Activity</th><th>Morning</th><th>Afternoon</th><th>Hours</th><th>OT</th><th>Day pay</th><th style="text-align:left">Check</th><th></th></tr>'+(I.length?I.map(function(x){var a=x.a,p=dayPay(a,r.e),c=last[a.date]==a.id;return '<tr><td style="text-align:left">'+D(a.date)+'</td><td style="text-align:left">'+badgeE(a)+'</td><td>'+ses(a.ain||(!a.pin&&!a.pout?a.tin:""),a.aout)+'</td><td>'+ses(a.pin,a.pout)+'</td><td>'+(a.hrs||0)+'</td><td>'+(a.ot||0)+'</td><td>'+(c?peso(p.total):"<small>not counted</small>")+'</td><td style="text-align:left;white-space:normal;color:'+(x.p.length?"#dc2626":"#16a34a")+'">'+(x.v?'\u2713 Verified <a style="cursor:pointer;text-decoration:underline;font-size:11px;color:var(--mu)" onclick="recVer('+a.id+',false)">undo</a>':x.p.length?x.p.join(" \u00b7 ")+' <button class="s" style="margin-left:6px" onclick="recVer('+a.id+',true)">\u2713 Verified</button>'+(x.p.indexOf("Duplicate date")>-1?' <button class="s d" style="margin-left:4px" onclick="dupDel('+a.id+')">\u{1F5D1} Delete</button>':""):"OK")+'</td><td><button class="s g" onclick="payEdit('+a.id+')">Edit</button></td></tr>'}).join(""):'<tr><td colspan="9" style="text-align:left;color:var(--mu)">No attendance records in this period.</td></tr>')+'</table></div></td></tr>'}
  return [h,X]}
 function payDecide(R){var o=paGet()[paKey()]||{},V=o.v||{},nV=R.filter(function(r){return V[r.e.id]}).length,nI=R.filter(function(r){var L=empRecs(r.e,PF,PT);return !V[r.e.id]&&L.length&&paIssues(r.e,L).some(function(x){return x.p.length})}).length,locked=o.st=="approved";
  return '<div class="card np" style="margin-top:12px"><b style="font-size:15px">Supervisor approval</b><div style="color:var(--mu);font-size:13px;margin:3px 0 8px">'+nV+' of '+R.length+' verified · '+(nI?nI+' need checking':'\u2713 all checked')+' · <a style="cursor:pointer;text-decoration:underline" onclick="paVerAll('+(nV==R.length?"false":"true")+')">'+(nV==R.length?"untick all":"tick all as verified")+'</a></div><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><div><label>Approving supervisor</label><input id="pa_by" value="'+SUPU+'" readonly style="font-weight:700"></div><div style="flex:1;min-width:220px"><label>Notes (required when returning)</label><input id="pa_note" style="width:100%" value="'+String(PAN||o.note||"").replace(/"/g,"&quot;")+'" placeholder="e.g. Red Osorio Oct 27 has no time out"></div>'
@@ -2238,13 +2238,16 @@ function fleetView(){
  chipB=function(on,js,t,n){return '<button class="chip'+(on?" on":"")+'" onclick="'+js+'">'+t+(n!=null?' <b>'+n+'</b>':"")+'</button>'},
  base=L.filter(function(x){return(!FC||fcat(x.f.type)==FC)}),
  FC="";h='<div class="chips" style="margin-bottom:10px">'+
- (function(){var T={};base.forEach(function(x){var k=x.f.type||"Other";T[k]=(T[k]||0)+1});var ks=Object.keys(T).sort();if(FTY&&!T[FTY])FTY="";return '<select class="ftysel" onchange="FTY=this.value;table()" title="Filter by equipment type"><option value="">All equipment types ('+ks.length+')</option>'+ks.map(function(k){return '<option value="'+k.replace(/"/g,"&quot;")+'"'+(k==FTY?" selected":"")+'>'+k+' ('+T[k]+')</option>'}).join("")+'</select>'})()+'</div>';
- var V=base.filter(function(x){return!FTY||(x.f.type||"Other")==FTY});
+ (function(){var T={};base.forEach(function(x){var k=x.f.type||"Other";T[k]=(T[k]||0)+1});var LD=0;base.forEach(function(x){if(/loader/i.test(x.f.type||""))LD++});T["Loader"]=LD;["Backhoe","Grader","Road Roller","Bulldozer","Excavator","Crane","Boom truck","Dump Truck","Trailer"].forEach(function(k){if(T[k]==null)T[k]=0});delete T["Wheel Loader"];var ks=Object.keys(T).sort();if(FTY&&T[FTY]==null)FTY="";return '<select class="ftysel" onchange="FTY=this.value;table()" title="Filter by equipment type"><option value="">All equipment types ('+ks.length+')</option>'+ks.map(function(k){return '<option value="'+k.replace(/"/g,"&quot;")+'"'+(k==FTY?" selected":"")+'>'+k+' ('+T[k]+')</option>'}).join("")+'</select>'})()+'</div>';
+ var V=base.filter(function(x){return!FTY||(FTY=="Loader"?/loader/i.test(x.f.type||""):(x.f.type||"Other")==FTY)});
  
- var G={},ord=[];
- V.forEach(function(x){var k;if(GB=="type")k=x.f.type||"Other";else if(GB=="site")k=x.st?x.st.name:"Not on a site";else if(GB=="client")k=x.st&&(x.st.client||x.st.company)?(x.st.client||x.st.company):"No client (not rented)";else if(GB=="status")k=W[x.f.status]||x.f.status;else k="All units";if(!G[k]){G[k]=[];ord.push(k)}G[k].push(x)});
- ord.sort(function(a,b){if(GB=="status"){var o=["Available","Rented (on job)","Under repair","Broken down","Pulled out"];return o.indexOf(a)-o.indexOf(b)}var na=/^(Not on|No client)/.test(a),nb=/^(Not on|No client)/.test(b);return na-nb||a.localeCompare(b)});
- ord.forEach(function(k){h+=(GB=="none"?"":'<div class="sec">'+hl(k)+' <small>'+G[k].length+'</small></div>')+tbl(G[k])});
+ var SO=[["Available","Available","in garage, ready to rent","#38bdf8"],["Rented","Rented","on a job","#22c55e"],["Pulled out","Pulled out","back from site, waiting to enter garage","#a78bfa"],["Maintenance","Maintenance","under repair","#f59e0b"],["Breakdown","Breakdown","broken down","#ef4444"]],
+ cnt={};db.fleet.forEach(function(f){cnt[f.status]=(cnt[f.status]||0)+1});
+ var strip='<div class="fstrip">'+SO.map(function(s){return '<button class="fst'+(FS==s[0]?" on":"")+'" style="--c:'+s[3]+'" title="'+s[2]+'" onclick="FS=(FS==\''+s[0]+'\'?\'\':\''+s[0]+'\');table()"><i></i><span>'+s[1]+'</span><b>'+(cnt[s[0]]||0)+'</b></button>'}).join("")+(FS?'<button class="fst clr" onclick="FS=\'\';table()">Show all ✕</button>':'')+'</div>';
+ SO.forEach(function(s){var A=V.filter(function(x){return x.f.status==s[0]});if(!A.length)return;
+  h+='<div class="sec fsec" style="--c:'+s[3]+'"><i></i>'+s[1]+' <small>'+A.length+' · '+s[2]+'</small></div>';
+  if(s[0]=="Rented"){var C={},co=[];A.forEach(function(x){var k=x.st&&(x.st.client||x.st.company)?(x.st.client||x.st.company):"No client";if(!C[k]){C[k]=[];co.push(k)}C[k].push(x)});co.sort();co.forEach(function(k){h+='<div class="fcl2">'+hl(k)+' <small>'+C[k].length+' unit'+(C[k].length>1?"s":"")+'</small></div>'+tbl(C[k])})}
+  else h+=tbl(A)});
  if(PA){var pe=db.employees.find(function(x){return x.id==PA});if(pe)h='<div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:#16a34a22;border:1px solid #16a34a;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><b style="flex:1">Pick an available unit for '+pe.name+' — press “Assign here”.</b><button class="s" onclick="paCancel()">Cancel</button></div>'+h}
  $("#view").innerHTML=h+(V.length?"":"<p style='color:var(--mu)'>No equipment found.</p>")}
 </script>
@@ -2601,13 +2604,19 @@ window.calcPay=function(f,t,ao){var R=_cp.apply(this,arguments),td=ltoday();
 (function(){var _pv=window.payView;
 window.payView=function(){var r=_pv.apply(this,arguments);
  try{if(typeof PS!="undefined"&&PS)return r;if(PROLE&&PROLE.charAt(0)!="@"&&PROLE!="Boom truck"&&PROLE!="Trailer")return r;var R=calcPay(PF,PT,false).filter(function(x){return x.com&&(!PO||x.e.id==PO)&&(!PSITE||psiteOf(x.e)==PSITE)&&(!PROLE||proleOk(x.e))});if(!R.length)return r;
-  var T=dspL(),f=function(v){return peso(v)},tot=0,sa=0,se=0,rows="";
-  R.forEach(function(x){var L=T.filter(function(t){return t.emp==x.e.id&&t.back&&t.back>=PF&&t.back<=PT});
-   L.forEach(function(t){var a=+t.amt||0,e=+t.exp||0,n=a-e,c=0;sa+=a;se+=e;rows+='<tr><td style="text-align:left"><b>'+dspE(x.e.name)+'</b><small style="display:block;color:var(--mu)">'+dspE(x.e.role||"")+'</small></td><td style="text-align:left">'+dspE(t.site||"—")+'<small style="display:block;color:var(--mu)">'+dspND(t.out)+' → '+dspND(t.back)+' · '+dspN(t.out,t.back)+' d</small></td><td>'+f(a)+'</td><td>− '+f(e)+'</td><td>'+f(n)+'</td><td>× 0.10</td><td><b style="color:#4ade80">'+f(Math.max(0,n)*DSPC)+'</b></td></tr>'});
-   var td0=ltoday(),W=T.filter(function(t){return t.emp==x.e.id&&t.out<=PT&&(t.back||td0)>=PF&&!(t.back&&t.back>=PF&&t.back<=PT)});
-   W.forEach(function(t){var n=+t.amt||0;rows+='<tr><td style="text-align:left"><b>'+dspE(x.e.name)+'</b><small style="display:block;color:var(--mu)">'+dspE(x.e.role||"")+'</small></td><td style="text-align:left">'+dspE(t.site||"—")+'<small style="display:block;color:var(--mu)">Out '+dspND(t.out)+(t.back?' → back '+dspND(t.back):' · still working')+'</small></td><td colspan="5" style="text-align:left;color:#f59e0b">Days counted in this period, but the commission'+(t.amt?' ('+f(n*DSPC)+')':'')+' is paid in the payroll of the week the unit comes back to the garage'+(t.back?' ('+dspND(t.back)+')':'')+'.</td></tr>'});
-   if(!L.length&&!W.length)rows+='<tr><td style="text-align:left"><b>'+dspE(x.e.name)+'</b></td><td colspan="6" style="text-align:left;color:var(--mu)">No trip in this period</td></tr>'});
-  var h='<div class="card np" style="margin-top:12px;overflow-x:auto"><b style="font-size:15px">💰 Commission computation (10% of net = trip amount − expenses)</b><div style="color:var(--mu);font-size:12.5px;margin:2px 0 8px">Boom truck, crane and trailer operators. Trips that came back to the garage from '+PF+' to '+PT+'.</div><table class="rsum"><tr><th style="text-align:left">Operator</th><th style="text-align:left">Project / dates</th><th>Trip amount</th><th>Expenses</th><th>Net trip</th><th>Rate</th><th>Commission</th></tr>'+rows+'<tr style="font-weight:800"><td colspan="2" style="text-align:right">TOTAL OF ALL TRIPS</td><td>'+f(sa)+'</td><td>− '+f(se)+'</td><td>'+f(Math.max(0,sa-se))+'</td><td>× 0.10</td><td style="color:#4ade80">'+f(Math.max(0,sa-se)*DSPC)+'</td></tr></table></div>';
+  var T=dspL(),f=function(v){return peso(v)},sa=0,se=0,rows="",td0=ltoday();
+  function iso(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+  function wk(s){var x=new Date(s+"T00:00:00"),k=(x.getDay()+6)%7;x.setDate(x.getDate()-k);var a=iso(x);x.setDate(x.getDate()+6);return [a,iso(x)]}
+  R.forEach(function(x){var L=T.filter(function(t){return t.emp==x.e.id&&t.back&&t.back>=PF&&t.back<=PT}).sort(function(a,b){return a.back<b.back?-1:1}),
+   W=T.filter(function(t){return t.emp==x.e.id&&t.out<=PT&&(t.back||td0)>=PF&&!(t.back&&t.back>=PF&&t.back<=PT)}),G={},ks=[],oc=0,ot=0;
+   L.forEach(function(t){var k=wk(t.back)[0];if(!G[k]){G[k]=[];ks.push(k)}G[k].push(t)});
+   ks.sort().forEach(function(k){G[k].forEach(function(t){oc+=Math.max(0,(+t.amt||0)-(+t.exp||0))*DSPC})});ot=L.length;
+   rows+='<tr style="background:var(--bg)"><td colspan="6" style="text-align:left;padding-top:10px"><b style="font-size:14.5px">'+dspE(x.e.name)+'</b> <span style="color:var(--mu);font-size:12px">'+dspE(x.e.role||"")+' · '+ot+' trip'+(ot==1?"":"s")+' this period</span></td><td style="padding-top:10px"><b style="color:#4ade80">'+f(oc)+'</b></td></tr>';
+   if(!ks.length&&!W.length)rows+='<tr><td colspan="7" style="text-align:left;color:var(--mu)">No trip in this period</td></tr>';
+   ks.forEach(function(k){var g=G[k],a=0,e=0,w=wk(k);g.forEach(function(t){a+=+t.amt||0;e+=+t.exp||0});sa+=a;se+=e;var n=a-e;
+    rows+='<tr><td colspan="2" style="text-align:left;padding-left:18px"><b>Week '+dspND(w[0])+' – '+dspND(w[1])+'</b> <span style="color:var(--mu);font-size:12px">· '+g.length+' trip'+(g.length==1?"":"s")+'</span>'+g.map(function(t){return '<small style="display:block;color:var(--mu)">• '+dspE(t.site||"—")+' · '+dspND(t.out)+' → '+dspND(t.back)+' ('+dspN(t.out,t.back)+' d) · '+f(+t.amt||0)+' − '+f(+t.exp||0)+'</small>'}).join("")+'</td><td>'+f(a)+'</td><td>− '+f(e)+'</td><td>'+f(n)+'</td><td>× 0.10</td><td><b style="color:#4ade80">'+f(Math.max(0,n)*DSPC)+'</b></td></tr>'});
+   W.forEach(function(t){var n=+t.amt||0;rows+='<tr><td colspan="7" style="text-align:left;padding-left:18px;color:#f59e0b;font-size:12.5px">⏳ '+dspE(t.site||"—")+' · out '+dspND(t.out)+(t.back?' → back '+dspND(t.back):' · still working')+' — days counted in this period; the commission'+(t.amt?' ('+f(n*DSPC)+')':'')+' is paid in the payroll of the week the unit comes back'+(t.back?' ('+dspND(t.back)+')':'')+'.</td></tr>'})});
+  var h='<div class="card np" style="margin-top:12px;overflow-x:auto"><b style="font-size:15px">💰 Commission record by week (10% of net = trip amount − expenses)</b><div style="color:var(--mu);font-size:12.5px;margin:2px 0 8px">One line per operator, trips grouped by the week (Mon–Sun) the unit came back to the garage · '+PF+' to '+PT+'.</div><table class="rsum"><tr><th style="text-align:left" colspan="2">Operator / week</th><th>Trip amount</th><th>Expenses</th><th>Net trip</th><th>Rate</th><th>Commission</th></tr>'+rows+'<tr style="font-weight:800"><td colspan="2" style="text-align:right">TOTAL OF ALL TRIPS</td><td>'+f(sa)+'</td><td>− '+f(se)+'</td><td>'+f(Math.max(0,sa-se))+'</td><td>× 0.10</td><td style="color:#4ade80">'+f(Math.max(0,sa-se)*DSPC)+'</td></tr></table></div>';
   var v=document.getElementById("view");if(v)v.insertAdjacentHTML("beforeend",h)}catch(x){}return r}})();
 </script>
 <script>
@@ -2814,6 +2823,217 @@ window.lRole=function(r){var l=document.getElementById("login"),self=this,args=a
  a.onfinish=function(){theme(r);o.apply(self,args);var b=c.animate([{transform:"perspective(900px) rotateY(-90deg)"},{transform:"perspective(900px) rotateY(0deg)"}],{duration:340,easing:"cubic-bezier(.2,.8,.2,1)"});a.cancel()}};
 function init(){var r=window.LROLE;try{r=r||localStorage.getItem("yt_role")}catch(e){}r=r||"admin";var l=document.getElementById("login");if(!l)return;scene();cur=r;theme(r)}
 if(document.readyState=="loading")document.addEventListener("DOMContentLoaded",init);else init();setTimeout(init,600)})();
+</script>
+<style>
+/* feedback: you should FEEL that a dispatch / return / payroll step happened */
+#dspok{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);animation:okfade .2s ease}
+#dspok .okc{width:min(380px,92vw);background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:18px;padding:22px 22px 18px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.45);animation:okpop .38s cubic-bezier(.2,1.3,.4,1);position:relative;overflow:hidden}
+#dspok svg.okk{width:68px;height:68px}
+#dspok .okk circle{fill:none;stroke:#22c55e;stroke-width:3;stroke-dasharray:158;stroke-dashoffset:158;animation:okdraw .55s .1s ease forwards}
+#dspok .okk path{fill:none;stroke:#22c55e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:okdraw .35s .5s ease forwards}
+#dspok h3{margin:8px 0 2px;font-size:19px}
+#dspok .oks{color:var(--mu);font-size:12.5px}
+#dspok .okr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--bd);font-size:13.5px;text-align:left}
+#dspok .okr b{text-align:right}
+#dspok .okt{margin-top:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#22c55e 12%,var(--card));border:1px solid color-mix(in srgb,#22c55e 35%,var(--bd));font-size:13px;text-align:left;animation:okslide .5s .7s both}
+#dspok .okb{display:flex;gap:8px;justify-content:center;margin-top:14px}
+#dspok .okb button{padding:9px 16px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx);font-weight:700;cursor:pointer}
+#dspok .okb button.pri{background:#16a34a!important;color:#fff!important;border-color:#16a34a}
+#dspok .oktk{position:absolute;left:-40px;top:8px;font-size:22px;animation:oktruck 1.4s .15s ease-in forwards}
+#dspok .okbar{position:absolute;left:0;bottom:0;height:3px;background:#22c55e;animation:okbar 7s linear forwards}
+@keyframes okfade{from{opacity:0}}
+@keyframes okpop{from{transform:scale(.8) translateY(14px);opacity:0}}
+@keyframes okdraw{to{stroke-dashoffset:0}}
+@keyframes okslide{from{opacity:0;transform:translateY(8px)}}
+@keyframes oktruck{to{left:calc(100% + 40px)}}
+@keyframes okbar{from{width:100%}to{width:0}}
+tr.dspflash td{animation:dspfl 1.8s ease 2}
+@keyframes dspfl{0%,100%{background:transparent}40%{background:color-mix(in srgb,#22c55e 22%,transparent)}}
+#cmnew{margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1px solid color-mix(in srgb,#22c55e 40%,var(--bd));background:color-mix(in srgb,#22c55e 10%,var(--card));animation:okslide .5s both;display:flex;gap:12px;align-items:flex-start}
+#cmnew .x{margin-left:auto;cursor:pointer;color:var(--mu);font-size:18px;line-height:1}
+</style>
+<script>
+(function(){
+window.__newCm=window.__newCm||[];
+function close(){var o=document.getElementById("dspok");if(o)o.remove();clearTimeout(window.__okT)}
+window.dspOkClose=close;
+function show(h){close();var o=document.createElement("div");o.id="dspok";o.innerHTML='<div class="okc">'+h+'</div>';o.addEventListener("click",function(ev){if(ev.target===o)close()});document.body.appendChild(o);window.__okT=setTimeout(close,7000)}
+var CHK='<svg class="okk" viewBox="0 0 56 56"><circle cx="28" cy="28" r="25"/><path d="M16 29l8 8 16-17"/></svg>';
+function flash(name){setTimeout(function(){try{document.querySelectorAll(".dsp tr").forEach(function(tr){if(tr.textContent.indexOf(name)>-1&&tr.querySelector("button")){tr.classList.remove("dspflash");void tr.offsetWidth;tr.classList.add("dspflash")}})}catch(x){}},120)}
+var _s=window.dspSave;
+window.dspSave=function(eid,back){var e=db.employees.find(function(x){return x.id==eid})||{},f=db.fleet.find(function(x){return x.id==e.equip})||{},
+ openB=dspL().filter(function(t){return t.emp==eid&&!t.back}).length,n0=dspL().length;
+ var r=_s.apply(this,arguments);
+ try{var T=dspL(),openA=T.filter(function(t){return t.emp==eid&&!t.back}).length,nm=dspE(e.name||""),un=dspE(f.name||"");
+  if(!back&&openA>openB){var t=T.filter(function(x){return x.emp==eid&&!x.back}).pop();
+   show('<div class="oktk">🚚</div>'+CHK+'<h3>Dispatched!</h3><div class="oks">'+nm+' · '+un+'</div><div class="okr" style="margin-top:12px"><span>Project / site</span><b>'+dspE(t.site||"—")+'</b></div><div class="okr"><span>Date out</span><b>'+dspE(t.out||"")+'</b></div>'+(t.amt?'<div class="okr"><span>Trip amount</span><b>'+peso(t.amt)+'</b></div>':'')+'<div class="okt">📍 Now tracked in <b>Monitoring</b>. Days start counting today'+(cmOp(e)&&dspTy(e)!="Crane"?' and the commission will be computed when the unit is back in the garage.':'.')+'</div><div class="okb"><button class="pri" onclick="dspOkClose()">Got it</button></div><div class="okbar"></div>');flash(e.name)}
+  else if(back&&openA<openB){var t=T.filter(function(x){return x.emp==eid&&x.back}).sort(function(a,b){return (a.back||"")<(b.back||"")?-1:1}).pop()||{},net=Math.max(0,(+t.amt||0)-(+t.exp||0)),crn=cmOp(e)&&dspTy(e)=="Crane",cm=cmOp(e)&&!crn?dspCm(t):0;
+   if(cm>0)window.__newCm.push({name:e.name,site:t.site,cm:cm});
+   show(CHK+'<h3>Back in garage ✔</h3><div class="oks">'+nm+' · '+un+'</div><div style="margin-top:12px">'+(t.amt?'<div class="okr"><span>Trip amount</span><b>'+peso(t.amt)+'</b></div><div class="okr"><span>Expenses</span><b>− '+peso(t.exp||0)+'</b></div><div class="okr"><span>Net trip</span><b>'+peso(net)+'</b></div>':'<div class="okr"><span>Trip</span><b>'+dspE(t.site||"—")+'</b></div>')+'</div>'+
+   (cm>0?'<div class="okt">💰 <b>Commission '+peso(cm)+'</b> (10% of net) was added to <b>Payroll</b> for the period that includes '+dspE(t.back||"today")+'.</div>':crn?'<div class="okt">💼 Crane operators are on a fixed monthly salary — no commission for this trip.</div>':'<div class="okt">✔ Trip closed. Unit is back in the garage.</div>')+
+   '<div class="okb">'+(cm>0?'<button class="pri" onclick="dspOkClose();go(\'payroll\')">Open Payroll</button>':'')+'<button onclick="dspOkClose()">'+(cm>0?'Later':'Got it')+'</button></div><div class="okbar"></div>');flash(e.name)}
+ }catch(x){}return r};
+var _pv=window.payView;
+window.payView=function(){var r=_pv.apply(this,arguments);
+ try{var L=window.__newCm;if(L&&L.length&&!(typeof PS!="undefined"&&PS)){var v=document.getElementById("view"),d=document.createElement("div");d.id="cmnew";var tot=0;L.forEach(function(x){tot+=x.cm});
+  d.innerHTML='<div style="font-size:26px">✅</div><div><b>Commission added from '+L.length+' trip'+(L.length>1?'s':'')+' you just closed</b><div style="color:var(--mu);font-size:12.5px;margin-top:3px">'+L.map(function(x){return dspE(x.name)+' '+peso(x.cm)}).join(' · ')+' — total <b style="color:var(--tx)">'+peso(tot)+'</b>. See the computation card below.</div></div><span class="x" onclick="this.parentNode.remove()">×</span>';v.insertBefore(d,v.firstChild);window.__newCm=[]}}catch(x){}return r};
+})();
+</script>
+<script>
+/* Payroll "Edit" on a daily record: open_() works on the Attendance table, so switch to it for the dialog and come back to Payroll after */
+function payEdit(id){var back=cur;cur="attendance";try{open_(id)}catch(x){cur=back;return}
+ var d=document.getElementById("dlg");if(!d)return;var h=function(){d.removeEventListener("close",h);if(cur=="attendance"&&back!="attendance"){cur=back;setTimeout(function(){go()},0)}};d.addEventListener("close",h)}
+</script>
+<style>
+#mtoast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99998;display:flex;gap:12px;align-items:center;background:var(--card);color:var(--tx);border:1px solid color-mix(in srgb,#22c55e 45%,var(--bd));border-radius:14px;padding:10px 16px 10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:mtin .35s cubic-bezier(.2,1.2,.4,1);max-width:min(460px,94vw)}
+#mtoast.out{animation:mtout .3s ease forwards}
+#mtoast svg{width:34px;height:34px;flex:none}
+#mtoast circle{fill:none;stroke:#22c55e;stroke-width:3;stroke-dasharray:158;stroke-dashoffset:158;animation:okdraw2 .5s ease forwards}
+#mtoast path{fill:none;stroke:#22c55e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:okdraw2 .3s .35s ease forwards}
+#mtoast b{display:block;font-size:14px}#mtoast small{color:var(--mu);font-size:12px}
+@keyframes mtin{from{opacity:0;transform:translate(-50%,-24px) scale(.92)}}
+@keyframes mtout{to{opacity:0;transform:translate(-50%,-18px)}}
+@keyframes okdraw2{to{stroke-dashoffset:0}}
+</style>
+<script>
+(function(){var _m=window.monAct,T;
+window.monAct=function(id,act){var r=_m.apply(this,arguments);
+ try{if(!act)return r;var e=db.employees.find(function(x){return x.id==id})||{},lab=act=="Present"?"Operating":act=="Absent"?"Not operating":act;
+  var f=db.fleet.find(function(x){return x.id==e.equip}),old=document.getElementById("mtoast");if(old)old.remove();clearTimeout(T);
+  var d=document.createElement("div");d.id="mtoast";d.innerHTML='<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="25"/><path d="M16 29l8 8 16-17"/></svg><div><b>Monitored ✔ '+dspE(e.name||"")+'</b><small>'+dspE(lab)+(f?' · '+dspE(f.name):'')+' · recorded for today</small></div>';document.body.appendChild(d);
+  T=setTimeout(function(){d.classList.add("out");setTimeout(function(){d.remove()},320)},2600);
+  setTimeout(function(){try{document.querySelectorAll("#view tr").forEach(function(tr){if(tr.textContent.indexOf(e.name)>-1&&tr.querySelector("select,button")&&tr.querySelectorAll("tr").length==0){tr.classList.remove("dspflash");void tr.offsetWidth;tr.classList.add("dspflash")}})}catch(x){}},120)}catch(x){}return r}})();
+</script>
+<style>
+/* Fleet: status first (Available / Rented / Pulled out / Maintenance / Breakdown), operators are secondary */
+.fstrip{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.fst{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;font-weight:600;font-size:13.5px}
+.fst i,.fsec i{width:10px;height:10px;border-radius:50%;background:var(--c);display:inline-block;flex:none}
+.fst b{font-size:17px;margin-left:2px}
+.fst.on{border-color:var(--tx);box-shadow:0 0 0 1px var(--tx) inset}
+.fst:hover{border-color:var(--tx)}
+.fst.clr{color:var(--mu)}
+.fsec{display:flex;align-items:center;gap:8px;font-size:15px!important;letter-spacing:.02em;margin-top:18px}
+.fsec small{color:var(--mu);font-weight:500;font-size:12.5px}
+.fcl2{margin:10px 2px 4px;font-weight:700;font-size:13px;color:var(--mu)}.fcl2 small{font-weight:500}
+.flr .fu b{font-size:15.5px!important}
+.flr .fu .b{font-size:11.5px;padding:2px 9px}
+.flr .fop2{opacity:.8}
+.flr .fop2 b{font-size:12.5px!important;font-weight:500!important;color:var(--mu)}
+.flr .fop2 b .b{display:none!important}
+.flr .fop2 small{font-size:11px!important}
+.flr .fop2:hover{opacity:1}
+.flr .fs{font-size:12.5px!important;color:var(--mu)}
+</style>
+<style>
+/* search + Add in the upper right corner */
+@media(min-width:761px){.top{flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;flex-wrap:nowrap!important}
+.top #ttl{flex:1 1 auto;min-width:0}
+.top>div{flex:none!important;margin-left:auto;flex-wrap:nowrap!important;align-items:center;position:sticky;top:8px;z-index:21}
+#q{width:260px!important;flex:none!important}}
+</style>
+<style>
+/* dashboard: alive + interactive */
+.dfade{opacity:0;animation:dfin .55s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes dfin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#view .kpi,#view .todoi,#view .card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+#view .kpi:hover,#view .todoi:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.28)}
+#view .kpi:active,#view .todoi:active{transform:scale(.97)}
+.todoi:not(.ok) .tn{animation:tnpulse 2.2s ease-in-out infinite}
+@keyframes tnpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.todoi:not(.ok){position:relative}
+.todoi:not(.ok):after{content:"";position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:#f97316;animation:tdot 1.6s ease-out infinite}
+@keyframes tdot{0%{box-shadow:0 0 0 0 rgba(249,115,22,.6)}100%{box-shadow:0 0 0 10px rgba(249,115,22,0)}}
+#qcard{position:relative;overflow:hidden;margin-bottom:12px;padding:18px 20px;border-radius:16px;border:1px solid var(--bd);background:linear-gradient(120deg,color-mix(in srgb,#f97316 14%,var(--card)),var(--card) 55%,color-mix(in srgb,#38bdf8 10%,var(--card)));background-size:200% 200%;animation:qbg 14s ease-in-out infinite}
+@keyframes qbg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+#qcard .qh{display:flex;align-items:center;gap:8px;color:var(--mu);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+#qcard .qt{font-size:clamp(17px,2.2vw,23px);font-weight:700;line-height:1.35;margin:8px 0 4px;transition:opacity .35s ease,transform .35s ease}
+#qcard .qt.sw{opacity:0;transform:translateY(8px)}
+#qcard .qa{color:var(--mu);font-size:13px;transition:opacity .35s}
+#qcard button{margin-left:auto;padding:5px 12px;border-radius:99px;border:1px solid var(--bd);background:transparent;color:var(--tx);font-size:12.5px;font-weight:600;cursor:pointer}
+#qcard button:hover{border-color:var(--tx)}
+#qcard .qm{position:absolute;right:18px;bottom:-26px;font-size:120px;line-height:1;opacity:.07;font-family:Georgia,serif;pointer-events:none}
+tr.lowflash td{animation:lowfl 1.2s ease 4}
+@keyframes lowfl{0%,100%{background:transparent}50%{background:color-mix(in srgb,#ef4444 24%,transparent)}}
+#lowbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border-radius:12px;border:1px solid color-mix(in srgb,#ef4444 45%,var(--bd));background:color-mix(in srgb,#ef4444 8%,var(--card));animation:dfin .4s both}
+#lowbar button{margin-left:auto;padding:6px 14px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--tx);font-weight:700;cursor:pointer}
+.dclk{font-variant-numeric:tabular-nums}
+</style>
+<script>
+(function(){
+/* 1) remove: operators with no record today, rent hours complete, rent hours almost done */
+var ti=todoItems;todoItems=function(){return ti.apply(this,arguments).filter(function(x){return["norec","rent","rentnear"].indexOf(x[3])<0})};
+/* 2) parts low on stock: show ONLY the low-stock products and flash them */
+var gt=goTodo;goTodo=function(k){window.__lowOnly=(k=="low");var r=gt.apply(this,arguments);if(k=="low")setTimeout(lowApply,60);return r};
+var g0=go;go=function(){if(typeof cur!="undefined"&&cur!="inventory")window.__lowOnly=false;return g0.apply(this,arguments)};
+var iv=invView;invView=function(){var r=iv.apply(this,arguments);if(window.__lowOnly)setTimeout(lowApply,30);return r};
+window.lowApply=function(){if(!window.__lowOnly||cur!="inventory")return;var v=document.getElementById("view");if(!v)return;var n=0,tot=0;
+ v.querySelectorAll("table tbody tr, table tr").forEach(function(tr){if(tr.querySelector("th"))return;var low=tr.querySelector(".rm-low,.rm-out");if(!tr.querySelector(".rm-low,.rm-out,.rm-ok"))return;tot++;if(low){n++;tr.style.display="";tr.classList.remove("lowflash");void tr.offsetWidth;tr.classList.add("lowflash")}else tr.style.display="none"});
+ var b=document.getElementById("lowbar");if(!b){b=document.createElement("div");b.id="lowbar";v.insertBefore(b,v.firstChild)}
+ b.innerHTML='<span style="font-size:20px">📦</span><b>Showing only the '+n+' low-stock product'+(n==1?"":"s")+'</b><span style="color:var(--mu);font-size:12.5px">need to restock or out of stock</span><button onclick="lowAll()">Show all products</button>'};
+window.lowAll=function(){window.__lowOnly=false;go()};
+/* 3) dashboard: quote + live feel */
+var Q=["Every unit that leaves the garage on time starts with someone who showed up. Thank you for showing up today.","Small, steady work every day builds the big projects. Keep going.","Safety first, then speed. Go home to your family every single day.","A clean, well-maintained machine is the pride of its operator.","Hindi mo kailangang maging perpekto — kailangan mo lang magpatuloy.","Teamwork makes heavy work light.","Ang sipag at tiyaga ay laging may kapalit na biyaya.","Good work is quiet work. Do it well, and people will notice.","Check your unit, check your work, check on your teammate.","Mahirap man ang trabaho ngayon, mas matatag ka na kaysa kahapon.","The best operators are not the fastest — they are the most careful.","Every site we serve is a promise we keep. Salamat sa inyong sipag.","Take pride in the small details. They make the big difference.","Kapag may pagkakaisa, kayang buhatin kahit ang pinakamabigat na load.","A great day begins with a good attitude and a safe start.","Respect the machine, respect the people, respect the time.","Ang taong masipag, hindi nauubusan ng oportunidad.","Today's effort is tomorrow's result. Make it count.","We don't just move equipment — we move the community forward.","Rest well, work well, stay safe. Kayo ang puso ng Yuval Trucking.","Be early, be ready, be safe.","Walang imposible sa taong may disiplina at malasakit sa trabaho.","Quality is doing it right even when no one is watching.","Salamat sa bawat araw ng pagsisikap ninyo. Malayo na ang narating natin.","Progress, not perfection. One good day at a time."];
+function qIdx(){var d=new Date(),s=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return s%Q.length}
+window.__qi=null;
+window.qNext=function(){var t=document.querySelector("#qcard .qt");if(!t)return;window.__qi=((window.__qi==null?qIdx():window.__qi)+1)%Q.length;t.classList.add("sw");setTimeout(function(){t.textContent=Q[window.__qi];t.classList.remove("sw")},320)};
+function count(el){var t=el.textContent.trim(),m=t.match(/^([^\d]*)([\d,]+(?:\.\d+)?)(.*)$/);if(!m||el.children.length)return;var pre=m[1],raw=m[2],suf=m[3],dec=(raw.split(".")[1]||"").length,end=parseFloat(raw.replace(/,/g,""));if(!isFinite(end)||end===0)return;var st=performance.now(),dur=900;
+ (function f(n){var p=Math.min(1,(n-st)/dur),e=1-Math.pow(1-p,3),v=end*e;el.textContent=pre+v.toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec})+suf;if(p<1)requestAnimationFrame(f);else el.textContent=t})(st)}
+function enhance(){var v=document.getElementById("view");if(!v||typeof cur=="undefined"||cur!="dash")return;
+ var h=new Date().getHours(),gr=h<12?"Good morning":h<18?"Good afternoon":"Good evening",ic=h<12?"🌅":h<18?"☀️":"🌙";
+ if(!document.getElementById("qcard")){var td=v.querySelector(".todo"),q=document.createElement("div");q.id="qcard";q.innerHTML='<div class="qh"><span>'+ic+'</span>'+gr+' · Quote of the day<button type="button" onclick="qNext()">↻ Another one</button></div><div class="qt">'+Q[window.__qi==null?qIdx():window.__qi]+'</div><div class="qa">— from all of us at Yuval Trucking</div><div class="qm">”</div>';if(td)td.parentNode.insertBefore(q,td);else v.insertBefore(q,v.children[1]||null)}
+ [].slice.call(v.children).forEach(function(c,i){if(c.id=="qcard")return;c.classList.add("dfade");c.style.animationDelay=(i*70)+"ms"});
+ v.querySelectorAll(".kpi b,.todoi .tn,.card b,.card div,.card span").forEach(function(el){if(el.children.length)return;var fs=parseFloat(getComputedStyle(el).fontSize);if(fs>=20&&/^[^\d\s]?[\d,]+(\.\d+)?$/.test(el.textContent.trim()))count(el)});
+ v.querySelectorAll('div[style*="width:"][style*="%"]').forEach(function(b){if(b.offsetHeight>14||b.children.length)return;var w=b.style.width;b.style.width="0";b.style.transition="width 1s cubic-bezier(.2,.8,.2,1)";requestAnimationFrame(function(){requestAnimationFrame(function(){b.style.width=w})})});
+ /* live clock next to the date */
+ var dl=[].slice.call(v.querySelectorAll("div,small,p,span")).find(function(x){return !x.children.length&&/^\w+day, \w+ \d+, \d{4}/.test(x.textContent.trim())});
+ if(dl&&!dl.querySelector(".dclk")){var base=dl.textContent.trim();dl.innerHTML=base.replace(/ · /," · <span class='dclk'></span> · ");var sp=dl.querySelector(".dclk"),tk=function(){if(!document.contains(sp)){clearInterval(iv2);return}sp.textContent=new Date().toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit",second:"2-digit"})},iv2=setInterval(tk,1000);tk()}}
+var dh=dash;dash=function(){var r=dh.apply(this,arguments);try{enhance()}catch(e){console.error(e)}return r};
+})();
+</script>
+<style>
+/* assistant launcher: logo + label instead of a plain round robot */
+#ybB,#ybB.rd{width:auto!important;height:auto!important;border-radius:18px!important;padding:6px 16px 6px 6px!important;gap:10px;background:var(--card,#fff)!important;color:var(--tx,#111)!important;border:2px solid #e8470f!important;box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 4px rgba(232,71,15,.15)!important;font-size:14px!important;text-align:left;cursor:pointer;animation:ybfloat 3.6s ease-in-out infinite}
+#ybB.rd{display:flex!important;align-items:center}
+#ybB:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 34px rgba(0,0,0,.4),0 0 0 5px rgba(232,71,15,.22)!important;animation:none}
+#ybB .ybl{width:46px;height:46px;border-radius:12px;background:#fff;object-fit:contain;flex:none;border:1px solid #0002}
+#ybB .ybt{display:flex;flex-direction:column;line-height:1.15}
+#ybB .ybt b{font-size:14.5px;font-weight:800}
+#ybB .ybt small{font-size:11.5px;color:var(--mu,#666);font-weight:500;margin-top:1px}
+#ybB .n{top:-8px!important;right:-8px!important}
+@keyframes ybfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+#ybP .h .ybl2{width:38px;height:38px;border-radius:10px;background:#fff;object-fit:contain}
+#ybQ button[data-h]{border-style:dashed}
+@media(max-width:760px){#ybB,#ybB.rd{bottom:72px!important;right:10px!important;padding:5px 12px 5px 5px!important}#ybB .ybl{width:38px;height:38px}#ybB .ybt small{display:none}}
+</style>
+<script>
+(function(){
+var b=document.getElementById("ybB");if(!b)return;var n=document.getElementById("ybN");
+var src=(typeof LOGO!="undefined"?LOGO:"");
+b.title="Ask Yuval — reports and questions about the system";b.setAttribute("aria-label","Ask Yuval: reports and questions about the system");
+b.innerHTML='<img class="ybl" alt="" src="'+src+'"><span class="ybt"><b>Ask Yuval</b><small>Reports · ask about the system</small></span>';b.appendChild(n);
+var h=document.querySelector("#ybP .h");if(h){var sp=h.querySelector("span");if(sp)sp.outerHTML='<img class="ybl2" alt="" src="'+src+'">';var sm=h.querySelector("small");if(sm)sm.textContent="Ask for a report, or ask anything about the system"}
+var inp=document.getElementById("ybI");if(inp)inp.placeholder="Ask for a report, or ask: how does dispatch / payroll work?";
+/* system help: answers "how / paano / what is" questions about the system */
+var H=[[/commission|10 ?%/,"<b>Commission</b> (Boom truck &amp; Trailer operators): 10% of <i>trip amount − expenses</i>. Enter the trip amount when you dispatch, and the expenses when the unit is <b>back in the garage</b>. It appears in <b>Payroll → Commission record by week</b>, one line per operator."],
+[/crane|monthly/,"<b>Crane operators</b> are on a <b>fixed monthly salary</b> — paid whether or not they have a trip. Set the <b>Monthly salary</b> in the employee's profile. Shorter periods are pro-rated by calendar days."],
+[/helper/,"<b>Helpers</b> follow their operator: same days as the operator's dispatch (out to back). Add one in <b>Dispatch Trucks → Helper column → ＋ Add</b>. A helper can only be linked to one operator at a time. Helpers are paid a daily rate."],
+[/dispatch|byahe|trip|garage/,"<b>Dispatch Trucks</b> (sidebar, needs the dispatch PIN): press <b>Dispatch</b> on the operator, enter project/site, date and trip amount. When the unit returns press <b>✔ Back in garage</b> and enter the total expenses. <b>History</b> shows every trip."],
+[/payslip|payroll|sahod|salary|pay /,"<b>Payroll</b> runs weekly (Mon–Sun). Pick the period, press <b>Review</b> on an employee to check daily records, tick <b>Verified</b>, then open <b>payslips</b>. Use the Role filter for Boom Truck / Trailer / Crane operators."],
+[/monitor|attendance|status|operating|record/,"<b>Monitoring</b>: set each operator's status for today (Operating, Half day, Not operating, Standby…). Garage staff and office staff are grouped separately. Helpers follow the operator's days automatically."],
+[/rent|hrs|hours/,"<b>Rent hours</b>: when you assign an operator to a rented unit, enter the included hours. Fleet shows used / total hours, and the system warns when 80% is used."],
+[/fleet|unit|available|maintenance|pull|assign/,"<b>Fleet / Site Clients</b>: units are grouped by status (Available, Rented, Pulled out, Maintenance, Breakdown). Click the operator cell to assign an operator; use the equipment dropdown to filter backhoe, grader, loader, road roller, bulldozer…"],
+[/invent|part|stock|low/,"<b>Parts &amp; Stock</b>: each month has its own sheet. On the Dashboard, click <b>Parts low on stock</b> to see (and flash) only the low-stock products."],
+[/login|sign in|admin|role|pin|password/,"Sign in as <b>Administrator</b> or <b>Payroll Officer</b> (the selected side is highlighted). The Dispatch and Payroll pages are protected by their own PIN."]];
+function helpFor(q){q=q.toLowerCase();if(!/how|paano|pano|what|ano |ano$|explain|help|where|saan|bakit|why|can i|puwede|pwede|guide|tutorial/.test(q))return"";for(var i=0;i<H.length;i++)if(H[i][0].test(q))return H[i][1];return""}
+function tm(){return new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
+function put(html,me){var m=document.getElementById("ybM");if(!m)return;var d=document.createElement("div");d.className="ybm"+(me?" me":"");d.innerHTML=html+'<div class="ts">'+tm()+'</div>';m.appendChild(d);m.scrollTop=m.scrollHeight}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function wire(){var f=document.getElementById("ybF");if(!f)return;if(!f.__w&&document.getElementById("ybQ")&&document.getElementById("ybQ").children.length){f.__w=1;var orig=f.onsubmit;
+ f.onsubmit=function(e){var i=document.getElementById("ybI"),v=(i.value||"").trim(),a=helpFor(v);if(a){e.preventDefault();i.value="";put(esc(v),1);setTimeout(function(){put(a)},350);return false}return orig?orig.call(this,e):false}}
+ var q=document.getElementById("ybQ");if(q&&q.children.length&&!q.querySelector("[data-h]")){[["How does dispatch work?","how does dispatch work"],["How is commission computed?","how is commission computed"],["How does payroll work?","how does payroll work"]].forEach(function(x){var bt=document.createElement("button");bt.type="button";bt.dataset.h="1";bt.textContent=x[0];bt.onclick=function(ev){ev.stopPropagation();put(esc(x[0]),1);setTimeout(function(){put(helpFor(x[1]))},350)};q.appendChild(bt)})}}
+document.addEventListener("DOMContentLoaded",function(){setTimeout(wire,300)});setTimeout(wire,1200);setTimeout(wire,3000);
+})();
 </script>
 </body>
 </html><script>
