@@ -439,7 +439,7 @@ const M={
  inventory:{t:"Parts Inventory",m:"part",f:[["photo","Photo","i"],["qty","Qty","n"],["unit","Unit","s",["pcs","box","pail","set","liter","gallon","drum","roll"]],["part","Item description"],["cat","Category","s",["Tubeless Tires","Locktype Tires","Battery","Rim","Hydraulic Oil","Change Oil / Fluid","Fluid","Grinder / Welding","Tools","Filters","Other"]],["store","Location","s",["Garage","Storage #1","Storage #2","Storage #3","Storage #4"]],["supplier","Supplier"],["min","Low-stock alert at","n"],["cost","Unit cost (₱)","n"]],c:["Stock value",r=>r.qty*r.cost]},
  stock:{t:"Stock In / Out",m:"date",f:[["date","Date","d"],["iname","Item name"],["mv","In / Out","s",["OUT","IN"]],["qty","Qty","n"],["relto","Release To / Received By"],["note","Note / Remarks (equipment used, etc.)"]]},
  maint:{t:"Maintenance & Work Orders",m:"task",f:[["task","Task"],["equip","Equipment","r","fleet"],["due","Service date","d"],["cost","Cost (₱)","n"],["status","Status","s",["Scheduled","In progress","Done"]]]},
- rescue:{t:"Rescue & Incidents",m:"issue",f:[["issue","Breakdown / issue"],["equip","Equipment","r","fleet"],["site","Site (para auto sa Site file)","r","sites"],["by","Dispatched to","r","employees"],["mech","Mechanic in charge","r","employees"],["date","Date","d"],["gas","Gas (₱)","n"],["food","Food (₱)","n"],["other","Other (₱)","n"],["rcpts","Receipts (photos)","im"],["status","Status","s",["Reported","Dispatched","Resolved"]]],c:["Total expenses",r=>(+r.gas||0)+(+r.food||0)+(+r.other||0)]},
+ rescue:{t:"Rescue & Incidents",m:"issue",f:[["issue","Breakdown / issue"],["by","Dispatched to (operator)","r","employees"],["equip","Equipment (auto from operator)","r","fleet"],["site","Site (auto from equipment)","r","sites"],["mech","Mechanic in charge","r","employees"],["date","Date","d"],["gas","Gas (₱)","n"],["food","Food (₱)","n"],["other","Other (₱)","n"],["rcpts","Receipts (photos)","im"],["status","Status","s",["Reported","Dispatched","Resolved"]]],c:["Total expenses",r=>(+r.gas||0)+(+r.food||0)+(+r.other||0)]},
  docs:{t:"Quotations",m:"title",f:[["title","Document"],["equip","Equipment","r","fleet"],["type","Type","s",["Registration","Insurance","Certificate","Permit","Contract"]],["expiry","Expiry date","d"]]}
 };
 
@@ -498,7 +498,7 @@ async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=f
   for(const T of [...TB].reverse()){if(T.k=="coll"&&NOCOLL)continue;const old=snap[T.t],ids=new Set(db[T.k].map(o=>String(o.id))),del=Object.keys(old).filter(i=>!ids.has(i));
    if(del.length){for(let i=0;i<del.length;i+=100){const{error}=await SB.from(T.t).delete().in("id",del.slice(i,i+100));if(error)throw error}del.forEach(i=>delete old[i])}}
   for(const k of Object.keys(db.ded)){if(db.ded[k]!==dsn[k]){const[e,f,to]=k.split("|"),{error}=await SB.from("payroll_deductions").upsert({employee_id:+e,period_from:f,period_to:to,amount:+db.ded[k]||0},{onConflict:"employee_id,period_from,period_to"});if(error)throw error;dsn[k]=db.ded[k]}}
-  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
+  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs","trips"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
   saveBanner("");setSt("\u25cf Saved","#1f9d55")}catch(e){setSt("Save failed","#d64545");toast("Save failed: "+(e.message||e));saveBanner(e.message||String(e))}
  busy=false;if(dirty)save()}
 function lEye(){const p=document.getElementById("lpw");p.type=p.type=="password"?"text":"password"}
@@ -1234,7 +1234,7 @@ function openProfile(id){const e=db.employees.find(x=>x.id==id);if(!e)return;doc
  PL=payList(e,empRecs(e,ago(29),ltoday())),days=PL.reduce((s,x)=>s+x.p.d,0),hrs=r2(PL.reduce((s,x)=>s+(x.p.d>0?(+x.a.hrs||0):0),0)),ot=r2(PL.reduce((s,x)=>s+(x.p.d>0?(+x.a.ot||0):0),0)),rate=+e.rate||0,pay=PL.reduce((s,x)=>s+x.p.total,0),
  pr=(l,v)=>`<div class="pr"><span>${l}</span><b>${v||"\u2014"}</b></div>`,st=e.status||"Active";
  document.getElementById("pfb").innerHTML=`<div class="pfh${pullEmp(e.id)?" pfpull":""}">${e.photo?`<img class="pav" src="${e.photo}">`:`<div class="pav">${(e.name||"?")[0]}</div>`}<div style="flex:1;min-width:0"><div style="font-size:22px;font-weight:650;letter-spacing:-.02em">${e.name}</div><div style="color:var(--mu)">${e.role||""} ${badge(st)}</div></div><button class="g" onclick="document.getElementById('pf').close()" style="align-self:flex-start">Close</button></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="s" onclick="document.getElementById('pf').close();logFor(${e.id})">+ Log monitoring</button><button class="s g" onclick="pfPayslip(${e.id})">Payslip</button><button class="s g" onclick="document.getElementById('pf').close();open_(${e.id})">Edit profile</button><button class="s d" onclick="document.getElementById('pf').close();del(${e.id})">Delete</button></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="s g" onclick="document.getElementById('pf').close();open_(${e.id})">Edit profile</button><button class="s d" onclick="document.getElementById('pf').close();del(${e.id})">Delete</button></div>
  <div class="pfg"><div class="pfc"><h4>Contact</h4>${pr("Cellphone",e.phone)}</div>
  <div class="pfc"><h4>Assignment</h4>${asgBtn(e,1)}${pr(e.role=="Helper"?"Assigned operator":"Equipment",e.role=="Helper"?((db.employees.find(x=>x.id==e.helps)||{}).name||""):pullEmp(e.id)?"No assigned unit":f?f.name+(f.type?" \u00b7 "+f.type:"")+(f.plate?" \u00b7 "+f.plate:""):"")}${pr("Dispatched site",s&&s.name)}${pr("Client",s&&s.client)}${pr("Company",s&&s.company)}${pr("Scope of work",s&&s.scope)}</div>
  <div class="pfc"><h4>Pay</h4>${pr("Daily rate",rate?php(rate):"")}${pr("OT rate / hour",php(otr(e)))}${pr("Last 30 days",days+" day(s) \u00b7 "+hrs+" h \u00b7 "+ot+" OT")}${pr("Estimated salary",php(pay))}</div>
@@ -1275,7 +1275,7 @@ function openRecords(id,keep){const e=db.employees.find(x=>x.id==id);if(!e)retur
  <div class="rcn"><div><small>Hours</small><b>${a.hrs||0}</b></div><div><small>OT</small><b>${a.ot||0}</b></div><div><small>Day pay</small><b>${peso(p.total)}</b></div></div>
  ${workText(a,e)?`<div class="rcw">${workText(a,e)}</div>`:""}<div class="rca"><button class="s g" onclick="open_(${a.id})">Edit</button><button class="s d" onclick="recDel(${a.id},${e.id})">Delete</button></div></div>`;
  document.getElementById("pfb").innerHTML=`<div class="pfh${pullEmp(e.id)?" pfpull":""}">${e.photo?`<img class="pav" src="${e.photo}">`:`<div class="pav">${(e.name||"?")[0]}</div>`}<div style="flex:1;min-width:0"><div style="font-size:22px;font-weight:650;letter-spacing:-.02em">${e.name}</div><div style="color:var(--mu)">${e.role||""} · Monitoring records</div></div><button class="g" onclick="document.getElementById('pf').close()" style="align-self:flex-start">Close</button></div>
- <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:14px"><div><label>Show</label><select onchange="document.getElementById('pf').dataset.per=this.value;openRecords(${e.id},true)"><option value="30"${per=="30"?" selected":""}>Last 30 days</option><option value="m"${per=="m"?" selected":""}>This month</option><option value="all"${per=="all"?" selected":""}>All records</option></select></div><button class="s" onclick="document.getElementById('pf').close();logFor(${e.id})">+ Log monitoring</button><button class="s g" onclick="pfPayslip(${e.id})">Payslip</button></div>
+ <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:14px"><div><label>Show</label><select onchange="document.getElementById('pf').dataset.per=this.value;openRecords(${e.id},true)"><option value="30"${per=="30"?" selected":""}>Last 30 days</option><option value="m"${per=="m"?" selected":""}>This month</option><option value="all"${per=="all"?" selected":""}>All records</option></select></div></div>
  <div class="kpis" style="margin-top:14px">${tl("Days worked",days)}${tl("Hours",hrs)}${tl("OT hours",ot)}${tl("Estimated pay",peso(pay))}</div>
  <div class="rgrid">${R.length?R.map(card).join(""):'<p style="color:var(--mu)">No records for this period.</p>'}</div>`;
  if(!pf.open)pf.showModal()}
@@ -1285,7 +1285,7 @@ function openMonitor(id){const e=db.employees.find(x=>x.id==id);if(!e)return;doc
  const pay=P.reduce((q,x)=>q+x.p.total,0),pr=(l,v)=>`<div class="pr"><span>${l}</span><b>${v||"\u2014"}</b></div>`,tile=(l,n)=>`<div class="kpi" style="cursor:default"><span>${l}</span><b>${n||0}</b></div>`;
  document.getElementById("pfb").innerHTML=`<div class="pfh${pullEmp(e.id)?" pfpull":""}">${e.photo?`<img class="pav" src="${e.photo}">`:`<div class="pav">${(e.name||"?")[0]}</div>`}<div style="flex:1;min-width:0"><div style="font-size:22px;font-weight:650;letter-spacing:-.02em">${e.name}</div><div style="color:var(--mu)">${e.role||""} \u00b7 ${f?f.name:"No equipment"}${s?" \u00b7 "+s.name:""}</div></div><button class="g" onclick="document.getElementById('pf').close()" style="align-self:flex-start">Close</button></div>
  <div class="pfc" style="margin-top:14px"><h4>Monitoring status \u2014 today (${td})</h4><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:4px"><div style="font-size:18px">${T?badge(T.a.act||"Operating"):'<span class="b">No record yet</span>'}</div>${T?`<div>${pr("Time",T.a.tin?fmt12(T.a.tin)+(T.a.tout?" \u2013 "+fmt12(T.a.tout):""):"")}${pr("Hours",T.a.hrs||0)}${T.a.why?pr("Reason",T.a.why):""}${T.a.rem?pr("Remarks",T.a.rem):""}</div>`:'<div style="color:var(--mu);font-size:13px">Nothing logged for today.</div>'}</div></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="s" onclick="document.getElementById('pf').close();logFor(${e.id})">+ Log monitoring</button><button class="s g" onclick="pfPayslip(${e.id})">Payslip</button><button class="s g" onclick="openProfile(${e.id})">Full profile</button></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="s g" onclick="openProfile(${e.id})">Full profile</button></div>
  <div class="kpis" style="margin-top:14px">${ACTS.map(a=>tile(a,C[a])).join("")}</div>
  <div class="pfc"><h4>Recent days</h4>${P.length?`<div class="wrap" style="border:0"><table><tr><th>Date</th><th>Status</th><th>Work done / reason</th><th>Morning</th><th>Afternoon</th><th>Hours</th><th>OT</th></tr>${[...P].reverse().slice(0,12).map(({a,p})=>`<tr><td style="white-space:nowrap">${a.date}</td><td>${badgeE(a)}</td><td>${workText(a,e)}</td>${tcells(a)}<td>${a.hrs||0}</td><td>${a.ot||0}</td></tr>`).join("")}</table></div>`:'<span style="color:var(--mu);font-size:13px">No attendance this month yet.</span>'}</div>`;
  document.getElementById("pf").showModal()}
@@ -3177,15 +3177,14 @@ try{addBtns()}catch(e){}
 (function(){var o=open_;
 window.open_=function(id){var r=o.apply(this,arguments);if(cur!=="rescue")return r;try{rescueFx(id)}catch(e){}return r};
 function rescueFx(id){var f=document.getElementById("ff"),cs=document.getElementById("frm").elements,site=cs.site,by=cs.by,st=cs.status;if(!site||!by||!st)return;
- var rec=id?db.rescue.find(function(x){return x.id==id}):null,keep=rec?rec.by:by.value;
- function fillBy(){var cur0=by.value||keep,sid=site.value,ids=db.fleet.filter(function(x){return String(x.site)==String(sid)}).map(function(x){return x.id});
-  var L=db.employees.filter(function(e){return e.role!="Helper"&&ids.indexOf(e.equip)>-1});
-  var all=!L.length;if(all)L=db.employees.filter(function(e){return e.role!="Helper"});
-  L.sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
-  by.innerHTML=L.map(function(e){return'<option value="'+e.id+'"'+(String(e.id)==String(cur0)?" selected":"")+'>'+String(e.name).replace(/</g,"&lt;")+(e.role?" ("+e.role+")":"")+'</option>'}).join("");
-  var h=document.getElementById("rshint");if(!h){h=document.createElement("div");h.id="rshint";h.style.cssText="font-size:12px;color:var(--mu);margin:-4px 0 6px";by.parentNode.insertBefore(h,by.nextSibling)}
-  h.textContent=all?"No operator assigned to this site yet — showing all operators.":"Operators at this site: "+L.length}
- site.addEventListener("change",function(){keep=null;fillBy()});fillBy();
+ var rec=id?db.rescue.find(function(x){return x.id==id}):null;
+ var eq=cs.equip,ROL=["Operator","Boom truck","Trailer","Driver"],sel0=rec?rec.by:"";
+ var L=db.employees.filter(function(e){return e.status!="Inactive"&&(ROL.indexOf(e.role)>-1||String(e.id)==String(sel0))}).sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
+ by.innerHTML=(rec?"":'<option value="">— select operator —</option>')+L.map(function(e){var f=db.fleet.find(function(x){return x.id==e.equip});return'<option value="'+e.id+'"'+(String(e.id)==String(sel0)?" selected":"")+'>'+String(e.name).replace(/</g,"&lt;")+(e.role?" ("+e.role+")":"")+(f?" — "+String(f.name).replace(/</g,"&lt;"):"")+'</option>'}).join("");
+ function setSite(){var f=db.fleet.find(function(x){return String(x.id)==String(eq.value)});if(f&&f.site)site.value=String(f.site)}
+ by.addEventListener("change",function(){var e=db.employees.find(function(x){return String(x.id)==String(by.value)});if(e&&e.equip){eq.value=String(e.equip);setSite()}});
+ eq.addEventListener("change",setSite);
+ var h=document.getElementById("rshint");if(!h){h=document.createElement("div");h.id="rshint";h.style.cssText="font-size:12px;color:var(--mu);margin:-4px 0 6px";by.parentNode.insertBefore(h,by.nextSibling)}h.textContent="Pick the operator first — the unit and site fill in automatically.";
  /* group cost fields */
  var names=["gas","food","other","rcpts"],kids=[].slice.call(f.children),grp=[],cur1=null;
  kids.forEach(function(k){if(k.tagName=="LABEL"){cur1=null;var n=names.find(function(x){return k.nextElementSibling&&((k.nextElementSibling.name==x)||(k.nextElementSibling.id=="p_"+x))});if(n){cur1=[k];grp.push(cur1);return}}if(cur1)cur1.push(k)});
@@ -3236,6 +3235,179 @@ function inj(){if(typeof cur=="undefined"||cur!=="sites")return;var v=document.g
  v.querySelectorAll('.sth button[onclick^="open_("]').forEach(function(b){if(b.parentNode.querySelector(".aopb"))return;var m=/open_\(([^)]*)\)/.exec(b.getAttribute("onclick"));if(!m)return;var x=document.createElement("button");x.type="button";x.className="s g aopb";x.style.cssText="color:#fff;border-color:#ffffff66";x.textContent="＋ Add operators";x.setAttribute("onclick","event.stopPropagation();aopOpen("+(isNaN(m[1])?JSON.stringify(m[1]):m[1])+")");b.parentNode.insertBefore(x,b);
   var c=b.closest(".sitec"),p=c&&c.querySelector("p");if(p&&/No equipment/.test(p.textContent)&&!p.querySelector("a")){p.innerHTML+=' — <a style="color:var(--ac);cursor:pointer;font-weight:700" onclick="aopOpen('+(isNaN(m[1])?JSON.stringify(m[1]):m[1])+')">add operators &amp; unit</a>'}})}
 var t0=table;table=function(){var r=t0.apply(this,arguments);try{inj()}catch(e){}return r};try{inj()}catch(e){}
+})();
+</script>
+<style>
+#trlog{margin-top:22px}
+#trlog .trh{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 10px}
+#trlog .trh h3{margin:0;flex:1 1 200px}
+#trlog .trh input,#trlog .trh select{padding:7px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:13px}
+#trlog .tw{overflow-x:auto}#trlog .trh input,#trlog .trh select{width:auto!important;margin:0!important}#trlog .trh input[type=search]{flex:1 1 220px;min-width:180px;width:auto!important}#trlog .trs{width:auto!important;min-width:118px;margin:0!important}
+#trlog table td,#trlog table th{white-space:nowrap}
+#trlog td small{display:block;color:var(--mu);font-size:11.5px}
+#trlog tfoot td{font-weight:800;border-top:2px solid var(--bd)}
+#trlog .trs{padding:5px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-weight:700;font-size:12px}
+#trlog .trs.Delivered,#trlog .trs.Paid{color:#16a34a;border-color:#16a34a66}#trlog .trs.Paid{background:#16a34a22}#trlog .trs.On{color:#f59e0b;border-color:#f59e0b66}#trlog .trs.Cancelled{color:#ef4444;border-color:#ef444466}
+#trd{border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);padding:18px;width:min(560px,96vw)}
+#trd::backdrop{background:rgba(0,0,0,.55)}
+#trd h3{margin:0 0 8px}#trd .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+#trd label{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}
+#trd input,#trd select{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:14px}
+#trd .hl{display:flex;flex-wrap:wrap;gap:6px 14px;max-height:110px;overflow:auto;padding:6px 8px;border:1px solid var(--bd);border-radius:10px}#trd .hl label{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;color:var(--tx)}#trd .hl input{width:auto!important}#trd .bt{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+#trd button{padding:9px 16px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-weight:700;cursor:pointer}
+#trd .go{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+@media(max-width:560px){#trd .g2{grid-template-columns:1fr}}
+#trlog td.acts{position:sticky;right:0;background:var(--card);box-shadow:-8px 0 8px -8px rgba(0,0,0,.25)}#trlog .trb{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:800;font-size:12px;background:#64748b22;color:#94a3b8}
+#trlog .k-disp{background:#f59e0b22;color:#f59e0b}#trlog .k-arr{background:#3b82f622;color:#60a5fa}#trlog .k-lift{background:#a855f722;color:#c084fc}#trlog .k-done{background:#14b8a622;color:#2dd4bf}#trlog .k-wait{background:#f9731622;color:#fb923c}#trlog .k-paid{background:#16a34a22;color:#22c55e}#trlog .k-x{background:#ef444422;color:#f87171}
+#trt{border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);padding:18px;width:min(560px,96vw)}
+#trt::backdrop{background:rgba(0,0,0,.55)}#trt h3{margin:0 0 6px}
+#trt .trs2{color:var(--mu);font-size:13px;margin-bottom:12px}
+#trt .tlv{border-left:2px solid var(--bd);margin-left:14px;padding-left:18px}
+#trt .tls{position:relative;padding:0 0 14px}
+#trt .tls>i{position:absolute;left:-33px;top:0;width:28px;height:28px;border-radius:50%;background:var(--bg);border:2px solid var(--bd);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;color:var(--mu)}
+#trt .tls.on>i{background:#16a34a;border-color:#16a34a;color:#fff}
+#trt .tb b{font-size:14px}#trt .tb em{font-style:normal;margin-left:8px;color:#f59e0b;font-size:12px;font-weight:700}
+#trt .tf{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+#trt input{padding:6px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:13px;width:auto!important;margin:0!important}
+#trt button{padding:7px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-weight:700;cursor:pointer;font-size:12.5px}
+#trt .bt{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+#trt .go{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+</style>
+<script>
+/* Dispatch: trip log with a timeline (dispatched -> arrived -> lifting -> load done -> waiting for payment -> paid) */
+(function(){
+var _h=window.dspHTML,TRS="",TRM=ltoday().slice(0,7),TRQ="",DRV=["Driver","Operator","Boom truck","Trailer"];
+var STG=[["disp","Dispatched","Dispatched"],["arr","Arrived at drop off","Arrived"],["lift","Lifting the load","Lifting"],["done","Load done at designated area","Load done"],["gar","Back in garage","Back in garage"],["wait","Waiting for payment","Waiting payment"],["paid","Paid","Paid"]];
+var ST=STG.map(function(s){return s[1]}).concat(["Cancelled"]);
+var E=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+function T(){try{var a=JSON.parse(db.trips||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+function W(a){db.trips=JSON.stringify(a);try{save()}catch(e){}}
+function fl(id){return db.fleet.find(function(x){return String(x.id)==String(id)})}
+function em(id){return db.employees.find(function(x){return String(x.id)==String(id)})}
+function dt(d){return d?new Date(d+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}
+function ds(d){return d?new Date(d+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}):"—"}
+function nd(a,b){return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5)}
+function nowT(){var d=new Date();return("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
+function tlOf(t){if(t.tl)return t.tl;var m={"On the way":"disp",Delivered:"done",Paid:"paid"}[t.status],o={};if(m)o[m]={d:t.date};else if(t.status!="Pending"&&t.status!="Cancelled")o.disp={d:t.date};return o}
+function sg(t){var tl=tlOf(t),last=null;STG.forEach(function(s){if(tl[s[0]])last=s});if(t.status=="Cancelled")return{k:"x",l:"Cancelled",d:t.date,tl:tl,last:last};return last?{k:last[0],l:last[1],d:tl[last[0]].d,tl:tl,last:last}:{k:"pend",l:"Pending",d:t.date,tl:tl,last:null}}
+function nextOf(t){var s=sg(t);if(s.k=="x")return null;for(var i=0;i<STG.length;i++)if(!s.tl[STG[i][0]])return STG[i];return null}
+function list(){var q=TRQ.toLowerCase();return T().filter(function(t){var s=sg(t);return(!TRM||String(t.date).slice(0,7)==TRM)&&(!TRS||s.l==TRS)&&(!q||[t.pick,t.drop,t.load,t.client,s.l,(em(t.drv)||{}).name,(fl(t.fid)||{}).plate,(fl(t.fid)||{}).name].join(" ").toLowerCase().indexOf(q)>-1)}).sort(function(a,b){return String(b.date).localeCompare(String(a.date))||b.id-a.id})}
+function html(){var L=list(),td=ltoday(),tot=0,col=0;L.forEach(function(t){var s=sg(t);if(s.k!="x"){tot+=+t.rate||0;if(s.k!="paid")col+=+t.rate||0}});
+ var rows=L.map(function(t){var f=fl(t.fid),e=em(t.drv),s=sg(t),nx=nextOf(t),hn=hnames(t),d0=(s.tl.disp&&s.tl.disp.d)||t.date,end=s.tl.paid?s.tl.paid.d:td,el=s.k=="x"?"":(s.k=="paid"?"took ":"day ")+(nd(d0,end)+1)+(s.k=="paid"?" d":"");
+  return'<tr><td>'+dt(t.date)+'</td><td><b>'+E(f?(f.plate||f.name):"—")+'</b>'+(f&&f.plate?'<small>'+E(f.name)+'</small>':'')+'</td><td>'+E(e?e.name:"—")+(hn?'<small>+ '+E(hn)+'</small>':'')+'</td><td>'+E(t.pick||"—")+'</td><td>'+E(t.drop||"—")+'</td><td>'+E(t.load||"—")+'</td><td>'+E(t.client||"—")+'</td><td>'+(t.rate?peso(t.rate):"—")+(+t.exp?'<small>exp '+peso(t.exp)+'</small>':'')+'</td><td><span class="trb k-'+s.k+'">'+E(s.l)+'</span><small>'+(s.k=="pend"?"":(s.k=="x"?"":"since "+ds(s.d)+" · "+el))+'</small></td><td class="acts">'+(nx?'<button class="s" style="background:#f59e0b!important;color:#111!important" onclick="trNext('+t.id+')" title="Mark: '+E(nx[1])+' (today)">▶ '+E(nx[2])+'</button> ':'')+'<button class="s g" onclick="trTl('+t.id+')" title="Timeline">🕒</button> <button class="s g" onclick="trOpen('+t.id+')" title="Edit">✎</button> <button class="s d" onclick="trDel('+t.id+')" title="Delete">✕</button></td></tr>'}).join("");
+ return'<div class="dsp" id="trlog"><div class="trh"><h3>🧾 Trip log</h3><input type="search" placeholder="Search plate, driver, client…" value="'+E(TRQ)+'" onchange="trF(\'q\',this.value)"><input type="month" value="'+TRM+'" onchange="trF(\'m\',this.value)" title="Month (clear = all)"><select onchange="trF(\'s\',this.value)"><option value="">All status</option>'+ST.map(function(s){return'<option'+(s==TRS?" selected":"")+'>'+s+'</option>'}).join("")+'</select><button class="s g" onclick="trCsv()">⬇ Export CSV</button><button class="s g" onclick="trPrint()">🖨 Print</button><button class="s" style="background:#f59e0b!important;color:#111!important" onclick="trOpen()">＋ New trip</button></div><div class="tw"><table><thead><tr><th>Trip date</th><th>Plate no.</th><th>Driver</th><th>Pick up / Site location</th><th>Drop off</th><th>Load</th><th>Agent / Client</th><th>Rate</th><th>Status</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="10" style="color:var(--mu);padding:14px">No trips for this filter. Press “＋ New trip”.</td></tr>')+'</tbody>'+(L.length?'<tfoot><tr><td colspan="7">'+L.length+' trip'+(L.length>1?'s':'')+' · total rate (without cancelled)</td><td>'+peso(tot)+'</td><td colspan="2">'+(col?'⏳ Waiting to collect: <b>'+peso(col)+'</b>':'')+'</td></tr></tfoot>':'')+'</table></div></div>'}
+window.dspHTML=function(){var H=_h.apply(this,arguments);if(typeof dspOk=="function"&&!dspOk()){if(H)return H;return '<div class="dsp" id="dsp" style="max-width:420px;margin:30px auto;text-align:center"><div style="font-size:34px">🔒</div><h3 style="margin:4px 0">Dispatch Trucks</h3><div style="color:var(--mu);font-size:13px;margin-bottom:12px">Trip rates are private. Enter the PIN to open.</div><input id="dsp_p" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="PIN" style="width:160px;text-align:center;font-size:18px;letter-spacing:.3em" onkeydown="if(event.key===\'Enter\')dspUnlock()"><div id="dsp_m" style="color:#dc2626;font-size:13px;min-height:18px;margin:6px 0"></div><button class="s" style="background:#f59e0b!important;color:#111!important;padding:8px 22px" onclick="dspUnlock()">🔓 Unlock</button></div>'}if(!H)return'<div class="dsp" id="dspw"><h3>🚚 Dispatch Trucks</h3><div style="font-size:12px;color:var(--mu);margin:2px 0 6px">🔓 Unlocked · <a href="#" style="color:#eab308" onclick="dspLock();return false">🔒 Lock</a></div></div>'+html();return H+html()};
+window.trF=function(k,v){if(k=="q")TRQ=v;else if(k=="m")TRM=v;else TRS=v;go()};
+window.trDel=function(id){if(!confirm("Delete this trip?"))return;W(T().filter(function(t){return t.id!=id}));go()};
+window.trNext=function(id){var a=T(),t=a.find(function(x){return x.id==id}),n=t&&nextOf(t);if(!n)return;var tl=Object.assign({},tlOf(t));tl[n[0]]={d:ltoday(),t:nowT()};t.tl=tl;W(a);go();toast("✔ "+n[1]+" — "+ds(ltoday()))};
+window.trTl=function(id){var t=T().find(function(x){return x.id==id});if(!t)return;var tl=tlOf(t),d=document.getElementById("trt"),f=fl(t.fid),e=em(t.drv);
+ if(!d){d=document.createElement("dialog");d.id="trt";document.body.appendChild(d)}
+ var prev="",h='<h3>🕒 Trip timeline</h3><div class="trs2">'+E(f?(f.plate||f.name):"")+' · '+E(e?e.name:"")+'<br>'+E(t.pick||"—")+' → <b>'+E(t.drop||"—")+'</b>'+(t.load?' · '+E(t.load):'')+(t.client?' · '+E(t.client):'')+'</div><div class="tlv">';
+ STG.forEach(function(s,i){var v=tl[s[0]],gap="";if(v&&s[0]=="gar"&&tl.disp){gap='<em>day '+(nd(tl.disp.d,v.d)+1)+' of the trip</em>'}else if(v&&prev){var n=nd(prev,v.d);gap=n>0?'<em>+'+n+' day'+(n>1?'s':'')+'</em>':'<em>same day</em>'}if(v&&s[0]!="gar")prev=v.d;
+  h+='<div class="tls'+(v?' on':'')+'"><i>'+(v?'✔':i+1)+'</i><div class="tb"><b>'+s[1]+'</b>'+gap+'<div class="tf"><input type="date" id="tl_d'+i+'" value="'+(v?E(v.d):"")+'" max="'+ltoday()+'"><input type="time" id="tl_t'+i+'" value="'+(v&&v.t?E(v.t):"")+'"><button type="button" onclick="trNow('+i+')">Now</button><button type="button" onclick="trClr('+i+')">Clear</button></div></div></div>'});
+ h+='</div>'+payInfo(t)+'<div class="bt"><button onclick="trCancel('+id+')" style="margin-right:auto">'+(t.status=="Cancelled"?"↩ Reopen trip":"✖ Cancel trip")+'</button><button onclick="document.getElementById(\'trt\').close()">Close</button><button class="go" onclick="trTlSave('+id+')">Save timeline</button></div>';
+ d.innerHTML=h;d.showModal()};
+window.trNow=function(i){document.getElementById("tl_d"+i).value=ltoday();document.getElementById("tl_t"+i).value=nowT()};
+window.trClr=function(i){document.getElementById("tl_d"+i).value="";document.getElementById("tl_t"+i).value=""};
+window.trTlSave=function(id){var a=T(),t=a.find(function(x){return x.id==id}),tl={},prev="";
+ for(var i=0;i<STG.length;i++){var d=document.getElementById("tl_d"+i).value,tm=document.getElementById("tl_t"+i).value;if(d){if(STG[i][0]!="gar"){if(prev&&d<prev){toast("“"+STG[i][1]+"” is earlier than the step before it");return}prev=d}tl[STG[i][0]]={d:d,t:tm}}}
+ t.tl=tl;if(t.status!="Cancelled")t.status=sg(t).l;W(a);document.getElementById("trt").close();go();toast("Timeline saved ✔")};
+window.trCancel=function(id){var a=T(),t=a.find(function(x){return x.id==id});if(!t)return;t.tl=tlOf(t);t.status=t.status=="Cancelled"?sg(Object.assign({},t,{status:""})).l:"Cancelled";W(a);document.getElementById("trt").close();go()};
+window.trOpen=function(id){var r=id?T().find(function(t){return t.id==id}):{date:ltoday()},d=document.getElementById("trd");
+ if(!d){d=document.createElement("dialog");d.id="trd";document.body.appendChild(d)}
+ var U=db.fleet.slice().sort(function(a,b){return String(a.plate||a.name).localeCompare(String(b.plate||b.name))}),P=db.employees.filter(function(e){return e.status!="Inactive"&&DRV.indexOf(e.role)>-1}).sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
+ var cl=[],seen={};db.sites.forEach(function(s){[s.client,s.company].forEach(function(x){if(x&&!seen[x]){seen[x]=1;cl.push(x)}})});T().forEach(function(t){if(t.client&&!seen[t.client]){seen[t.client]=1;cl.push(t.client)}});
+ var locs=db.sites.map(function(s){return s.name}),HL=db.employees.filter(function(e){return e.status!="Inactive"&&e.role=="Helper"});
+ d.innerHTML='<h3>'+(id?"Edit trip":"New trip")+'</h3><div class="g2"><div><label>Trip date (day dispatched)</label><input type="date" id="tr_d" value="'+E(r.date)+'"></div><div><label>Driver</label><select id="tr_e"><option value="">— select driver —</option>'+P.map(function(e){return'<option value="'+e.id+'"'+(String(e.id)==String(r.drv)?" selected":"")+'>'+E(e.name)+' ('+E(e.role)+')</option>'}).join("")+'</select></div><div><label>Plate no.</label><select id="tr_f"><option value="">— select plate —</option>'+U.map(function(f){return'<option value="'+f.id+'"'+(String(f.id)==String(r.fid)?" selected":"")+'>'+E(f.plate||"no plate")+' — '+E(f.name)+'</option>'}).join("")+'</select></div><div><label>Pick up / Site location</label><input id="tr_p" list="tr_l" value="'+E(r.pick)+'" placeholder="Pick or type"></div><div><label>Drop off</label><input id="tr_o" list="tr_l" value="'+E(r.drop)+'" placeholder="Pick or type"></div><div><label>Load</label><input id="tr_ld" value="'+E(r.load)+'" placeholder="e.g. PC200, 20ft container"></div><div><label>Agent / Client</label><input id="tr_c" list="tr_cl" value="'+E(r.client)+'" placeholder="Pick or type"></div><div><label>Rate / payment ₱</label><input type="number" id="tr_r" min="0" step="any" value="'+E(r.rate)+'"></div><div><label>Expenses ₱ (fuel, toll, meals…)</label><input type="number" id="tr_x" min="0" step="any" value="'+E(r.exp)+'"></div><div style="grid-column:1/-1"><label>Helper(s) — paid per day of the trip until back in garage</label><div class="hl">'+(HL.length?HL.map(function(h){return'<label><input type="checkbox" class="hlc" value="'+h.id+'"'+((r.hlp||[]).map(String).indexOf(String(h.id))>-1?" checked":"")+'> '+E(h.name)+'</label>'}).join(""):'<span style="color:var(--mu);font-size:12.5px">No helpers yet — add them in People.</span>')+'</div></div></div><div style="color:var(--mu);font-size:12px;margin-top:8px">'+(id?"Update the stages with the 🕒 Timeline button.":"The trip starts as “Dispatched” on this date. Then press ▶ in the row for each step.")+'</div><datalist id="tr_l">'+locs.map(function(x){return'<option value="'+E(x)+'">'}).join("")+'</datalist><datalist id="tr_cl">'+cl.map(function(x){return'<option value="'+E(x)+'">'}).join("")+'</datalist><div class="bt"><button onclick="document.getElementById(\'trd\').close()">Cancel</button><button class="go" onclick="trSave('+(id?id:0)+')">Save trip</button></div>';
+ var e=d.querySelector("#tr_e"),f=d.querySelector("#tr_f");
+ e.onchange=function(){var x=em(e.value);if(x&&x.equip)f.value=String(x.equip);if(x)d.querySelectorAll('.hlc').forEach(function(c){var h=em(c.value);c.checked=!!h&&String(h.helps)==String(x.id)})};
+ f.onchange=function(){if(e.value)return;var o=db.employees.filter(function(x){return String(x.equip)==String(f.value)&&x.status!="Inactive"&&DRV.indexOf(x.role)>-1})[0];if(o)e.value=String(o.id)};
+ d.showModal()};
+window.trSave=function(id){var v=function(i){return(document.getElementById(i).value||"").trim()},a=T();
+ if(!v("tr_f")&&!v("tr_e")){toast("Choose the driver or the plate no.");return}
+ var o={date:v("tr_d")||ltoday(),fid:v("tr_f"),drv:v("tr_e"),pick:v("tr_p"),drop:v("tr_o"),load:v("tr_ld"),client:v("tr_c"),rate:+v("tr_r")||0,exp:+v("tr_x")||0,hlp:[].slice.call(document.querySelectorAll("#trd .hlc:checked")).map(function(c){return c.value})};
+ if(id){a.forEach(function(t){if(t.id==id){var tl=Object.assign({},tlOf(t));if(tl.disp&&tl.disp.d==t.date)tl.disp.d=o.date;Object.assign(t,o);t.tl=tl;if(t.status!="Cancelled")t.status=sg(t).l}})}
+ else{o.id=Date.now();o.tl={disp:{d:o.date,t:nowT()}};o.status="Dispatched";a.push(o)}
+ W(a);document.getElementById("trd").close();var m=o.date.slice(0,7);if(TRM&&TRM!=m)TRM=m;go();toast("Trip saved ✔")};
+function rowsCsv(){return list().map(function(t){var f=fl(t.fid),e=em(t.drv),s=sg(t);return[t.date,f?(f.plate||f.name):"",e?e.name:"",t.pick,t.drop,t.load,t.client,t.rate||"",s.l,hnames(t),t.exp||"",Math.max(0,(+t.rate||0)-(+t.exp||0)),Math.round(Math.max(0,(+t.rate||0)-(+t.exp||0))*DSPC*100)/100].concat(STG.map(function(g){var v=s.tl[g[0]];return v?v.d+(v.t?" "+v.t:""):""}))})}
+var HD=["TRIP DATE","PLATE NO.","DRIVER","PICK UP / SITE LOCATION","DROP OFF","LOAD","AGENT / CLIENT","RATE","STATUS","HELPER(S)","EXPENSES","NET (RATE - EXPENSES)","DRIVER COMMISSION"].concat(STG.map(function(g){return g[1].toUpperCase()}));
+window.trCsv=function(){var q=function(x){return'"'+String(x==null?"":x).replace(/"/g,'""')+'"'},c="﻿"+[HD].concat(rowsCsv()).map(function(r){return r.map(q).join(",")}).join("\r\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));a.download="Trip-log_"+(TRM||"all")+".csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);toast("Trip log downloaded ✔")};
+window.trPrint=function(){var R=rowsCsv(),f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);var d=f.contentWindow.document;d.open();d.write('<html><head><title>Trip log</title><style>body{font:11px Arial;margin:16px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 6px;text-align:left}th{background:#eee}h2{margin:0 0 8px}</style></head><body><h2>Yuval Trucking — Trip log '+E(TRM||"(all)")+'</h2><table><tr>'+HD.map(function(h){return'<th>'+h+'</th>'}).join("")+'</tr>'+R.map(function(r){return'<tr>'+r.map(function(c,i){return'<td>'+E(i==7&&c?peso(c):c)+'</td>'}).join("")+'</tr>'}).join("")+'</table></body></html>');d.close();setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){}setTimeout(function(){f.remove()},2000)},300)};
+
+function payInfo(t){var tl=tlOf(t),d0=(tl.disp&&tl.disp.d)||t.date,td=ltoday(),net=Math.max(0,(+t.rate||0)-(+t.exp||0)),c=Math.round(net*DSPC*100)/100,h="";
+ (t.hlp||[]).forEach(function(id){var e=em(id);if(!e)return;var n=(tl.gar?nd(d0,tl.gar.d):nd(d0,td))+1;h+='<div>👷 <b>'+E(e.name)+'</b> (helper): '+n+' day'+(n>1?'s':'')+' × '+peso(+e.rate||0)+' = <b>'+peso(n*(+e.rate||0))+'</b> '+(tl.gar?'<span style="color:#22c55e">→ in payroll</span>':'<span style="color:#f59e0b">(day '+n+' so far — goes to payroll once the truck is back in garage)</span>')+'</div>'});
+ var e=em(t.drv);h+='<div>🚚 <b>'+E(e?e.name:"Driver")+'</b> (driver): ('+peso(+t.rate||0)+' − expenses '+peso(+t.exp||0)+') × '+Math.round(DSPC*100)+'% = <b>'+peso(c)+'</b> '+(tl.paid?'<span style="color:#22c55e">→ in payroll</span>':'<span style="color:#f59e0b">(goes to payroll once the trip is Paid)</span>')+'</div>';
+ return'<div style="margin-top:12px;padding:10px 12px;border:1px dashed var(--bd);border-radius:12px;font-size:12.5px;display:grid;gap:5px">'+h+'</div>'}
+
+function hnames(t){return(t.hlp||[]).map(function(id){return(em(id)||{}).name}).filter(Boolean).join(", ")}
+function inR(d,f,t){return d&&(!f||d>=f)&&(!t||d<=t)}
+function tripPay(e,f,t){var out={rows:[],hlp:0,drv:0};T().forEach(function(x){var s=sg(x);if(s.k=="x")return;var tl=s.tl,d0=(tl.disp&&tl.disp.d)||x.date;
+ if(String(x.drv)==String(e.id)&&tl.paid&&inR(tl.paid.d,f,t)){var net=Math.max(0,(+x.rate||0)-(+x.exp||0)),c=Math.round(net*DSPC*100)/100;out.drv+=c;out.rows.push({k:"drv",x:x,rate:+x.rate||0,exp:+x.exp||0,net:net,amt:c,d:tl.paid.d})}
+ if((x.hlp||[]).map(String).indexOf(String(e.id))>-1&&tl.gar&&inR(tl.gar.d,f,t)){var n=nd(d0,tl.gar.d)+1,a=n*(+e.rate||0);out.hlp+=a;out.rows.push({k:"hlp",x:x,days:n,rate:+e.rate||0,amt:a,d:tl.gar.d,d0:d0})}});return out}
+function isTripDrv(e){return e.role=="Driver"&&T().some(function(x){return String(x.drv)==String(e.id)})}
+function route(x){var f=fl(x.fid);return E((f&&f.plate?f.plate+" · ":"")+(x.pick||"—")+" → "+(x.drop||"—")+(x.client?" · "+x.client:""))}
+function line(r){return r.k=="drv"?"Payment "+peso(r.rate)+" − expenses "+peso(r.exp)+" = "+peso(r.net)+" × "+Math.round(DSPC*100)+"%":ds(r.d0)+" → "+ds(r.d)+" · "+r.days+" day"+(r.days>1?"s":"")+" × "+peso(r.rate)}
+var _cp=window.calcPay;window.calcPay=function(f,t,ao){var R=_cp.apply(this,arguments);try{R.forEach(function(r){var e=r.e;if(isTripDrv(e)){var p=tripPay(e,f,t);r.tripRows=p.rows;r.tripc=1;r.days=p.rows.length;r.sdays=0;r.hrs=0;r.ot=0;r.shop=0;r.meal=0;r.otp=0;r.basic=Math.round(p.drv*100)/100;r.net=Math.round((r.basic-r.ded)*100)/100}else if(e.role=="Helper"){var q=tripPay(e,f,t);if(q.hlp>0){r.tripRows=q.rows;r.basic=Math.round((r.basic+q.hlp)*100)/100;r.net=Math.round((r.net+q.hlp)*100)/100}}})}catch(x){}return R};
+var _pv=window.payView;window.payView=function(){var r=_pv.apply(this,arguments);
+ try{if(typeof PS!="undefined"&&PS)return r;if(!document.querySelector("#view table"))return r;var R=calcPay(PF,PT,false).filter(function(x){return x.tripRows&&x.tripRows.length&&(!PO||x.e.id==PO)&&(!PSITE||psiteOf(x.e)==PSITE)&&(!PROLE||proleOk(x.e))});if(!R.length)return r;
+  var c=document.createElement("div");c.className="card np";c.style.marginTop="12px";
+  c.innerHTML='<b>🚚 Trip pay</b><div style="color:var(--mu);font-size:12.5px;margin:4px 0 8px">Helpers: paid per day of the trip — day 1 is the day it was dispatched until the truck is back in the garage. Drivers: '+Math.round(DSPC*100)+'% of the payment, after taking out the trip expenses (counted once the trip is Paid).</div>'+R.map(function(x){return'<div style="margin-top:10px"><b>'+E(x.e.name)+'</b> <span style="color:var(--mu)">· '+E(x.e.role)+' · '+(x.tripc?"commission only":"trip days added to attendance pay")+'</span><table style="width:100%;margin-top:4px;font-size:13px">'+x.tripRows.map(function(q){return'<tr><td style="white-space:nowrap">'+ds(q.d)+'</td><td>'+route(q.x)+'</td><td>'+E(line(q))+'</td><td style="text-align:right;font-weight:800;white-space:nowrap">'+peso(q.amt)+'</td></tr>'}).join("")+'</table></div>'}).join("");
+  document.getElementById("view").appendChild(c)}catch(x){}return r};
+var _sh=window.slipHTML;window.slipHTML=function(r){var H=_sh.apply(this,arguments);
+ try{if(!r.tripRows||!r.tripRows.length)return H;var tb='<table><tr><th>Date</th><th>Trip</th><th>Computation</th><th>Amount</th></tr>'+r.tripRows.map(function(q){return'<tr><td style="white-space:nowrap">'+q.d+'</td><td>'+route(q.x)+'</td><td>'+E(line(q))+'</td><td>'+peso(q.amt)+'</td></tr>'}).join("")+'</table>';
+  if(r.tripc)return H.replace(/<table>[\s\S]*?<\/table>/,function(){return tb});var mk='<div style="display:flex;justify-content:flex-end;align-items:baseline';return H.replace(mk,function(){return'<div style="margin-top:8px;font-weight:700">Trip pay</div>'+tb+mk})}catch(x){return H}};
+})();
+</script>
+<style>
+#mdb{margin:0 0 16px;border:1px solid var(--bd);border-radius:14px;background:var(--card);overflow:hidden}
+#mdb .mh{padding:14px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#mdb .mh h3{margin:0;font-size:18px;flex:1 1 220px}
+#mdb .mh small{display:block;color:var(--mu);font-weight:400;font-size:12.5px}
+#mdb .mh input,#mdb .mh select{width:auto!important;margin:0!important;padding:7px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:13px}
+#mdb .bk{display:flex;gap:10px;flex-wrap:wrap;padding:0 16px 12px}
+#mdb .bk div{flex:1 1 120px;padding:8px 12px;border:1px solid var(--bd);border-radius:10px}
+#mdb .bk b{display:block;font-size:20px}#mdb .bk span{font-size:12px;color:var(--mu)}
+#mdb .bw{overflow-x:auto}
+#mdb table{width:100%;border-collapse:collapse;font-size:13px}
+#mdb th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);padding:8px 12px;border-bottom:1px solid var(--bd);white-space:nowrap}
+#mdb td{padding:8px 12px;border-bottom:1px solid var(--bd);white-space:nowrap}
+#mdb tr.g td{background:color-mix(in srgb,var(--tx) 5%,var(--card));font-weight:800}
+#mdb td small{display:block;color:var(--mu);font-size:11.5px;font-weight:400}
+#mdb .hr{font-weight:800}#mdb .hr.z{color:var(--mu);font-weight:500}
+#mdb .emp{padding:18px 16px;color:var(--mu)}
+</style>
+<script>
+/* Separate page under Dispatch Trucks: Deployment Monitoring (client, site location, plate no., driver, hours worked per day) */
+(function(){
+var E=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+var ROL=["Operator","Boom truck","Trailer","Driver","Helper"],ORD={"Driver":0,"Operator":1,"Boom truck":1,"Trailer":1,"Helper":2},DD="",DC="";
+IC.depmon=ico('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/>');
+M.depmon={t:"Deployment Monitoring",m:"no",f:[]};SL.depmon="Deployment Monitoring";
+(function(){var g=GRP.find(function(x){return x[0]=="dis"});if(g&&g[2].indexOf("depmon")<0)g[2].push("depmon")})();
+function day(){return DD||ltoday()}
+function data(){var td=day(),A=db.attendance.filter(function(a){return a.date==td}),out=[];
+ db.employees.filter(function(e){return e.status!="Inactive"&&ROL.indexOf(e.role)>-1}).forEach(function(e){
+  var uid=e.equip;if(e.role=="Helper"){var op=db.employees.find(function(x){return x.id==e.helps});uid=op?op.equip:e.equip}
+  var f=db.fleet.find(function(x){return x.id==uid});if(!f)return;if(typeof pullEmp=="function"&&e.role!="Helper"&&pullEmp(e.id))return;
+  var L=A.filter(function(a){return a.emp==e.id}),t=L[L.length-1],s=db.sites.find(function(x){return x.id==f.site})||(t&&t.site?db.sites.find(function(x){return x.name==t.site}):null);
+  if(!s&&!(t&&t.site))return;
+  var hrs=L.reduce(function(n,a){return n+(+a.hrs||0)},0),ot=L.reduce(function(n,a){return n+(+a.ot||0)},0);
+  out.push({e:e,f:f,s:s,t:t,hrs:Math.round(hrs*100)/100,ot:Math.round(ot*100)/100,client:s?(s.client||s.company||s.name):(t.site||"—"),site:s?s.name:(t.site||"—")})});
+ out.sort(function(a,b){return a.client.localeCompare(b.client)||a.site.localeCompare(b.site)||String(a.f.plate||a.f.name).localeCompare(String(b.f.plate||b.f.name))||(ORD[a.e.role]-ORD[b.e.role])||a.e.name.localeCompare(b.e.name)});return out}
+function page(){var td=day(),all=data(),cl=[],seen={};all.forEach(function(r){if(!seen[r.client]){seen[r.client]=1;cl.push(r.client)}});if(DC&&!seen[DC])DC="";var D=all.filter(function(r){return!DC||r.client==DC});
+ var tot=D.reduce(function(n,r){return n+r.hrs},0),w=D.filter(function(r){return r.hrs>0}).length,nc={};D.forEach(function(r){nc[r.client]=1});
+ var h='<div id="mdb"><div class="mh"><h3>📋 Deployment monitoring<small>Daily hours of the people deployed to client sites · '+E(new Date(td+"T12:00:00").toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric",year:"numeric"}))+'</small></h3><input type="date" value="'+td+'" max="'+ltoday()+'" onchange="depSet(this.value)"><button type="button" class="s g" onclick="depSet(\'\')">Today</button><select onchange="depCl(this.value)"><option value="">All clients</option>'+cl.map(function(c){return'<option'+(c==DC?" selected":"")+'>'+E(c)+'</option>'}).join("")+'</select><button type="button" class="s g" onclick="depCsv()">⬇ CSV</button></div>';
+ if(!D.length)return h+'<div class="emp">Nobody is deployed to a site yet. Assign a unit to a site (Fleet / Site Clients → ＋ Add operators) and the people show here.</div></div>';
+ h+='<div class="bk"><div><b>'+D.length+'</b><span>deployed people</span></div><div><b>'+Object.keys(nc).length+'</b><span>clients</span></div><div><b>'+w+'/'+D.length+'</b><span>with hours logged</span></div><div><b>'+(Math.round(tot*100)/100)+' h</b><span>total hours</span></div></div><div class="bw"><table><tr><th>Plate no. / Unit</th><th>Driver / Operator</th><th>Role</th><th>Hours</th><th>Status</th><th></th></tr>';
+ var last="",prev=null;D.forEach(function(r){var k=r.client+"|"+r.site;if(k!=last){last=k;prev=null;var G=D.filter(function(x){return x.client+"|"+x.site==k}),gh=G.reduce(function(n,x){return n+x.hrs},0);h+='<tr class="g"><td colspan="3">'+E(r.client)+(r.site!=r.client?' <span style="font-weight:500;color:var(--mu)">· 📍 '+E(r.site)+'</span>':'')+'</td><td colspan="3">'+G.length+' people · '+(Math.round(gh*100)/100)+' h</td></tr>'}
+  var t=r.t,act=t?(t.act||"Operating"):"";var first=!(prev&&prev.f.id==r.f.id&&prev.client+"|"+prev.site==k);prev=r;h+='<tr><td>'+(first?'<b>'+E(r.f.plate||"—")+'</b><small>'+E(r.f.name)+'</small>':'')+'</td><td><b>'+E(r.e.name)+'</b></td><td>'+E(r.e.role)+'</td><td class="hr'+(r.hrs?'':' z')+'">'+(r.hrs?r.hrs+' h'+(r.ot?'<small>OT '+r.ot+' h</small>':''):'—')+'</td><td>'+(act?badge(act):'<span style="color:var(--mu)">No record</span>')+'</td><td><button type="button" class="s'+(t?' g':'')+'" onclick="depLog('+r.e.id+','+(t?t.id:0)+')">'+(t?'Edit':'+ Log hours')+'</button></td></tr>'});
+ return h+'</table></div></div>'}
+window.depSet=function(v){DD=v&&v!=ltoday()?v:"";table()};window.depCl=function(v){DC=v;table()};
+window.depLog=function(eid,tid){cur="attendance";try{if(tid)open_(tid);else logFor(eid,day())}catch(e){cur="depmon";return}
+ var d=document.getElementById("dlg"),h=function(){d.removeEventListener("close",h);cur="depmon";setTimeout(function(){go()},60)};d.addEventListener("close",h)};
+window.depCsv=function(){var D=data().filter(function(r){return!DC||r.client==DC}),q=function(x){return'"'+String(x==null?"":x).replace(/"/g,'""')+'"'},R=[["DATE","CLIENT","SITE LOCATION","PLATE NO.","UNIT","DRIVER / OPERATOR","ROLE","HOURS","OT HOURS","STATUS"]].concat(D.map(function(r){return[day(),r.client,r.site,r.f.plate||"",r.f.name,r.e.name,r.e.role,r.hrs,r.ot,r.t?(r.t.act||"Operating"):"No record"]})),c="﻿"+R.map(function(r){return r.map(q).join(",")}).join("\r\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/csv"}));a.download="Deployment-monitoring_"+day()+".csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);toast("Deployment sheet downloaded ✔")};
+var t0=table;table=function(){if(cur=="depmon"){var q=document.getElementById("q"),ad=document.getElementById("add");if(q){q.value="";q.style.display="none"}if(ad)ad.style.display="none";document.getElementById("view").innerHTML=page();return}return t0.apply(this,arguments)};
+try{nav()}catch(e){}
 })();
 </script>
 </body>
