@@ -439,7 +439,7 @@ const M={
  inventory:{t:"Parts Inventory",m:"part",f:[["photo","Photo","i"],["qty","Qty","n"],["unit","Unit","s",["pcs","box","pail","set","liter","gallon","drum","roll"]],["part","Item description"],["cat","Category","s",["Tubeless Tires","Locktype Tires","Battery","Rim","Hydraulic Oil","Change Oil / Fluid","Fluid","Grinder / Welding","Tools","Filters","Other"]],["store","Location","s",["Garage","Storage #1","Storage #2","Storage #3","Storage #4"]],["supplier","Supplier"],["min","Low-stock alert at","n"],["cost","Unit cost (₱)","n"]],c:["Stock value",r=>r.qty*r.cost]},
  stock:{t:"Stock In / Out",m:"date",f:[["date","Date","d"],["iname","Item name"],["mv","In / Out","s",["OUT","IN"]],["qty","Qty","n"],["relto","Release To / Received By"],["note","Note / Remarks (equipment used, etc.)"]]},
  maint:{t:"Maintenance & Work Orders",m:"task",f:[["task","Task"],["equip","Equipment","r","fleet"],["due","Service date","d"],["cost","Cost (₱)","n"],["status","Status","s",["Scheduled","In progress","Done"]]]},
- rescue:{t:"Rescue & Incidents",m:"issue",f:[["issue","Breakdown / issue"],["equip","Equipment","r","fleet"],["loc","Location"],["by","Dispatched to","r","employees"],["mech","Mechanic in charge","r","employees"],["date","Date","d"],["gas","Gas (₱)","n"],["food","Food (₱)","n"],["other","Other (₱)","n"],["rcpts","Receipts (photos)","im"],["status","Status","s",["Reported","Dispatched","Resolved"]]],c:["Total expenses",r=>(+r.gas||0)+(+r.food||0)+(+r.other||0)]},
+ rescue:{t:"Rescue & Incidents",m:"issue",f:[["issue","Breakdown / issue"],["equip","Equipment","r","fleet"],["site","Site (para auto sa Site file)","r","sites"],["by","Dispatched to","r","employees"],["mech","Mechanic in charge","r","employees"],["date","Date","d"],["gas","Gas (₱)","n"],["food","Food (₱)","n"],["other","Other (₱)","n"],["rcpts","Receipts (photos)","im"],["status","Status","s",["Reported","Dispatched","Resolved"]]],c:["Total expenses",r=>(+r.gas||0)+(+r.food||0)+(+r.other||0)]},
  docs:{t:"Quotations",m:"title",f:[["title","Document"],["equip","Equipment","r","fleet"],["type","Type","s",["Registration","Insurance","Certificate","Permit","Contract"]],["expiry","Expiry date","d"]]}
 };
 
@@ -498,7 +498,7 @@ async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=f
   for(const T of [...TB].reverse()){if(T.k=="coll"&&NOCOLL)continue;const old=snap[T.t],ids=new Set(db[T.k].map(o=>String(o.id))),del=Object.keys(old).filter(i=>!ids.has(i));
    if(del.length){for(let i=0;i<del.length;i+=100){const{error}=await SB.from(T.t).delete().in("id",del.slice(i,i+100));if(error)throw error}del.forEach(i=>delete old[i])}}
   for(const k of Object.keys(db.ded)){if(db.ded[k]!==dsn[k]){const[e,f,to]=k.split("|"),{error}=await SB.from("payroll_deductions").upsert({employee_id:+e,period_from:f,period_to:to,amount:+db.ded[k]||0},{onConflict:"employee_id,period_from,period_to"});if(error)throw error;dsn[k]=db.ded[k]}}
-  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
+  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
   saveBanner("");setSt("\u25cf Saved","#1f9d55")}catch(e){setSt("Save failed","#d64545");toast("Save failed: "+(e.message||e));saveBanner(e.message||String(e))}
  busy=false;if(dirty)save()}
 function lEye(){const p=document.getElementById("lpw");p.type=p.type=="password"?"text":"password"}
@@ -3057,6 +3057,185 @@ function wire(){var f=document.getElementById("ybF");if(!f)return;if(!f.__w&&doc
  var q=document.getElementById("ybQ");if(q&&q.children.length&&!q.querySelector("[data-h]")){[["📚 FAQs","faq"],["How does dispatch work?","how does dispatch work"],["How is commission computed?","how is commission computed"],["How does payroll work?","how does payroll work"]].forEach(function(x){var bt=document.createElement("button");bt.type="button";bt.dataset.h="1";bt.textContent=x[0];bt.onclick=function(ev){ev.stopPropagation();put(esc(x[0]),1);setTimeout(function(){put(helpFor(x[1]))},350)};q.appendChild(bt)})}}
 var mm=document.getElementById("ybM");if(mm&&!mm.__f){mm.__f=1;mm.addEventListener("click",function(e){var bt=e.target.closest("button[data-f]");if(!bt)return;var k=bt.dataset.f;if(k=="menu"){put(faqMenu())}else{var f=FQ[+k];put(esc(f[1]),1);setTimeout(function(){put(faqAns(f))},300)}})}
 document.addEventListener("DOMContentLoaded",function(){setTimeout(wire,300)});setTimeout(wire,1200);setTimeout(wire,3000);
+})();
+</script>
+<style>
+/* theme toggle: upper right of the page, clearly visible, with a circular reveal animation */
+#thm{position:fixed!important;top:12px!important;right:16px!important;left:auto!important;width:42px!important;height:42px!important;line-height:42px!important;font-size:21px!important;border-radius:50%!important;background:var(--card)!important;color:var(--tx)!important;border:1px solid var(--bd)!important;box-shadow:0 6px 18px rgba(0,0,0,.28)!important;z-index:9990!important;display:grid!important;place-items:center;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
+#thm:hover{transform:scale(1.1);border-color:#f59e0b!important;box-shadow:0 8px 22px rgba(245,158,11,.35)!important}
+#thm:active{transform:scale(.92)}
+#thm.spin{animation:thmspin .7s cubic-bezier(.3,1.4,.5,1)}
+@keyframes thmspin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(200deg) scale(1.25)}100%{transform:rotate(360deg) scale(1)}}
+@media(min-width:761px){.top{padding-right:72px!important}}
+@media(max-width:760px){#thm{top:10px!important;right:10px!important;width:38px!important;height:38px!important;line-height:38px!important}}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+</style>
+<script>
+(function(){
+function wire(){var b=document.getElementById("thm");if(!b)return;if(b.parentNode!==document.body)document.body.appendChild(b);if(b.__w)return;b.__w=1;
+ b.onclick=function(e){var x=e.clientX||innerWidth-37,y=e.clientY||33;b.classList.remove("spin");void b.offsetWidth;b.classList.add("spin");
+  var run=function(){window.thmToggle()};
+  if(document.startViewTransition&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)){var r=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+   try{var t=document.startViewTransition(run);t.ready.then(function(){document.documentElement.animate({clipPath:["circle(0px at "+x+"px "+y+"px)","circle("+r+"px at "+x+"px "+y+"px)"]},{duration:700,easing:"ease-in-out",pseudoElement:"::view-transition-new(root)"})}).catch(function(){})}catch(err){run()}}
+  else run()}}
+var g=go;go=function(){var r=g.apply(this,arguments);try{wire()}catch(e){}return r};
+try{wire()}catch(e){}setInterval(function(){try{wire()}catch(e){}},2000);
+})();
+</script>
+<style>
+/* Site file: everything documented per site (needs, rescues, units, people, trips, log) */
+#sfile{position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:24px 12px;animation:okfade .2s ease}
+#sfile .sfp{width:min(1000px,100%);background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:okpop .3s cubic-bezier(.2,1.1,.4,1)}
+#sfile .sfh{position:sticky;top:0;z-index:2;background:var(--card);border-bottom:1px solid var(--bd);border-radius:18px 18px 0 0;padding:14px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#sfile .sfh h2{margin:0;font-size:20px;flex:1 1 220px}
+#sfile .sfh small{color:var(--mu);display:block;font-size:12.5px;font-weight:400}
+#sfile button{padding:8px 14px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-weight:700;cursor:pointer;font-size:13px}
+#sfile button:hover{border-color:var(--tx)}
+#sfile .pri{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+#sfile .sfb{padding:16px 18px}
+#sfile .sfs{margin:0 0 16px;border:1px solid var(--bd);border-radius:14px;background:var(--card);overflow:hidden}
+#sfile .sfs>h3{margin:0;padding:11px 14px;font-size:14.5px;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center}
+#sfile .sfs>h3 i{font-style:normal;color:var(--mu);font-weight:500;font-size:12.5px}
+#sfile .sfs>h3 button{margin-left:auto}
+#sfile table{width:100%;border-collapse:collapse;font-size:13px}
+#sfile th{text-align:left;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 14px;border-bottom:1px solid var(--bd)}
+#sfile td{padding:9px 14px;border-bottom:1px solid var(--bd);vertical-align:top}
+#sfile tr:last-child td{border-bottom:0}
+#sfile .emp{padding:14px;color:var(--mu);font-size:13px}
+#sfile .urg{color:#ef4444;font-weight:800}
+#sfile .frm{display:grid;grid-template-columns:2fr 1fr .6fr 1fr;gap:8px;padding:12px 14px;border-bottom:1px solid var(--bd);background:color-mix(in srgb,var(--tx) 3%,var(--card))}
+#sfile .frm input,#sfile .frm select,#sfile .frm textarea,#sfile td select{padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:13px;width:100%;box-sizing:border-box}
+#sfile .frm .w{grid-column:1/-1;display:flex;gap:8px}
+@media(max-width:720px){#sfile .frm{grid-template-columns:1fr 1fr}}
+#sfile .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+#sfile .kpis div{flex:1 1 130px;padding:10px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--card)}
+#sfile .kpis b{display:block;font-size:22px}#sfile .kpis span{color:var(--mu);font-size:12px}
+.sfbtn{margin-right:6px}#sfile .sfs{overflow-x:auto}#sfile td select{width:auto!important;min-width:96px}#sfile td:last-child{white-space:nowrap}
+</style>
+<script>
+(function(){
+var E=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+function N(){try{var a=JSON.parse(db.needs||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+function setN(a){db.needs=JSON.stringify(a);try{save()}catch(e){}}
+function site(id){return db.sites.find(function(x){return String(x.id)==String(id)})}
+function nm(l,id){var x=db[l].find(function(y){return String(y.id)==String(id)});return x?x.name:"—"}
+function parts(id){var s=site(id);if(!s)return null;var low=function(x){return String(x||"").toLowerCase()},k=[low(s.name),low(s.client)].filter(Boolean);
+ var U=db.fleet.filter(function(f){return String(f.site)==String(id)}),uid=U.map(function(f){return f.id});
+ var O=db.employees.filter(function(e){return uid.indexOf(e.equip)>-1&&e.role!="Helper"}),oid=O.map(function(e){return e.id});
+ var Hh=db.employees.filter(function(e){return e.role=="Helper"&&(oid.indexOf(e.helps)>-1||uid.indexOf(e.equip)>-1)});
+ var R=(db.rescue||[]).filter(function(r){return String(r.site)==String(id)||(!r.site&&uid.indexOf(r.equip)>-1)||(!r.site&&k.some(function(w){return low(r.loc).indexOf(w)>-1}))}).sort(function(a,b){return(b.date||"")<(a.date||"")?-1:1});
+ var T=[];try{T=JSON.parse(db.disp||"[]")}catch(e){}T=T.filter(function(t){return uid.indexOf(t.fid)>-1||k.some(function(w){return low(t.site).indexOf(w)>-1})}).sort(function(a,b){return(b.out||"")<(a.out||"")?-1:1});
+ var A=(db.attendance||[]),mo=ltoday().slice(0,7);
+ var days=function(e){var o=0,h=0;A.forEach(function(a){if(a.emp==e.id&&String(a.date).slice(0,7)==mo){if(a.act=="Operating")o++;else if(a.act=="Half day")h++}});return o+h*.5};
+ var NL=N().filter(function(n){return String(n.site)==String(id)}),needs=NL.filter(function(n){return n.kind!="note"}).sort(function(a,b){return(b.date||"")<(a.date||"")?-1:1}),notes=NL.filter(function(n){return n.kind=="note"}).sort(function(a,b){return(b.date||"")<(a.date||"")?-1:1});
+ return{s:s,U:U,O:O,H:Hh,R:R,T:T,needs:needs,notes:notes,days:days}}
+function money(v){return typeof peso=="function"?peso(v):"₱"+(+v||0).toLocaleString()}
+function exp(r){return(+r.gas||0)+(+r.food||0)+(+r.other||0)}
+function sec(title,sub,btn,body){return '<div class="sfs"><h3>'+title+' <i>'+sub+'</i>'+(btn||"")+'</h3>'+body+'</div>'}
+function tbl(h,rows){return rows.length?'<table><tr>'+h.map(function(x){return'<th>'+x+'</th>'}).join("")+'</tr>'+rows.join("")+'</table>':""}
+function needRows(P,edit){return P.needs.map(function(n){return'<tr><td><b>'+E(n.item)+'</b>'+(n.text?'<div style="color:var(--mu);font-size:12px">'+E(n.text)+'</div>':'')+'</td><td>'+E(n.cat||"")+'</td><td>'+E(n.qty||"")+'</td><td>'+(n.pri=="Urgent"?'<span class="urg">URGENT</span>':E(n.pri||"Normal"))+'</td><td>'+E(n.by||"—")+'<div style="color:var(--mu);font-size:12px">'+E(n.date||"")+'</div></td><td>'+(edit?'<select onchange="sfNS(\''+n.id+'\',this.value)">'+["Open","Ordered","Delivered","Done"].map(function(s){return'<option'+(s==n.status?' selected':'')+'>'+s+'</option>'}).join("")+'</select> <button onclick="sfND(\''+n.id+'\')" title="Delete">✕</button>':E(n.status||"Open"))+'</td></tr>'})}
+function body(P,edit){var s=P.s,td=ltoday(),open=P.needs.filter(function(n){return n.status!="Done"&&n.status!="Delivered"}).length;
+ var h='<div class="kpis"><div><b>'+P.U.length+'</b><span>units on site</span></div><div><b>'+(P.O.length+P.H.length)+'</b><span>operators &amp; helpers</span></div><div><b>'+open+'</b><span>open needs</span></div><div><b>'+P.R.length+'</b><span>rescues documented</span></div><div><b>'+P.T.length+'</b><span>trips</span></div></div>';
+ h+=sec("📝 Needs","what this site needs — documented",edit?'<button onclick="sfToggle(\'sfnf\')">＋ Add need</button>':"",
+  (edit?'<div class="frm" id="sfnf" style="display:none"><input id="sfi" placeholder="What is needed? (e.g. 2 hydraulic hoses, extra helper, fuel)"><select id="sfc">'+["Parts","Equipment","Manpower","Materials","Fuel & meals","Tools","Other"].map(function(c){return'<option>'+c+'</option>'}).join("")+'</select><input id="sfq" placeholder="Qty"><select id="sfp"><option>Normal</option><option>Urgent</option><option>Low</option></select><input id="sfb" placeholder="Requested by (name)"><input id="sfd" type="date" value="'+td+'"><input id="sft" placeholder="Notes (optional)" style="grid-column:span 2"><div class="w"><button class="pri" onclick="sfNA('+JSON.stringify(s.id)+')">Save need</button></div></div>':"")+
+  (P.needs.length?tbl(["Need","Category","Qty","Priority","Requested","Status"],needRows(P,edit)):'<div class="emp">No needs documented yet.</div>'));
+ h+=sec("🛟 Rescues","units rescued / breakdowns at this site",edit?'<button onclick="sfRescue('+JSON.stringify(s.id)+')">＋ Document a rescue</button>':"",
+  P.R.length?tbl(["Date","Unit","Problem","Location","Dispatched to · Mechanic","Status","Expenses"],P.R.map(function(r){return'<tr><td>'+E(r.date||"")+'</td><td>'+E(nm("fleet",r.equip))+'</td><td>'+E(r.issue||"")+'</td><td>'+E(r.loc||"")+'</td><td>'+E(nm("employees",r.by))+' · '+E(nm("employees",r.mech))+'</td><td>'+E(r.status||"")+'</td><td>'+money(exp(r))+'</td></tr>'})):'<div class="emp">No rescue documented for this site yet.</div>');
+ h+=sec("🚜 Units on site","",'',P.U.length?tbl(["Unit","Type","Plate","Status","Operator","Helper"],P.U.map(function(f){var o=P.O.find(function(e){return e.equip==f.id}),hh=o?P.H.filter(function(e){return e.helps==o.id}).map(function(e){return E(e.name)}).join(", "):"";return'<tr><td><b>'+E(f.name)+'</b></td><td>'+E(f.type||"")+'</td><td>'+E(f.plate||"")+'</td><td>'+E(f.status||"")+'</td><td>'+(o?E(o.name):"—")+'</td><td>'+(hh||"—")+'</td></tr>'})):'<div class="emp">No unit assigned to this site.</div>');
+ h+=sec("👷 People deployed","operating days this month (Operating + ½ Half day)","",(P.O.length+P.H.length)?tbl(["Name","Role","Operating days"],P.O.concat(P.H).map(function(e){return'<tr><td>'+E(e.name)+'</td><td>'+E(e.role||"")+'</td><td>'+P.days(e)+'</td></tr>'})):'<div class="emp">No one assigned.</div>');
+ h+=sec("🚚 Trips (dispatch)","","",P.T.length?tbl(["Out","Back","Operator","Unit","Project / note"],P.T.map(function(t){return'<tr><td>'+E(t.out||"")+'</td><td>'+E(t.back||"on the way")+'</td><td>'+E(nm("employees",t.emp))+'</td><td>'+E(nm("fleet",t.fid))+'</td><td>'+E(t.site||"")+(t.note?'<div style="color:var(--mu);font-size:12px">'+E(t.note)+'</div>':'')+'</td></tr>'})):'<div class="emp">No trip recorded for this site.</div>');
+ h+=sec("📒 Site log","daily notes, instructions, incidents — keep everything written down","",
+  (edit?'<div class="frm"><textarea id="sfn" rows="2" placeholder="Write a note for this site…" style="grid-column:1/-1"></textarea><div class="w"><input id="sfnd" type="date" value="'+td+'" style="max-width:170px"><button class="pri" onclick="sfLA('+JSON.stringify(s.id)+')">Add to log</button></div></div>':"")+
+  (P.notes.length?tbl(["Date","Note",""],P.notes.map(function(n){return'<tr><td style="white-space:nowrap">'+E(n.date||"")+'</td><td>'+E(n.text||"")+'</td><td>'+(edit?'<button onclick="sfND(\''+n.id+'\')">✕</button>':'')+'</td></tr>'})):'<div class="emp">No notes yet.</div>'));
+ return h}
+function docHTML(id){var P=parts(id);if(!P)return"";var s=P.s;return'<!doctype html><html><head><meta charset="utf-8"><title>Site File — '+E(s.name)+'</title><style>body{font:14px/1.45 Arial,sans-serif;color:#111;margin:24px}h1{margin:0 0 2px;font-size:24px}.sub{color:#555;margin-bottom:14px}.sfs{margin:0 0 16px;border:1px solid #ccc;border-radius:8px;overflow:hidden;page-break-inside:avoid}.sfs>h3{margin:0;padding:8px 12px;background:#f1f1f1;font-size:14px}.sfs>h3 i{font-style:normal;color:#666;font-weight:400;font-size:12px}table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;font-size:11px;text-transform:uppercase;color:#555;padding:6px 10px;border-bottom:1px solid #ccc}td{padding:6px 10px;border-bottom:1px solid #eee;vertical-align:top}.emp{padding:10px 12px;color:#777}.kpis{display:flex;gap:10px;margin-bottom:14px}.kpis div{flex:1;border:1px solid #ccc;border-radius:8px;padding:8px 12px}.kpis b{display:block;font-size:20px}.kpis span{color:#666;font-size:11px}.urg{color:#c00;font-weight:700}</style></head><body><h1>Yuval Trucking — Site File</h1><div class="sub"><b>'+E(s.name)+'</b>'+(s.client?' · Client: '+E(s.client):'')+(s.company?' · '+E(s.company):'')+(s.scope?'<br>Scope: '+E(s.scope):'')+'<br>Generated '+new Date().toLocaleString("en-PH")+'</div>'+body(P,false)+'</body></html>'}
+function slug(s){return String(s).replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")}
+window.siteFile=function(id){var P=parts(id);if(!P)return;var o=document.getElementById("sfile");if(o)o.remove();o=document.createElement("div");o.id="sfile";window.__sfid=id;
+ o.innerHTML='<div class="sfp"><div class="sfh"><h2>📁 '+E(P.s.name)+'<small>'+(P.s.client?'Client: '+E(P.s.client):'')+(P.s.company?' · '+E(P.s.company):'')+(P.s.scope?' · '+E(P.s.scope):'')+'</small></h2><button onclick="sfPrint('+JSON.stringify(id)+')">🖨 Print / PDF</button><button class="pri" onclick="sfDown('+JSON.stringify(id)+')">⬇ Download file</button><button onclick="sfClose()">✕ Close</button></div><div class="sfb">'+body(P,true)+'</div></div>';
+ o.addEventListener("mousedown",function(e){if(e.target===o)sfClose()});document.body.appendChild(o)};
+window.sfClose=function(){var o=document.getElementById("sfile");if(o)o.remove();window.__sfid=null};
+function refresh(keep){if(!window.__sfid||!document.getElementById("sfile"))return;var sc=document.getElementById("sfile").scrollTop;siteFile(window.__sfid);document.getElementById("sfile").scrollTop=sc;if(keep){var f=document.getElementById(keep);if(f)f.style.display=""}}
+window.sfToggle=function(i){var f=document.getElementById(i);if(f)f.style.display=f.style.display=="none"?"":"none"};
+window.sfNA=function(id){var v=function(i){return(document.getElementById(i).value||"").trim()},it=v("sfi");if(!it){toast("Write what is needed first");return}
+ var a=N();a.push({id:"n"+Date.now(),site:id,kind:"need",item:it,cat:v("sfc"),qty:v("sfq"),pri:v("sfp"),by:v("sfb"),date:v("sfd")||ltoday(),text:v("sft"),status:"Open"});setN(a);toast("Need documented ✔");refresh()};
+window.sfNS=function(i,st){var a=N();a.forEach(function(n){if(n.id==i)n.status=st});setN(a);toast("Status: "+st);refresh()};
+window.sfND=function(i){if(!confirm("Delete this entry?"))return;setN(N().filter(function(n){return n.id!=i}));refresh()};
+window.sfLA=function(id){var t=(document.getElementById("sfn").value||"").trim();if(!t){toast("Write the note first");return}var a=N();a.push({id:"n"+Date.now(),site:id,kind:"note",text:t,date:document.getElementById("sfnd").value||ltoday()});setN(a);toast("Added to site log ✔");refresh()};
+window.sfRescue=function(id){var s=site(id),back=cur;cur="rescue";try{open_()}catch(e){cur=back;toast("Open Rescue to add it");return}
+ var d=document.getElementById("dlg");setTimeout(function(){try{var ss=d.querySelector("[name=site]");if(ss){ss.value=String(id);ss.dispatchEvent(new Event("change"))}[].slice.call(d.querySelectorAll("label")).forEach(function(l){var t=l.textContent.trim(),inp=l.nextElementSibling;if(!inp)return;if(/^Date/.test(t)&&!inp.value)inp.value=ltoday()})}catch(e){}},40);
+ var h=function(){d.removeEventListener("close",h);if(cur=="rescue"&&back!="rescue")cur=back;setTimeout(function(){refresh()},120)};d.addEventListener("close",h)};
+window.sfDown=function(id){var html=docHTML(id),s=site(id),b=new Blob([html],{type:"text/html"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="Site-File_"+slug(s.name)+"_"+ltoday()+".html";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);toast("Site file downloaded ✔")};
+window.sfPrint=function(id){var f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);var d=f.contentWindow.document;d.open();d.write(docHTML(id));d.close();setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){}setTimeout(function(){f.remove()},2000)},300)};
+/* button on every site card (Fleet / Site Clients -> Sites & Clients) */
+function addBtns(){if(typeof cur=="undefined"||cur!="sites")return;var v=document.getElementById("view");if(!v)return;v.querySelectorAll('button[onclick^="open_("]').forEach(function(b){if(b.previousElementSibling&&b.previousElementSibling.classList.contains("sfbtn"))return;var m=/open_\(([^)]*)\)/.exec(b.getAttribute("onclick"));if(!m)return;var x=document.createElement("button");x.type="button";x.className="s g sfbtn";x.textContent="📁 Site file";x.setAttribute("onclick","event.stopPropagation();siteFile("+(isNaN(m[1])?m[1]:JSON.stringify(m[1]))+")");b.parentNode.insertBefore(x,b)})}
+var tb=table;table=function(){var r=tb.apply(this,arguments);try{addBtns()}catch(e){}return r};
+try{addBtns()}catch(e){}
+})();
+</script>
+<script>
+/* Rescue form: no Location; operators filtered by Site; costs & receipts only once Resolved */
+(function(){var o=open_;
+window.open_=function(id){var r=o.apply(this,arguments);if(cur!=="rescue")return r;try{rescueFx(id)}catch(e){}return r};
+function rescueFx(id){var f=document.getElementById("ff"),cs=document.getElementById("frm").elements,site=cs.site,by=cs.by,st=cs.status;if(!site||!by||!st)return;
+ var rec=id?db.rescue.find(function(x){return x.id==id}):null,keep=rec?rec.by:by.value;
+ function fillBy(){var cur0=by.value||keep,sid=site.value,ids=db.fleet.filter(function(x){return String(x.site)==String(sid)}).map(function(x){return x.id});
+  var L=db.employees.filter(function(e){return e.role!="Helper"&&ids.indexOf(e.equip)>-1});
+  var all=!L.length;if(all)L=db.employees.filter(function(e){return e.role!="Helper"});
+  L.sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
+  by.innerHTML=L.map(function(e){return'<option value="'+e.id+'"'+(String(e.id)==String(cur0)?" selected":"")+'>'+String(e.name).replace(/</g,"&lt;")+(e.role?" ("+e.role+")":"")+'</option>'}).join("");
+  var h=document.getElementById("rshint");if(!h){h=document.createElement("div");h.id="rshint";h.style.cssText="font-size:12px;color:var(--mu);margin:-4px 0 6px";by.parentNode.insertBefore(h,by.nextSibling)}
+  h.textContent=all?"No operator assigned to this site yet — showing all operators.":"Operators at this site: "+L.length}
+ site.addEventListener("change",function(){keep=null;fillBy()});fillBy();
+ /* group cost fields */
+ var names=["gas","food","other","rcpts"],kids=[].slice.call(f.children),grp=[],cur1=null;
+ kids.forEach(function(k){if(k.tagName=="LABEL"){cur1=null;var n=names.find(function(x){return k.nextElementSibling&&((k.nextElementSibling.name==x)||(k.nextElementSibling.id=="p_"+x))});if(n){cur1=[k];grp.push(cur1);return}}if(cur1)cur1.push(k)});
+ var box=document.createElement("div");box.id="rscost";box.style.cssText="border:1px dashed var(--bd);border-radius:12px;padding:10px 12px;margin:6px 0";
+ var tl=document.createElement("div");tl.id="rstot";tl.style.cssText="font-weight:700;margin-bottom:6px";box.appendChild(tl);
+ if(grp.length){grp[0][0].parentNode.insertBefore(box,grp[0][0]);grp.forEach(function(g){g.forEach(function(k){box.appendChild(k)})})}
+ function tot(){var t=(+cs.gas.value||0)+(+cs.food.value||0)+(+cs.other.value||0);tl.textContent="Resolved — expenses total: "+(typeof peso=="function"?peso(t):"₱"+t)}
+ ["gas","food","other"].forEach(function(n){cs[n].addEventListener("input",tot)});tot();
+ function vis(){box.style.display=st.value=="Resolved"?"":"none"}
+ st.addEventListener("change",vis);vis()}
+})();
+</script>
+<script>
+/* Live monitor: operators whose latest record is "Pull out" count as pulled out even with no record today, so a site with every unit pulled out is finished and not shown */
+(function(){var o=liveData;window.liveData=function(){var D=o.apply(this,arguments);try{D.sites.forEach(function(s){var keep=[];s.none.forEach(function(r){if(typeof pullEmp=="function"&&pullEmp(r.e.id)){r.t={emp:r.e.id,act:"Not operating",why:"Pull out"};r.a="Not operating";s.off.push(r);D.T.none--;D.T.off++}else keep.push(r)});s.none=keep})}catch(e){}return D}})();
+</script>
+<style>
+#aopdlg{border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);padding:18px;width:min(520px,96vw)}
+#aopdlg::backdrop{background:rgba(0,0,0,.55)}
+#aopdlg h3{margin:0 0 4px}#aopdlg .m{color:var(--mu);font-size:13px;margin-bottom:10px}
+#aopdlg select{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);margin:4px 0 12px}
+#aopdlg .ol{max-height:260px;overflow:auto;border:1px solid var(--bd);border-radius:10px;margin:4px 0 12px}
+#aopdlg .ol label{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--bd);cursor:pointer;font-size:14px}
+#aopdlg .ol label:last-child{border:0}#aopdlg .ol input{width:18px!important;height:18px;margin:0!important;padding:0!important;flex:none}#aopdlg .ol label{flex-direction:row!important;justify-content:flex-start!important;text-align:left!important;margin:0!important;color:var(--tx)!important;white-space:nowrap}#aopdlg .ol small{white-space:normal;text-align:right;color:var(--mu);margin-left:auto;font-size:12px}
+#aopdlg .bt{display:flex;gap:8px;justify-content:flex-end}
+#aopdlg button{padding:9px 16px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-weight:700;cursor:pointer}
+#aopdlg .go{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+</style>
+<script>
+/* Add operators straight from a site card */
+(function(){
+var E=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+var ROLES=["Operator","Boom truck","Trailer","Driver"];
+window.aopOpen=function(sid){var s=db.sites.find(function(x){return String(x.id)==String(sid)});if(!s)return;
+ var U=db.fleet.slice().sort(function(a,b){var A=String(a.site)==String(sid)?0:1,B=String(b.site)==String(sid)?0:1;return A-B||String(a.name).localeCompare(String(b.name))});
+ if(!U.length){toast("Add a unit in Fleet first, then assign operators");return}
+ var d=document.getElementById("aopdlg");if(!d){d=document.createElement("dialog");d.id="aopdlg";d.addEventListener("click",function(e){if(e.target==d)d.close()});document.body.appendChild(d)}
+ var E2=db.employees.filter(function(e){return e.status!="Inactive"&&ROLES.indexOf(e.role)>-1}).sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
+ function unitOpt(f){var on=String(f.site)==String(sid),o=db.sites.find(function(x){return x.id==f.site});return'<option value="'+f.id+'">'+E(f.name)+(f.plate?" · "+E(f.plate):"")+(on?" — on this site":o?" — now at "+E(o.name)+" (will move here)":" — no site (will move here)")+'</option>'}
+ d.innerHTML='<h3>Add operators — '+E(s.name)+'</h3><div class="m">Pick the unit, then tick the operators who will run it on this site.</div><label>Unit</label><select id="aopu">'+U.map(unitOpt).join("")+'</select><label>Operators</label><div class="ol">'+(E2.length?E2.map(function(e){var f=db.fleet.find(function(x){return x.id==e.equip});return'<label><input type="checkbox" value="'+e.id+'"> '+E(e.name)+' <small>'+E(e.role)+(f?" · now on "+E(f.name):" · unassigned")+'</small></label>'}).join(""):'<div style="padding:12px;color:var(--mu)">No operators yet — add them in People first.</div>')+'</div><div class="bt"><button onclick="document.getElementById(\'aopdlg\').close()">Cancel</button><button class="go" onclick="aopSave('+JSON.stringify(sid)+')">Add to site</button></div>';
+ d.showModal()};
+window.aopSave=function(sid){var d=document.getElementById("aopdlg"),s=db.sites.find(function(x){return String(x.id)==String(sid)}),f=db.fleet.find(function(x){return String(x.id)==d.querySelector("#aopu").value}),ids=[].slice.call(d.querySelectorAll(".ol input:checked")).map(function(c){return c.value});
+ if(!ids.length){toast("Tick at least one operator");return}
+ if(String(f.site)!=String(sid)){f.site=s.id;db.employees.forEach(function(e){if(e.equip==f.id)e.place=s.name})}
+ db.employees.forEach(function(e){if(ids.indexOf(String(e.id))>-1){e.equip=f.id;e.place=s.name}});
+ save();d.close();table();toast(ids.length+" operator"+(ids.length>1?"s":"")+" added to "+s.name+" ✔")};
+function inj(){if(typeof cur=="undefined"||cur!=="sites")return;var v=document.getElementById("view");if(!v)return;
+ v.querySelectorAll('.sth button[onclick^="open_("]').forEach(function(b){if(b.parentNode.querySelector(".aopb"))return;var m=/open_\(([^)]*)\)/.exec(b.getAttribute("onclick"));if(!m)return;var x=document.createElement("button");x.type="button";x.className="s g aopb";x.style.cssText="color:#fff;border-color:#ffffff66";x.textContent="＋ Add operators";x.setAttribute("onclick","event.stopPropagation();aopOpen("+(isNaN(m[1])?JSON.stringify(m[1]):m[1])+")");b.parentNode.insertBefore(x,b);
+  var c=b.closest(".sitec"),p=c&&c.querySelector("p");if(p&&/No equipment/.test(p.textContent)&&!p.querySelector("a")){p.innerHTML+=' — <a style="color:var(--ac);cursor:pointer;font-weight:700" onclick="aopOpen('+(isNaN(m[1])?JSON.stringify(m[1]):m[1])+')">add operators &amp; unit</a>'}})}
+var t0=table;table=function(){var r=t0.apply(this,arguments);try{inj()}catch(e){}return r};try{inj()}catch(e){}
 })();
 </script>
 </body>
