@@ -3641,7 +3641,7 @@ window.altSet=function(fid,eid){var d=mday(),f=db.fleet.find(function(x){return 
 function panel(){var U=altUnits();if(!U.length||document.getElementById("altp"))return;var v=document.getElementById("view");if(!v)return;var d=mday(),h='<h4>⇄ Alternating operators</h4><div class="sub">These units have 2 operators who take turns. Choose who operates on '+E(d)+'. Each person is paid separately, only for the days they operate.</div>';
  U.forEach(function(f){var O=ops(f),s=opFor(f.id,d),st=db.sites.find(function(x){return x.id==f.site});h+='<div class="ar"><div class="au"><b>'+E(f.plate||f.name)+'</b> · '+E(f.name)+'<small>📍 '+E(st?(st.client||st.name)+" · "+st.name:"No site")+'</small></div><div><span class="ao">Operating now</span><br><select onchange="altSet('+f.id+',this.value)"><option value="">— choose who operates —</option>'+O.map(function(e){return'<option value="'+e.id+'"'+(e.id==s?" selected":"")+'>'+E(e.name)+'</option>'}).join("")+'</select></div><div class="ao">'+O.filter(function(e){return e.id!=s}).map(function(e){return E(e.name)+" — "+(s?"off today":"not selected")}).join(" · ")+'</div></div>'});
  var p=document.createElement("div");p.id="altp";p.innerHTML=h;v.insertBefore(p,v.firstChild)}
-var t=table;table=function(){var r=t.apply(this,arguments);try{if(cur=="attendance")panel()}catch(e){}return r};
+var t=table;table=function(){var r=t.apply(this,arguments);return r};
 })();
 </script>
 </body>
