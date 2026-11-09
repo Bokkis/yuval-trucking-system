@@ -2258,7 +2258,7 @@ function fleetView(){
   sn=f.status=="Rented"||st?(st?st.name:""):"",cn=st?[st.client,st.company].filter(Boolean).join(" · "):"",stt=W[f.status]||f.status;
   return '<div class="flr '+cl+'"><div class="fu"><b>'+hl(f.name)+'</b><small>'+hl(f.type||"")+' · '+hl(f.plate||"No plate")+'</small><span style="margin-top:3px;display:inline-block">'+badge(f.status).replace(/>Rented</,">Rented (on job)<").replace(/>Maintenance</,">Under repair<").replace(/>Breakdown</,">Broken down<")+'</span></div>'+
   '<div class="fop2" role="button" tabindex="0" title="Click to assign operators" onclick="opPick('+f.id+')"><b>'+(e?hl(e.name)+(ac?" "+badge(ac):""):'<span class="no">None — click to assign</span>')+'</b>'+(e?'<small>'+(e.phone?hl(e.phone):"No cellphone")+(x.o.length>1?" · +"+(x.o.length-1)+" more":"")+'</small>':"")+'</div>'+
-  '<div class="fs">'+(sn?hl(sn):'<span class="no">—</span>')+'</div><div class="fc">'+(cn?hl(cn):'<span class="no">—</span>')+'</div>'+
+  '<div class="fs">'+(sn?hl(sn):'<span class="no">'+(f.status=="Available"?"No data":"—")+'</span>')+'</div><div class="fc">'+(cn?hl(cn):'<span class="no">'+(f.status=="Available"?"No data":"—")+'</span>')+'</div>'+
   '<div class="fa">'+(f.status=="Pulled out"?'<button class="s" style="background:#16a34a;color:#fff" onclick="backGarage('+f.id+')">✔ Back in garage</button>':"")+(PA&&f.status=="Available"?'<button class="s" style="background:#16a34a;color:#fff" onclick="paAssign('+f.id+')">✔ Assign here</button>':"")+''+((f.status=="Maintenance"||f.status=="Breakdown")?'<button class="s" style="background:#16a34a;color:#fff" onclick="repDone('+f.id+')">✔ Repair done</button>':"")+(f.status=="Rented"?'<button class="s g" onclick="rentSet('+f.id+')" title="Set the included rent hours">⏱ Rent hrs</button>':"")+'<button class="s g" onclick="open_('+f.id+')">Edit</button><button class="s d" onclick="del('+f.id+')">✕</button></div></div>'},
  srt=function(a,b){return a.f.name.localeCompare(b.f.name)||((a.o[0]||{}).name||"").localeCompare((b.o[0]||{}).name||"")},
  tbl=function(A){return '<div class="flt'+(GB=="client"?" nocl":"")+'"><div class="flh"><span>Unit</span><span>Operator</span><span>Site</span><span>Client</span><span></span></div>'+A.sort(srt).map(row).join("")+'</div>'},
@@ -3608,6 +3608,10 @@ var n=0,iv=setInterval(function(){n++;if(build()||n>40)clearInterval(iv)},500);
 #ybP .ybm:not(.me)>h4{font-size:16px}
 #ybP .ybm:not(.me)>.kp{margin:6px 0 4px}
 </style>
+<script>
+/* an Available unit sits in the garage: it carries no site */
+(function(){var t=table;table=function(){try{if(cur=="fleet"||cur=="sites"){var ch=0;db.fleet.forEach(function(f){if(f.status=="Available"&&f.site&&!opsOf(f).length){f.site="";ch=1}});if(ch){try{save()}catch(e){}}}}catch(e){}return t.apply(this,arguments)}})();
+</script>
 </body>
 </html><script>
 var MV="list",MNEED=false;
