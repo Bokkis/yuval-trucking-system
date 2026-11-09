@@ -1640,11 +1640,12 @@ async function supAdminChange(){var p=prompt("New Administrator PIN (4-6 digits)
 <script>
 function paBannerHtml(){var B=paBanner();return '<div class="card np" style="margin-bottom:12px;border-left:5px solid '+B.c+'"><b style="font-size:15px">'+B.t+'</b><div style="color:var(--mu);font-size:13px;margin-top:3px">'+(B.x||"")+'</div></div>'}
 function E_(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function paySite(e){try{var n=[],add=function(x){x=String(x||"").trim();if(x&&n.indexOf(x)<0)n.push(x)};
- if(OFFROLES.includes(e.role)||e.role=="Mechanic"||e.role=="Supervisor"&&!e.equip)return GARR.indexOf(e.role)>-1?"Garage":"Office";
+function paySiteNames(e){try{var n=[],add=function(x){x=String(x||"").trim();if(x&&n.indexOf(x)<0)n.push(x)};
+ if(OFFROLES.includes(e.role)||e.role=="Mechanic"||e.role=="Supervisor"&&!e.equip)return [GARR.indexOf(e.role)>-1?"Garage":"Office"];
  var L=db.attendance.filter(function(a){var d=normD(a.date);return a.emp==e.id&&d>=PF&&d<=PT&&a.site}).sort(function(a,b){return String(a.date).localeCompare(String(b.date))});
  L.forEach(function(a){add(a.site)});if(!n.length){var s=siteOf(e);if(s)add(s.name);else add(e.place)}
- return n.length?E_(n.join(" · ")):'<span style="color:var(--mu)">\u2014</span>'}catch(x){return""}}
+ return n}catch(x){return []}}
+function paySite(e){var n=paySiteNames(e);return n.length?E_(n.join(" \u00b7 ")):'<span style="color:var(--mu)">\u2014</span>'}
 function payMissing(e,L){var have={},out=[],t=ltoday();L.forEach(function(a){have[normD(a.date)]=1});var d=new Date(PF+"T12:00:00"),end=new Date(PT+"T12:00:00");if(!L.length)return out;
  for(var n=0;n<62&&d<=end;n++,d.setDate(d.getDate()+1)){var k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");if(k>t||have[k])continue;
   out.push({d:k,h:'<tr style="opacity:.8"><td style="text-align:left">'+d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+'</td><td style="text-align:left"><span class="b">No record</span></td><td>\u2014</td><td>\u2014</td><td>0</td><td>0</td><td>'+peso(0)+'</td><td style="text-align:left;color:var(--mu)">'+(function(){var alt=db.attendance.filter(function(a){if(normD(a.date)!=k)return false;if(String(a.emp)==String(e.id))return true;var o=db.employees.find(function(x){return x.id==a.emp});return o&&String(o.name).trim().toLowerCase()==String(e.name).trim().toLowerCase()});if(!alt.length)return'No attendance logged';var o=db.employees.find(function(x){return x.id==alt[0].emp});return'<span style="color:#dc2626">\u26A0 A record exists for this day ('+(alt[0].hrs||0)+' h)'+(o&&o.id!=e.id?' under another profile of '+E_(o.name)+' (id '+o.id+')':' but could not be counted')+'</span>'})()+' <button class="s" style="margin-left:6px" onclick="payLogDay('+e.id+',\''+k+'\')">+ Log</button></td><td></td></tr>'})}return out}
@@ -1729,9 +1730,10 @@ function guess(name){var tk=function(x){return String(x||"").toLowerCase().repla
 <script>
 var PSITE="",PROLE="";
 function proleOk(e){return String(PROLE).charAt(0)=="@"?(cmOp(e)&&dspTy(e)==PROLE.slice(1)):(e.role==PROLE&&!(PROLE=="Operator"&&cmOp(e)))}
-function psiteOf(e){var f=db.fleet.find(function(u){return u.id==e.equip}),s=f&&db.sites.find(function(x){return x.id==f.site});return s?s.name:(canonSite(e.place)||"No site")}
-function psiteSel(){var L=[],seen={};db.employees.filter(function(e){return e.status!="Inactive"}).forEach(function(e){var n=psiteOf(e);if(!seen[n]){seen[n]=1;L.push(n)}});L.sort(function(a,b){return String(a).localeCompare(String(b))});
- PSITE="";return '<div><label>Role</label><select onchange="PROLE=this.value;payView()"><option value="">All roles</option>'+[...new Set(db.employees.filter(function(e){return e.status!="Inactive"}).map(function(e){return e.role||"No role"}))].sort().map(function(n){return '<option value="'+n+'"'+(n==PROLE?" selected":"")+'>'+n+'</option>'}).join("")+['Boom Truck','Crane','Trailer'].filter(function(t){return cmL().some(function(e){return dspTy(e)==t})}).map(function(t){return '<option value="@'+t+'"'+("@"+t==PROLE?" selected":"")+'>'+t+' operators ('+(t=="Crane"?"monthly salary":"commission")+')</option>'}).join("")+'</select></div>'}
+function psiteOf0(e){var f=db.fleet.find(function(u){return u.id==e.equip}),s=f&&db.sites.find(function(x){return x.id==f.site});return s?s.name:(canonSite(e.place)||"No site")}
+function psiteOf(e){var n=paySiteNames(e);if(n.length){if(PSITE&&n.indexOf(PSITE)>-1)return PSITE;return n[n.length-1]}return psiteOf0(e)}
+function psiteSel(){var L=[],seen={};db.employees.filter(function(e){return e.status!="Inactive"}).forEach(function(e){paySiteNames(e).forEach(function(n){if(!seen[n]){seen[n]=1;L.push(n)}})});L.sort(function(a,b){return String(a).localeCompare(String(b))});
+ if(PSITE&&L.indexOf(PSITE)<0)PSITE="";var SS='<div><label>Site location</label><select onchange="PSITE=this.value;payView()"><option value="">All sites</option>'+L.map(function(n){return '<option value="'+String(n).replace(/"/g,"&quot;")+'"'+(n==PSITE?" selected":"")+'>'+n+'</option>'}).join("")+'</select></div>';return SS+'<div><label>Role</label><select onchange="PROLE=this.value;payView()"><option value="">All roles</option>'+[...new Set(db.employees.filter(function(e){return e.status!="Inactive"}).map(function(e){return e.role||"No role"}))].sort().map(function(n){return '<option value="'+n+'"'+(n==PROLE?" selected":"")+'>'+n+'</option>'}).join("")+['Boom Truck','Crane','Trailer'].filter(function(t){return cmL().some(function(e){return dspTy(e)==t})}).map(function(t){return '<option value="@'+t+'"'+("@"+t==PROLE?" selected":"")+'>'+t+' operators ('+(t=="Crane"?"monthly salary":"commission")+')</option>'}).join("")+'</select></div>'}
 </script>
 <script>
 function recVer(id,on){var o=paGet(),k=paKey();o[k]=o[k]||{};o[k].rv=o[k].rv||{};if(on)o[k].rv[id]=1;else delete o[k].rv[id];paSet(o);if(typeof paKeep=="function")paKeep();payView()}
@@ -3596,14 +3598,6 @@ var n=0,iv=setInterval(function(){n++;if(build()||n>40)clearInterval(iv)},500);
 #ybP .ybm:not(.me)>h4{font-size:16px}
 #ybP .ybm:not(.me)>.kp{margin:6px 0 4px}
 </style>
-<script>
-/* payroll lists only operators that actually operated in the chosen dates (no unit / pulled out and idle = not listed) */
-(function(){var _c=window.calcPay;
-window.calcPay=function(){var R=_c.apply(this,arguments);
- try{return R.filter(function(r){var e=r.e;if(!e)return true;if(["Operator","Boom truck","Trailer","Driver"].indexOf(e.role)<0)return true;
-  try{if(typeof crnOp=="function"&&crnOp(e))return true}catch(x){}
-  return (+r.days||0)>0||(+r.sdays||0)>0||(+r.hrs||0)>0||(+r.net||0)>0||(+r.basic||0)>0||(+r.trip||0)>0||(+r.tripc||0)>0})}catch(x){return R}}})();
-</script>
 </body>
 </html><script>
 var MV="list",MNEED=false;
