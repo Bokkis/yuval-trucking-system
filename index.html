@@ -498,7 +498,7 @@ async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=f
   for(const T of [...TB].reverse()){if(T.k=="coll"&&NOCOLL)continue;const old=snap[T.t],ids=new Set(db[T.k].map(o=>String(o.id))),del=Object.keys(old).filter(i=>!ids.has(i));
    if(del.length){for(let i=0;i<del.length;i+=100){const{error}=await SB.from(T.t).delete().in("id",del.slice(i,i+100));if(error)throw error}del.forEach(i=>delete old[i])}}
   for(const k of Object.keys(db.ded)){if(db.ded[k]!==dsn[k]){const[e,f,to]=k.split("|"),{error}=await SB.from("payroll_deductions").upsert({employee_id:+e,period_from:f,period_to:to,amount:+db.ded[k]||0},{onConflict:"employee_id,period_from,period_to"});if(error)throw error;dsn[k]=db.ded[k]}}
-  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs","trips","altop","empx","paym","payrem"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
+  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs","trips","altop","empx","paym","payrem","depd"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
   saveBanner("");setSt("\u25cf Saved","#1f9d55")}catch(e){setSt("Save failed","#d64545");toast("Save failed: "+(e.message||e));saveBanner(e.message||String(e))}
  busy=false;if(dirty)save()}
 function lEye(){const p=document.getElementById("lpw");p.type=p.type=="password"?"text":"password"}
@@ -3980,6 +3980,288 @@ function pp2(){var v=document.getElementById("view");if(!v)return;
   +(conf.length?'<div style="font-size:12.5px;color:var(--mu);margin-top:6px">Confirmed no operation (with remark): '+conf.length+'</div>':"")
   +'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px">'+(fine?'<button class="s" style="background:#16a34a;color:#fff;padding:7px 14px" onclick="payVerFine()">✔ Verify all that are fine ('+fine+')</button>':"")+'<span style="font-size:12.5px;color:var(--mu)">Total to pay: <b style="font-size:inherit;color:var(--tx)">GCash '+peso(Math.round(gc.t*100)/100)+' ('+gc.n+')</b> · <b style="font-size:inherit;color:var(--tx)">Cash '+peso(Math.round(cash.t*100)/100)+' ('+cash.n+')</b></span></div>';
  var fc=v.querySelector(".card.np");if(fc&&fc.nextSibling)v.insertBefore(al,fc.nextSibling);else v.insertBefore(al,v.firstChild)}
+})();
+</script>
+
+<script>
+(function(){
+var FIELD=["Operator","Driver","Helper"];
+function busy(f){return (db.rentals||[]).some(function(r){return r.equip==f.id&&r.stage=="Active"})||(db.trips||[]).some(function(t){return t.fid==f.id&&!t.back})}
+function rows(){return calcPay(PF,PT,false).filter(function(r){return(!PO||r.e.id==PO)&&(!PSITE||psiteOf(r.e)==PSITE)&&(!PROLE||proleOk(r.e))})}
+function cand(){return rows().filter(function(r){return r.e.equip&&FIELD.indexOf(r.e.role)>-1&&r.e.role!="Helper"&&!(r.net>0)}).map(function(r){return r.e})}
+window.releasePeople=function(ids){var units={},closed=[];ids.forEach(function(id){var e=db.employees.find(function(x){return x.id==id});if(!e||!e.equip)return;var f=db.fleet.find(function(x){return x.id==e.equip});if(f)units[f.id]={f:f,sid:f.site,who:[]};
+  db.employees.filter(function(h){return h.role=="Helper"&&h.helps==id}).forEach(function(h){h.equip=0;h.place=""});if(f)units[f.id].who.push(e.name);e.equip=0;e.place=""});
+ var sites={};Object.keys(units).forEach(function(k){var u=units[k],f=u.f;if(!opsOf(f).length&&!busy(f)&&(f.status=="Rented"||f.status=="Available")){f.status="Available";f.site="";if(u.sid){sites[u.sid]=sites[u.sid]||[];u.who.forEach(function(n){sites[u.sid].push(n)})}}});
+ Object.keys(sites).forEach(function(sid){sid=isNaN(sid)?sid:+sid;var st=db.sites.find(function(x){return x.id==sid});if(!st||db.fleet.some(function(x){return x.site==sid}))return;var H=sdoneL().filter(function(x){return x.sid!=sid});H.unshift({k:"sid"+sid+"|"+ltoday(),sid:sid,date:ltoday(),name:st.client||st.name,loc:st.name,co:st.company||"",n:sites[sid].length,who:sites[sid]});db.sdone=JSON.stringify(H.slice(0,150));closed.push(st.client||st.name)});
+ save();return closed};
+window.payRelAll=async function(){var C=cand();if(!C.length)return toast("Nobody to release");
+ var ok=await popAsk({title:"Remove unit & site?",msg:"These people have <b style=\"font-size:inherit;display:inline\">no pay</b> this period but still have a unit:<ul style=\"margin:8px 0 0 18px;padding:0\">"+C.map(function(e){var f=db.fleet.find(function(x){return x.id==e.equip});return "<li><b style=\"font-size:inherit;display:inline\">"+E_(e.name)+"</b> — "+E_(f?f.name:"")+"</li>"}).join("")+"</ul><div style=\"margin-top:8px\">They will have no unit, no site and no monitoring. A site with nobody left is closed automatically.</div>",ok:"Yes, remove",cancel:"Cancel",icon:"✂️",tone:"#e8470f"});if(!ok)return;
+ var c=releasePeople(C.map(function(e){return e.id}));payView();toast(C.length+" released"+(c.length?" · site closed: "+c.join(", "):""))};
+window.payRelOne=async function(id){var e=db.employees.find(function(x){return x.id==id});if(!e)return;if(!await popAsk({title:"Remove unit & site?",msg:"<b style=\"font-size:inherit;display:inline\">"+E_(e.name)+"</b> will have no unit, no site and no monitoring. If he is the only one left on the site, the site is closed automatically.",ok:"Yes, remove",cancel:"Cancel",icon:"✂️",tone:"#e8470f"}))return;var c=releasePeople([id]);payView();toast(e.name+" released"+(c.length?" · site closed: "+c.join(", "):""))};
+var pv=payView;payView=function(){var r=pv.apply(this,arguments);try{var C=cand(),al=document.getElementById("palert");if(al&&C.length){var d=document.createElement("div");d.style.cssText="margin-top:10px;padding-top:10px;border-top:1px dashed var(--bd);font-size:12.5px;color:var(--mu)";d.innerHTML="<b style=\"color:var(--tx)\">"+C.length+" with a unit but no pay this period:</b> "+C.slice(0,12).map(function(e){return E_(e.name)}).join(", ")+(C.length>12?" …":"")+" <button class=\"s\" style=\"margin-left:8px;background:#e8470f;color:#fff\" onclick=\"payRelAll()\">✂ Remove unit &amp; site</button>";al.appendChild(d)}}catch(e){console.error(e)}return r};
+var rp=payRP;payRP=function(id){rp.apply(this,arguments);var p=document.getElementById("prp"),e=db.employees.find(function(x){return x.id==id});if(p&&e&&e.equip&&e.role!="Helper"){var b=document.createElement("div");b.style.cssText="margin-top:8px";b.innerHTML='<button class="s d" onclick="payRelOne('+id+')">✂ Remove unit &amp; site</button>';p.appendChild(b)}};
+})();
+</script>
+
+<style>
+.dpb{padding:5px 10px!important;font-size:12px!important;font-weight:700;border-radius:8px!important;white-space:nowrap}
+.dpb.go{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+.dpb.fr{background:transparent!important;color:#f59e0b!important;border:1px solid #f59e0b!important}
+#dpo{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10001;display:grid;place-items:center;padding:14px}
+#dpo .dc{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:16px;width:min(470px,100%);max-height:88vh;overflow:auto;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#dpo .dl{max-height:250px;overflow:auto;border:1px solid var(--bd);border-radius:10px;margin-top:6px}
+#dpo .dr{display:flex;gap:9px;align-items:center;padding:8px 10px;border-top:1px solid var(--bd);cursor:pointer;font-size:13px}
+#dpo .dr:first-child{border-top:0}
+#dpo .dr small{display:block;color:var(--mu);font-size:11.5px}
+#dpo .dr.mv small{color:#f59e0b}
+</style>
+<script>
+(function(){
+function busy(f){return (db.rentals||[]).some(function(r){return r.equip==f.id&&r.stage=="Active"})||(db.trips||[]).some(function(t){return t.fid==f.id&&!t.back})}
+function closeSite(sid,who){if(!sid)return null;var st=db.sites.find(function(x){return x.id==sid});if(!st||db.fleet.some(function(x){return x.site==sid}))return null;var H=sdoneL().filter(function(x){return x.sid!=sid});H.unshift({k:"sid"+sid+"|"+ltoday(),sid:sid,date:ltoday(),name:st.client||st.name,loc:st.name,co:st.company||"",n:who.length,who:who});db.sdone=JSON.stringify(H.slice(0,150));return st.client||st.name}
+function detach(e){db.employees.filter(function(h){return h.role=="Helper"&&h.helps==e.id}).forEach(function(h){h.equip=0;h.place=""});e.equip=0;e.place=""}
+window.unitFree=function(fid,silent){var f=db.fleet.find(function(x){return x.id==fid});if(!f)return;var sid=f.site,who=[];opsOf(f).forEach(function(e){who.push(e.name);detach(e)});f.status="Available";f.site="";var c=closeSite(sid,who);save();if(!silent){table();toast(f.name+" is Available again"+(c?" · site closed: "+c:""))}return c};
+window.unitFreeAsk=async function(fid){var f=db.fleet.find(function(x){return x.id==fid}),ops=opsOf(f).map(function(e){return e.name});
+ if(!await popAsk({title:"Make "+f.name+" available?",msg:(ops.length?"These operators will be removed from the unit: <b style=\"font-size:inherit;display:inline\">"+E_(ops.join(", "))+"</b>.<br>":"")+"The unit goes back to <b style=\"font-size:inherit;display:inline\">Available</b> with no site and no client. If nobody is left on its site, the site is closed automatically.",ok:"Yes, make available",cancel:"Cancel",icon:"⏏️",tone:"#e8470f"}))return;unitFree(fid)};
+function elig(){return db.employees.filter(function(e){return e.status!="Inactive"&&e.role!="Helper"&&!NOPAY.includes(e.role)&&!NOEQ.includes(e.role)}).sort(function(a,b){return (a.equip?1:0)-(b.equip?1:0)||a.name.localeCompare(b.name)})}
+window.deployOpen=function(fid){var f=db.fleet.find(function(x){return x.id==fid});if(!f)return;var old=document.getElementById("dpo");if(old)old.remove();
+ var S=[].concat(db.sites).filter(function(s){return !sdoneL().some(function(x){return x.sid==s.id})}).sort(function(a,b){return String(a.client||a.name).localeCompare(String(b.client||b.name))});
+ var o=document.createElement("div");o.id="dpo";
+ o.innerHTML='<div class="dc"><h3 style="margin:0 0 2px;font-size:18px">Deploy '+E_(f.name)+(f.plate?" · "+E_(f.plate):"")+'</h3><div style="color:var(--mu);font-size:12.5px;margin-bottom:12px">Pick the site, then tick the operators who will run this unit.</div>'
+ +'<label style="font-weight:700;font-size:13px">1 · Site / client</label><select id="dp_s" style="width:100%;margin-top:4px"><option value="">— choose the site —</option>'+S.map(function(s){return '<option value="'+s.id+'">'+E_((s.client||s.name)+" · "+s.name)+'</option>'}).join("")+'</select>'
+ +'<label style="font-weight:700;font-size:13px;display:block;margin-top:14px">2 · Operators</label><input id="dp_q" placeholder="Search name…" style="width:100%;margin-top:4px" oninput="deployFilter()"><div class="dl" id="dp_l">'+elig().map(function(e){var u=e.equip&&db.fleet.find(function(x){return x.id==e.equip});return '<label class="dr'+(u?" mv":"")+'" data-n="'+E_(e.name.toLowerCase())+'"><input type="checkbox" value="'+e.id+'"><span><b style="font-size:13px">'+E_(e.name)+'</b><small>'+E_(e.role||"")+(u?" · now on "+E_(u.name)+" — will move here":" · free")+'</small></span></label>'}).join("")+'</div>'
+ +'<div style="display:flex;gap:10px;margin-top:14px"><button class="s" style="flex:1;padding:10px" onclick="document.getElementById(\'dpo\').remove()">Cancel</button><button class="s" style="flex:1;padding:10px;background:#16a34a;color:#fff;font-weight:700" onclick="deployGo('+fid+')">▶ Deploy</button></div></div>';
+ o.addEventListener("mousedown",function(ev){if(ev.target==o)o.remove()});document.body.appendChild(o)};
+window.deployFilter=function(){var q=document.getElementById("dp_q").value.toLowerCase();document.querySelectorAll("#dp_l .dr").forEach(function(r){r.style.display=r.getAttribute("data-n").indexOf(q)>-1?"":"none"})};
+window.deployGo=function(fid){var f=db.fleet.find(function(x){return x.id==fid}),sid=document.getElementById("dp_s").value,ids=[].map.call(document.querySelectorAll("#dp_l input:checked"),function(i){return +i.value});
+ if(!sid)return toast("Choose the site first");if(!ids.length)return toast("Tick at least one operator");sid=isNaN(sid)?sid:+sid;var st=db.sites.find(function(x){return x.id==sid});if(!st)return;
+ var left={};ids.forEach(function(id){var e=db.employees.find(function(x){return x.id==id});if(e.equip&&e.equip!=fid)left[e.equip]=1});
+ f.site=sid;f.status="Rented";
+ ids.forEach(function(id){var e=db.employees.find(function(x){return x.id==id});e.equip=fid;e.place=st.name;db.employees.filter(function(h){return h.role=="Helper"&&h.helps==id}).forEach(function(h){h.equip=fid;h.place=st.name})});
+ var closed=[];Object.keys(left).forEach(function(k){var u=db.fleet.find(function(x){return x.id==+k});if(u&&!opsOf(u).length){var s0=u.site;u.status="Available";u.site="";var c=closeSite(s0,[]);if(c)closed.push(c)}});
+ save();document.getElementById("dpo").remove();table();toast(f.name+" deployed to "+(st.client||st.name)+" · "+ids.length+" operator"+(ids.length>1?"s":"")+(closed.length?" · site closed: "+closed.join(", "):""))};
+var t=table;table=function(){var r=t.apply(this,arguments);try{
+ if(cur=="fleet"){document.querySelectorAll(".flr").forEach(function(row){if(row.querySelector(".dpb"))return;var m=/opPick\((\d+)\)/.exec(row.innerHTML);if(!m)return;var id=+m[1],f=db.fleet.find(function(x){return x.id==id});if(!f)return;var cell=row.lastElementChild,b=document.createElement("button");b.type="button";
+  if(f.status=="Available"){b.className="s dpb go";b.textContent="▶ Deploy";b.onclick=function(ev){ev.stopPropagation();deployOpen(id)};cell.insertBefore(b,cell.firstChild)}
+  else if(f.status=="Rented"){b.className="s dpb fr";b.textContent="⏏ Make available";b.onclick=function(ev){ev.stopPropagation();unitFreeAsk(id)};cell.insertBefore(b,cell.firstChild)}})}
+ if(cur=="sites"){document.querySelectorAll(".sur").forEach(function(row){if(row.querySelector(".dpb"))return;var m=/moveUnit\((\d+)\)/.exec(row.innerHTML);if(!m)return;var id=+m[1],cell=row.querySelector(".sus");if(!cell)return;var b=document.createElement("button");b.type="button";b.className="s dpb fr";b.textContent="⏏ Make available";b.title="Remove all operators and free this unit";b.onclick=function(ev){ev.stopPropagation();unitFreeAsk(id)};cell.appendChild(b)})}
+}catch(e){console.error(e)}return r};
+})();
+</script>
+
+<script>
+(function(){
+function dd(){try{return JSON.parse(db.depd||"{}")||{}}catch(e){return{}}}
+var isPO=function(a){return a.act=="Not operating"&&/^pull ?out/i.test(a.why||"")};
+syncFleet=function(){var D=dd();db.fleet.forEach(function(f){var ids=db.employees.filter(function(e){return e.equip==f.id}).map(function(e){return e.id});if(!ids.length)return;
+ var A=db.attendance.filter(function(a){return ids.indexOf(a.emp)>-1&&a.act&&!(D[f.id]&&isPO(a)&&String(a.date)<=D[f.id])}).sort(function(a,b){return String(a.date).localeCompare(String(b.date))});var l=A[A.length-1];if(!l)return;var po=isPO(l);
+ if(po&&f.status!="Pulled out"&&f.status!="Maintenance"&&f.status!="Breakdown")f.status="Pulled out";else if(!po&&f.status=="Pulled out")f.status="Rented"})};
+var dg=deployGo;deployGo=function(fid){var before=db.fleet.find(function(x){return x.id==fid});var D=dd();D[fid]=ltoday();db.depd=JSON.stringify(D);return dg.apply(this,arguments)};
+})();
+</script>
+
+<script>
+(function(){
+var LOCK=["Operator","Driver","Trailer","Boom truck",""];
+window.autoRoleOf=function(f){var t=(String(f.type||"")+" "+String(f.name||"")).toLowerCase(),c=opCat(f);if(/crane/.test(t))return "Operator";if(c=="trailer")return "Trailer";if(c=="boom")return "Boom truck";if(c=="truck")return "Driver";return "Operator"};
+function fixRole(eid){var e=db.employees.find(function(x){return x.id==eid});if(!e||!e.equip)return;var f=db.fleet.find(function(x){return x.id==e.equip});if(f&&LOCK.indexOf(e.role||"")>-1&&e.role!="Helper"){var r=autoRoleOf(f);if(e.role!=r){e.role=r;save()}}}
+var os=opSet;opSet=function(fid,eid,on){var r=os.apply(this,arguments);try{if(on)fixRole(eid)}catch(e){}return r};
+var om=opMove;opMove=function(fid,eid){var r=om.apply(this,arguments);try{fixRole(eid)}catch(e){}return r};
+var dg=deployGo;deployGo=function(fid){var ids=[].map.call(document.querySelectorAll("#dp_l input:checked"),function(i){return +i.value});var r=dg.apply(this,arguments);try{ids.forEach(fixRole);table()}catch(e){}return r};
+function lock(E){var f=(db.fleet||[]).find(function(x){return String(x.id)==String(E.equip.value)}),on=!!f&&LOCK.indexOf(E.role.value)>-1,n=document.getElementById("rolenote");
+ E.role.style.pointerEvents=on?"none":"";E.role.style.opacity=on?".6":"";E.role.tabIndex=on?-1:0;if(n)n.textContent=on?"Role is automatic — set from the assigned unit.":""}
+function build(E){var s=E.equip;if(!s||s.getAttribute("data-ar"))return;s.setAttribute("data-ar","1");
+ var f=(db.fleet||[]).find(function(x){return String(x.id)==String(s.value)});
+ [].slice.call(s.options).forEach(function(o){if(!o.value)o.textContent="— none yet —"});
+ s.style.pointerEvents="none";s.style.opacity=".6";s.tabIndex=-1;
+ var n=document.createElement("small");n.style.cssText="display:block;color:var(--mu);font-size:11.5px;margin:3px 0 6px";n.textContent="Assigned automatically — set it in Fleet / Site Clients (click the unit’s Operator box or use ▶ Deploy).";s.insertAdjacentElement("afterend",n);
+ var rn=document.createElement("small");rn.id="rolenote";rn.style.cssText="display:block;color:var(--mu);font-size:11.5px;margin:3px 0 6px";E.role.insertAdjacentElement("afterend",rn)}
+var ef=empFx;empFx=function(){ef.apply(this,arguments);try{var E=document.getElementById("frm").elements;if(E.equip&&E.role){build(E);lock(E)}}catch(e){console.error(e)}};
+})();
+</script>
+
+<script>
+(function(){
+function mark(fid){try{var D=JSON.parse(db.depd||"{}")||{};D[fid]=ltoday();db.depd=JSON.stringify(D)}catch(e){}}
+var os=opSet;opSet=function(fid,eid,on){if(on)mark(fid);return os.apply(this,arguments)};
+var om=opMove;opMove=function(fid,eid){mark(fid);return om.apply(this,arguments)};
+})();
+</script>
+
+<style>
+#dpo .dc{padding:0!important;width:min(500px,100%)!important;border-radius:20px!important;overflow:hidden;display:flex;flex-direction:column;max-height:90vh}
+#dpo .dh{padding:18px 20px 14px;background:linear-gradient(135deg,#1a1411,#3a1a12 60%,#b4361b);color:#fff}
+#dpo .dh small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;font-weight:700}
+#dpo .dh h3{margin:3px 0 0;font-size:22px;font-weight:800;line-height:1.15;color:#fff}
+#dpo .dh .pl{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.16);font-size:12px;font-weight:700}
+#dpo .db{padding:16px 20px;overflow:auto;flex:1}
+#dpo .st{display:flex;gap:10px;align-items:center;font-weight:800;font-size:13.5px;margin:0 0 8px}
+#dpo .st i{font-style:normal;width:22px;height:22px;border-radius:50%;background:#e8470f;color:#fff;display:grid;place-items:center;font-size:12px}
+#dpo select,#dpo input[type=text]{width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--bd);background:var(--bg);color:var(--tx);font-size:14px}
+#dpo select:focus,#dpo input[type=text]:focus{outline:none;border-color:#e8470f}
+#dpo .tabs{display:flex;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:3px;gap:3px;margin-bottom:10px}
+#dpo .tabs button{flex:1;border:0;background:transparent;color:var(--mu);font-weight:700;font-size:13px;padding:8px;border-radius:9px;cursor:pointer}
+#dpo .tabs button.on{background:var(--card);color:var(--tx);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+#dpo .dl{max-height:230px;overflow:auto;margin-top:8px;border:0!important;display:grid;gap:6px}
+#dpo .dr{display:flex!important;gap:12px;align-items:center;padding:9px 12px!important;border:1.5px solid var(--bd)!important;border-radius:12px;cursor:pointer;transition:.12s}
+#dpo .dr:hover{border-color:#e8470f66!important}
+#dpo .dr input{display:none}
+#dpo .dr .av{width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--tx) 10%,transparent);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+#dpo .dr b{font-size:14px!important;display:block}
+#dpo .dr small{display:block;color:var(--mu)!important;font-size:12px!important}
+#dpo .dr .ck{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;color:transparent;font-size:13px;font-weight:900;flex:none}
+#dpo .dr:has(input:checked){border-color:#e8470f!important;background:rgba(232,71,15,.1)}
+#dpo .dr:has(input:checked) .ck{background:#e8470f;border-color:#e8470f;color:#fff}
+#dpo .dr:has(input:checked) .av{background:#e8470f;color:#fff}
+#dpo .empty{padding:16px;text-align:center;color:var(--mu);font-size:13px;border:1.5px dashed var(--bd);border-radius:12px}
+#dpo .df{padding:12px 20px 16px;border-top:1px solid var(--bd);display:flex;gap:10px;align-items:center;background:var(--card)}
+#dpo .df .sm{flex:1;font-size:12.5px;color:var(--mu)}
+#dpo .df button{padding:11px 18px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;border:1.5px solid var(--bd);background:transparent;color:var(--tx)}
+#dpo .df button.go{background:#16a34a;border-color:#16a34a;color:#fff}
+#dpo .hint{font-size:12px;color:var(--mu);margin-top:6px;line-height:1.4}
+</style>
+<script>
+(function(){
+function E2(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function eligAll(){return db.employees.filter(function(e){return e.status!="Inactive"&&e.role!="Helper"&&!NOPAY.includes(e.role)&&!NOEQ.includes(e.role)}).sort(function(a,b){return a.name.localeCompare(b.name)})}
+function roleOf(e){var f=e.equip&&db.fleet.find(function(x){return x.id==e.equip});return f&&f}
+function mark(fid){try{var D=JSON.parse(db.depd||"{}")||{};D[fid]=ltoday();db.depd=JSON.stringify(D)}catch(e){}}
+function fixR(e){var f=db.fleet.find(function(x){return x.id==e.equip});if(f&&["Operator","Driver","Trailer","Boom truck",""].indexOf(e.role||"")>-1&&e.role!="Helper")e.role=autoRoleOf(f)}
+function setOn(e,f,st){e.equip=f.id;e.place=st?st.name:"";db.employees.filter(function(h){return h.role=="Helper"&&h.helps==e.id}).forEach(function(h){h.equip=f.id;h.place=e.place});fixR(e);mark(f.id)}
+var mode="free";
+window.deployOpen=function(fid){var f=db.fleet.find(function(x){return x.id==fid});if(!f)return;mode="free";var old=document.getElementById("dpo");if(old)old.remove();
+ var S=[].concat(db.sites).filter(function(s){return !sdoneL().some(function(x){return x.sid==s.id})}).sort(function(a,b){return String(a.client||a.name).localeCompare(String(b.client||b.name))});
+ var fr=eligAll().filter(function(e){return !e.equip}),as=eligAll().filter(function(e){return e.equip&&e.equip!=fid});
+ var o=document.createElement("div");o.id="dpo";window.__dpf=fid;
+ var rows=fr.map(function(e){return '<label class="dr" data-n="'+E2(e.name.toLowerCase())+'"><input type="checkbox" value="'+e.id+'" onchange="deploySum()"><span class="av">'+E2((e.name||"?")[0])+'</span><span><b>'+E2(e.name)+'</b><small>'+E2(e.role||"Operator")+' · free</small></span><span class="ck">✓</span></label>'}).join("");
+ var asel='<option value="">— choose who to take —</option>'+as.map(function(e){var u=roleOf(e);return '<option value="'+e.id+'">'+E2(e.name)+' — on '+E2(u?u.name:"")+'</option>'}).join("");
+ var rsel='<option value="">— choose the replacement —</option>'+fr.map(function(e){return '<option value="'+e.id+'">'+E2(e.name)+' ('+E2(e.role||"")+')</option>'}).join("")+'<option value="vac">Leave his old unit vacant (it becomes Available)</option>';
+ o.innerHTML='<div class="dc"><div class="dh"><small>Deploy unit</small><h3>'+E2(f.name)+'</h3>'+(f.plate?'<span class="pl">'+E2(f.plate)+'</span>':'')+'</div><div class="db">'
+  +'<div class="st"><i>1</i>Where is it going?</div><select id="dp_s" onchange="deploySum()"><option value="">— choose the site / client —</option>'+S.map(function(s){return '<option value="'+s.id+'">'+E2((s.client||s.name)+" · "+s.name)+'</option>'}).join("")+'</select>'
+  +'<div class="st" style="margin-top:18px"><i>2</i>Who will run it?</div><div class="tabs"><button type="button" id="dp_t1" class="on" onclick="deployMode(\'free\')">Free operators ('+fr.length+')</button><button type="button" id="dp_t2" onclick="deployMode(\'chg\')">Change operator</button></div>'
+  +'<div id="dp_free"><input type="text" id="dp_q" placeholder="Search name…" oninput="deployFilter()"><div class="dl" id="dp_l">'+(rows||'<div class="empty">Everyone is already on a unit.<br>Use <b>Change operator</b> to swap.</div>')+'</div></div>'
+  +'<div id="dp_chg" style="display:none"><label style="font-size:12.5px;font-weight:700;color:var(--mu)">Operator to take (now on another unit)</label><select id="ch_x" style="margin:4px 0 10px">'+asel+'</select><label style="font-size:12.5px;font-weight:700;color:var(--mu)">Who replaces him on his old unit?</label><select id="ch_r" style="margin-top:4px">'+rsel+'</select><div class="hint">An operator already on a unit can’t just be ticked here. Pick a replacement so his old unit is never left empty.</div></div>'
+  +'</div><div class="df"><span class="sm" id="dp_sum">Choose the site and at least one operator.</span><button type="button" onclick="document.getElementById(\'dpo\').remove()">Cancel</button><button type="button" class="go" onclick="deployRun('+fid+')">▶ Deploy</button></div></div>';
+ o.addEventListener("mousedown",function(ev){if(ev.target==o)o.remove()});document.body.appendChild(o)};
+window.deployMode=function(m){mode=m;document.getElementById("dp_t1").classList.toggle("on",m=="free");document.getElementById("dp_t2").classList.toggle("on",m=="chg");document.getElementById("dp_free").style.display=m=="free"?"":"none";document.getElementById("dp_chg").style.display=m=="chg"?"":"none";deploySum()};
+window.deploySum=function(){var s=document.getElementById("dp_s"),n=document.querySelectorAll("#dp_l input:checked").length,t=s&&s.selectedIndex>0?s.options[s.selectedIndex].textContent.split(" · ")[0]:"";var el=document.getElementById("dp_sum");if(el)el.textContent=(mode=="free"?n+" operator"+(n==1?"":"s"):"1 operator swap")+(t?" → "+t:"")};
+window.deployFilter=function(){var q=document.getElementById("dp_q").value.toLowerCase();document.querySelectorAll("#dp_l .dr").forEach(function(r){r.style.display=r.getAttribute("data-n").indexOf(q)>-1?"":"none"})};
+window.deployRun=function(fid){var f=db.fleet.find(function(x){return x.id==fid}),sid=document.getElementById("dp_s").value;if(!sid)return toast("Choose the site first");sid=isNaN(sid)?sid:+sid;var st=db.sites.find(function(x){return x.id==sid});if(!st)return;
+ var moves=[],repl={};
+ if(mode=="free"){document.querySelectorAll("#dp_l input:checked").forEach(function(i){moves.push(+i.value)});if(!moves.length)return toast("Tick at least one operator")}
+ else{var x=+document.getElementById("ch_x").value,r=document.getElementById("ch_r").value;if(!x)return toast("Choose the operator to take");if(!r)return toast("Choose a replacement, or leave his old unit vacant");var ex=db.employees.find(function(e){return e.id==x});moves.push(x);if(r!="vac")repl[ex.equip]=+r;else repl[ex.equip]=0}
+ var left={};moves.forEach(function(id){var e=db.employees.find(function(z){return z.id==id});if(e.equip&&e.equip!=fid)left[e.equip]=1});
+ f.site=sid;f.status="Rented";moves.forEach(function(id){setOn(db.employees.find(function(z){return z.id==id}),f,st)});
+ var closed=[];Object.keys(left).forEach(function(k){var u=db.fleet.find(function(z){return z.id==+k});if(!u)return;var rp=repl[u.id];if(rp){var re=db.employees.find(function(z){return z.id==rp}),s2=db.sites.find(function(z){return z.id==u.site});setOn(re,u,s2)}else if(!opsOf(u).length){var c=unitFree(u.id,true);if(c)closed.push(c)}});
+ save();document.getElementById("dpo").remove();table();toast(f.name+" deployed to "+(st.client||st.name)+(closed.length?" · site closed: "+closed.join(", "):""))};
+/* Move here: never leave a unit empty */
+var om=opMove;opMove=function(fid,eid){var e=db.employees.find(function(x){return x.id==eid}),o=e&&db.fleet.find(function(x){return x.id==e.equip});
+ if(o&&o.id!=fid&&opsOf(o).length==1){var fr=eligAll().filter(function(z){return !z.equip});var ov=document.createElement("div");ov.id="dpo";
+  ov.innerHTML='<div class="dc"><div class="dh"><small>Change operator</small><h3>'+E2(e.name)+'</h3><span class="pl">now on '+E2(o.name)+'</span></div><div class="db"><div class="st"><i>!</i>Who replaces him on '+E2(o.name)+'?</div><select id="ch_r"><option value="">— choose the replacement —</option>'+fr.map(function(z){return '<option value="'+z.id+'">'+E2(z.name)+' ('+E2(z.role||"")+')</option>'}).join("")+'<option value="vac">Leave '+E2(o.name)+' vacant (it becomes Available)</option></select><div class="hint">He is the only operator on '+E2(o.name)+'. Pick a replacement so the unit isn’t left empty.</div></div><div class="df"><span class="sm"></span><button type="button" onclick="document.getElementById(\'dpo\').remove()">Cancel</button><button type="button" class="go" onclick="chgGo('+fid+','+eid+')">⇄ Change</button></div></div>';
+  ov.addEventListener("mousedown",function(ev){if(ev.target==ov)ov.remove()});document.body.appendChild(ov);return}
+ return om.apply(this,arguments)};
+window.chgGo=function(fid,eid){var r=document.getElementById("ch_r").value;if(!r)return toast("Choose a replacement first");var e=db.employees.find(function(x){return x.id==eid}),f=db.fleet.find(function(x){return x.id==fid}),o=db.fleet.find(function(x){return x.id==e.equip});
+ setOn(e,f,db.sites.find(function(s){return s.id==f.site}));if(r!="vac"){setOn(db.employees.find(function(x){return x.id==+r}),o,db.sites.find(function(s){return s.id==o.site}))}else unitFree(o.id,true);
+ save();document.getElementById("dpo").remove();table();try{opPick(fid)}catch(x){}toast(e.name+" moved to "+f.name+(r!="vac"?" · replaced on "+o.name:""))};
+})();
+</script>
+<style>#dpo .tabs button{background:transparent!important;color:var(--mu)!important;border:0!important}#dpo .tabs button.on{background:#e8470f!important;color:#fff!important}</style>
+
+<style>#dpo .tabs{display:none!important}#dpo #dp_t2,.dpb.cg{}
+.dpb.cg{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}</style>
+<script>
+(function(){
+function E3(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+window.cuOpen=function(fid){var f=db.fleet.find(function(x){return x.id==fid});if(!f)return;var ops=opsOf(f).filter(function(e){return e.role!="Helper"});if(!ops.length)return toast("This unit has no operator to change");
+ var fr=db.employees.filter(function(e){return !e.equip&&e.status!="Inactive"&&e.role!="Helper"&&!NOPAY.includes(e.role)&&!NOEQ.includes(e.role)});
+ var old=document.getElementById("dpo");if(old)old.remove();var o=document.createElement("div");o.id="dpo";
+ o.innerHTML='<div class="dc"><div class="dh"><small>Change operator</small><h3>'+E3(f.name)+'</h3>'+(f.plate?'<span class="pl">'+E3(f.plate)+'</span>':'')+'</div><div class="db"><div class="st"><i>1</i>Who will be replaced?</div><select id="cu_o">'+ops.map(function(e){return '<option value="'+e.id+'">'+E3(e.name)+' ('+E3(e.role||"")+')</option>'}).join("")+'</select><div class="st" style="margin-top:18px"><i>2</i>Who takes over?</div><select id="cu_r"><option value="">— choose a free operator —</option>'+fr.map(function(e){return '<option value="'+e.id+'">'+E3(e.name)+' ('+E3(e.role||"")+')</option>'}).join("")+'</select><div class="hint">'+(fr.length?'The replaced operator becomes free. The unit keeps its site and stays Rented.':'No free operators right now. Remove an operator from another unit first.')+'</div></div><div class="df"><span class="sm"></span><button type="button" onclick="document.getElementById(\'dpo\').remove()">Cancel</button><button type="button" class="go" onclick="cuGo('+fid+')">⇄ Change</button></div></div>';
+ o.addEventListener("mousedown",function(ev){if(ev.target==o)o.remove()});document.body.appendChild(o)};
+window.cuGo=function(fid){var a=+document.getElementById("cu_o").value,r=+document.getElementById("cu_r").value;if(!r)return toast("Choose who takes over");
+ var f=db.fleet.find(function(x){return x.id==fid}),st=db.sites.find(function(s){return s.id==f.site}),oe=db.employees.find(function(e){return e.id==a}),ne=db.employees.find(function(e){return e.id==r});
+ oe.equip="";oe.place="";db.employees.filter(function(h){return h.role=="Helper"&&h.helps==a}).forEach(function(h){h.equip=fid});
+ ne.equip=fid;ne.place=st?st.name:"";try{var D=JSON.parse(db.depd||"{}")||{};D[fid]=ltoday();db.depd=JSON.stringify(D)}catch(e){}
+ try{var u=db.fleet.find(function(x){return x.id==fid});if(["Operator","Driver","Trailer","Boom truck",""].indexOf(ne.role||"")>-1)ne.role=autoRoleOf(u)}catch(e){}
+ save();document.getElementById("dpo").remove();table();toast(oe.name+" → "+ne.name+" on "+f.name)};
+var t3=table;table=function(){var r=t3.apply(this,arguments);try{
+ if(cur=="fleet"){document.querySelectorAll(".flr").forEach(function(row){if(row.querySelector(".dpb.cg"))return;var m=/opPick\((\d+)\)/.exec(row.innerHTML);if(!m)return;var id=+m[1],f=db.fleet.find(function(x){return x.id==id});if(!f||!opsOf(f).length)return;var b=document.createElement("button");b.type="button";b.className="s dpb cg";b.textContent="⇄ Change operator";b.onclick=function(ev){ev.stopPropagation();cuOpen(id)};row.lastElementChild.insertBefore(b,row.lastElementChild.firstChild)})}
+ if(cur=="sites"){document.querySelectorAll(".sur").forEach(function(row){if(row.querySelector(".dpb.cg"))return;var m=/moveUnit\((\d+)\)/.exec(row.innerHTML);if(!m)return;var id=+m[1],f=db.fleet.find(function(x){return x.id==id}),cell=row.querySelector(".sus");if(!f||!cell||!opsOf(f).length)return;var b=document.createElement("button");b.type="button";b.className="s dpb cg";b.textContent="⇄ Change operator";b.onclick=function(ev){ev.stopPropagation();cuOpen(id)};cell.appendChild(b)})}
+}catch(e){}return r};
+})();
+</script>
+
+<style>#dpo .nsb{display:none;margin-top:10px;padding:12px;border:1.5px dashed #e8470f;border-radius:12px;background:rgba(232,71,15,.06);gap:8px}
+#dpo .nsb.on{display:grid}#dpo .nsb label{font-size:12px;font-weight:700;color:var(--mu)}#dpo .nsb input{width:100%;padding:9px 11px;border-radius:10px;border:1.5px solid var(--bd);background:var(--bg);color:var(--tx);font-size:14px}</style>
+<script>
+(function(){
+var od=deployOpen;
+deployOpen=window.deployOpen=function(fid){od.apply(this,arguments);var s=document.getElementById("dp_s");if(!s||document.getElementById("dp_nb"))return;
+ var op=document.createElement("option");op.value="__new";op.textContent="＋ New site / client…";s.insertBefore(op,s.options[1]);
+ var b=document.createElement("div");b.id="dp_nb";b.className="nsb";b.innerHTML='<div><label>Client / Engineer *</label><input type="text" id="ns_c" placeholder="e.g. Engr. J. Dela Cruz"></div><div><label>Location *</label><input type="text" id="ns_n" placeholder="e.g. Gapan City, Nueva Ecija"></div><div><label>Company (optional)</label><input type="text" id="ns_co" placeholder="Company name"></div><div><label>Project / scope (optional)</label><input type="text" id="ns_s" placeholder="e.g. Road widening"></div>';
+ s.parentNode.insertBefore(b,s.nextSibling);
+ s.addEventListener("change",function(){b.classList.toggle("on",s.value=="__new");if(s.value=="__new")document.getElementById("ns_c").focus()})};
+var orun=deployRun;
+deployRun=window.deployRun=function(fid){var s=document.getElementById("dp_s");
+ if(s&&s.value=="__new"){var c=document.getElementById("ns_c").value.trim(),n=document.getElementById("ns_n").value.trim();if(!c||!n)return toast("Fill in the client and the location");
+  var ex=db.sites.find(function(x){return String(x.name).toLowerCase()==n.toLowerCase()&&String(x.client||"").toLowerCase()==c.toLowerCase()});
+  var st=ex||{id:Date.now(),name:n,client:c,company:document.getElementById("ns_co").value.trim(),scope:document.getElementById("ns_s").value.trim()};
+  if(!ex)db.sites.push(st);var o=document.createElement("option");o.value=st.id;o.textContent=c+" · "+n;s.appendChild(o);s.value=st.id}
+ return orun.apply(this,arguments)};
+})();
+</script>
+
+<style>
+.rtal{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 16px;border-radius:14px;border:1.5px solid #f59e0b;background:linear-gradient(90deg,rgba(245,158,11,.16),rgba(245,158,11,.05));animation:rtin .45s cubic-bezier(.2,.9,.3,1.2)}
+.rtal .ic{width:36px;height:36px;border-radius:50%;background:#f59e0b;color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;animation:rtp 1.8s infinite}
+.rtal b{font-size:14px}.rtal small{display:block;color:var(--mu);font-size:12px;margin-top:2px}
+.rtal .nm{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.rtal .nm span{padding:3px 10px;border-radius:99px;background:var(--card);border:1px solid #f59e0b88;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.rtal .nm span:hover{background:#f59e0b;color:#fff;transform:translateY(-2px)}
+.rtal button{margin-left:auto;padding:10px 16px;border-radius:12px;border:0;background:#e8470f;color:#fff;font-weight:800;cursor:pointer;transition:.15s}
+.rtal button:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 6px 16px rgba(232,71,15,.4)}
+.rtb{display:inline-block;margin-top:6px;padding:2px 9px;border-radius:99px;background:#f59e0b;color:#fff;font-size:11px;font-weight:800;animation:rtp 1.8s infinite}
+.pcard.rtm{border-color:#f59e0b!important}
+@keyframes rtp{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.55)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+@keyframes rtin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+#rto .rr{display:grid;grid-template-columns:1fr 110px 110px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)}
+#rto .rr.h{font-size:11px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+#rto .rr input{width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--bd);background:var(--bg);color:var(--tx);font-size:14px}
+#rto .rr input.miss{border-color:#f59e0b;background:rgba(245,158,11,.1)}
+#rto .rr input:focus{outline:none;border-color:#e8470f}
+/* fleet motion */
+@keyframes flin{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes flfl{0%{box-shadow:0 0 0 0 rgba(22,163,74,.7);background:rgba(22,163,74,.18)}100%{box-shadow:0 0 0 14px rgba(22,163,74,0);background:transparent}}
+@keyframes fldot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(1.5)}}
+.flr{animation:flin .4s ease both;transition:transform .18s,box-shadow .18s}
+.flr:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.18);position:relative;z-index:1}
+.flr.flash{animation:flfl 1.3s ease-out 2}
+.sur{animation:flin .35s ease both}
+.sur:hover{transform:translateX(4px);transition:.15s}
+.dpb{transition:transform .15s,box-shadow .15s,filter .15s}.dpb:hover{transform:translateY(-2px) scale(1.05);filter:brightness(1.1)}.dpb:active{transform:scale(.94)}
+.flr .tag-av,.flr .st-av{animation:none}
+@media(prefers-reduced-motion:reduce){.flr,.sur,.rtal,.rtal .ic,.rtb{animation:none!important}}
+</style>
+<script>
+(function(){
+function E4(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var RL=["Operator","Driver","Trailer","Boom truck"];
+function needs(){return db.employees.filter(function(e){return e.status!="Inactive"&&RL.indexOf(e.role)>-1&&!(+e.msal>0)&&(!(+e.rate>0)||!(+e.otrate>0))})}
+window.rtOpen=function(){var N=needs();var old=document.getElementById("rto");if(old)old.remove();var o=document.createElement("div");o.id="rto";o.className="";var ov=o;
+ o.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:14px";
+ o.innerHTML='<div class="dc" style="background:var(--card);color:var(--tx);border-radius:20px;width:min(560px,100%);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5)"><div class="dh" style="padding:18px 20px 14px;background:linear-gradient(135deg,#1a1411,#3a1a12 60%,#b4361b);color:#fff"><small style="display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;font-weight:700">Payroll setup</small><h3 style="margin:3px 0 0;font-size:21px;color:#fff">Set daily rate &amp; OT rate</h3></div><div class="db" style="padding:12px 20px;overflow:auto;flex:1"><div class="rr h"><span>Employee</span><span>Daily rate ₱</span><span>OT / hour ₱</span></div>'
+ +N.map(function(e){return '<div class="rr"><span><b>'+E4(e.name)+'</b><small style="display:block;color:var(--mu)">'+E4(e.role)+'</small></span><input type="number" min="0" data-id="'+e.id+'" data-k="rate" value="'+(+e.rate>0?e.rate:"")+'" placeholder="0" class="'+(+e.rate>0?"":"miss")+'"><input type="number" min="0" data-id="'+e.id+'" data-k="otrate" value="'+(+e.otrate>0?e.otrate:"")+'" placeholder="0" class="'+(+e.otrate>0?"":"miss")+'"></div>'}).join("")
+ +'</div><div class="df" style="padding:12px 20px 16px;border-top:1px solid var(--bd);display:flex;gap:10px;justify-content:flex-end"><button type="button" style="padding:11px 18px;border-radius:12px;border:1.5px solid var(--bd);background:transparent;color:var(--tx);font-weight:800;cursor:pointer" onclick="document.getElementById(\'rto\').remove()">Cancel</button><button type="button" style="padding:11px 18px;border-radius:12px;border:0;background:#16a34a;color:#fff;font-weight:800;cursor:pointer" onclick="rtSave()">Save rates</button></div></div>';
+ o.addEventListener("mousedown",function(ev){if(ev.target==ov)ov.remove()});document.body.appendChild(o);var f=o.querySelector("input");f&&f.focus()};
+window.rtSave=function(){var n=0;document.querySelectorAll("#rto input[data-id]").forEach(function(i){var v=+i.value;if(v>0){var e=db.employees.find(function(x){return x.id==i.dataset.id});if(e&&+e[i.dataset.k]!==v){e[i.dataset.k]=v;n++}}});save();document.getElementById("rto").remove();table();toast(n?n+" rate"+(n>1?"s":"")+" saved":"Nothing changed")};
+var tt=table;table=function(){var r=tt.apply(this,arguments);try{
+ if(cur=="employees"){var v=document.getElementById("view"),N=needs();if(v){
+  document.querySelectorAll(".pcard").forEach(function(c){var m=/openProfile\((\d+)\)/.exec(c.getAttribute("onclick")||"");if(!m)return;var e=N.find(function(x){return x.id==+m[1]});if(!e||c.querySelector(".rtb"))return;c.classList.add("rtm");var b=document.createElement("span");b.className="rtb";b.textContent=(!(+e.rate>0)&&!(+e.otrate>0))?"⚠ No rate · No OT":!(+e.rate>0)?"⚠ No daily rate":"⚠ No OT rate";c.appendChild(b)});
+  if(N.length&&!v.querySelector(".rtal")){var a=document.createElement("div");a.className="rtal";a.innerHTML='<div class="ic">!</div><div style="flex:1;min-width:200px"><b>'+N.length+' operator'+(N.length>1?"s have":" has")+' no daily rate or OT rate yet</b><small>Payroll can’t compute their pay correctly. Tap a name to open the profile, or set them all at once.</small><div class="nm">'+N.slice(0,8).map(function(e){return '<span onclick="openProfile('+e.id+')">'+E4(e.name)+'</span>'}).join("")+(N.length>8?'<span style="cursor:default">+'+(N.length-8)+' more</span>':"")+'</div></div><button type="button" onclick="rtOpen()">Set rates now</button>';v.insertBefore(a,v.firstChild)}}}
+ if(cur=="fleet"||cur=="sites"){var q=0;document.querySelectorAll(".flr,.sur").forEach(function(row){row.style.animationDelay=Math.min(q++,14)*35+"ms"});
+  if(window.__flashId){var id=window.__flashId;window.__flashId=null;document.querySelectorAll(".flr").forEach(function(row){if(new RegExp("opPick\\("+id+"\\)").test(row.innerHTML)){row.classList.add("flash");row.scrollIntoView({block:"center",behavior:"smooth"})}})}}
+}catch(e){}return r};
+var dr=deployRun;deployRun=window.deployRun=function(fid){window.__flashId=fid;return dr.apply(this,arguments)};
+var cg=cuGo;cuGo=window.cuGo=function(fid){window.__flashId=fid;return cg.apply(this,arguments)};
 })();
 </script>
 </body>
