@@ -4550,5 +4550,17 @@ var tn=table;table=function(){var r=tn.apply(this,arguments);try{if(cur=="employ
 })();
 </script>
 <style>.rsec.nusec>h3 .hb{background:transparent!important;color:var(--mu)!important;border:1px solid var(--bd)!important;font-size:12px!important;padding:4px 12px!important;text-transform:none!important;letter-spacing:0!important}.rsec.nusec>h3:hover .hb{background:#e8470f!important;border-color:#e8470f!important;color:#fff!important}</style>
+<script>
+(function(){
+/* Pull-out only when MONITORED: a fresh "Not operating / pull out" record. Old records never pull out a newly assigned unit. */
+function dstr(n){var d=new Date();d.setDate(d.getDate()-n);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+window.syncFleet=function(){var min=dstr(1);(db.fleet||[]).forEach(function(f){
+ var ids=db.employees.filter(function(e){return e.equip==f.id}).map(function(e){return e.id});if(!ids.length)return;
+ var A=(db.attendance||[]).filter(function(a){return ids.indexOf(a.emp)>-1&&a.act&&String(a.date)>=min}).sort(function(a,b){return String(a.date).localeCompare(String(b.date))});
+ var l=A[A.length-1];if(!l)return;
+ var po=l.act=="Not operating"&&/^pull ?out/i.test(l.why||"");
+ if(po&&f.status!="Pulled out"&&f.status!="Maintenance"&&f.status!="Breakdown")f.status="Pulled out"})};
+})();
+</script>
 </body>
 </html>
