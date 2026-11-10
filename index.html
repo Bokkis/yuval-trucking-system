@@ -4533,5 +4533,22 @@ try{new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(run,60)}).obs
 #login .lcard label:hover{color:#fff}
 </style>
 <style>#login .lcard{animation:none!important}</style>
+
+<style>
+.rsec.nusec>h3{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.rsec.nusec>h3 .hb{margin-left:auto;font-size:12px;font-weight:800;color:var(--mu);padding:4px 12px;border:1px solid var(--bd);border-radius:99px;transition:.15s;white-space:nowrap}
+.rsec.nusec>h3:hover .hb{background:#e8470f;border-color:#e8470f;color:#fff}
+.rsec.nusec.cl>*:not(h3){display:none!important}
+.rsec.nusec.cl{padding-bottom:6px}
+.rtb{white-space:nowrap!important;border-radius:99px!important;width:auto!important;height:auto!important;justify-self:start;grid-column:1/-1;line-height:1.5}
+</style>
+<script>
+(function(){
+var tn=table;table=function(){var r=tn.apply(this,arguments);try{if(cur=="employees"){var s=document.querySelector(".rsec.nusec");if(s&&!s.querySelector(".hb")){var h=s.querySelector("h3");if(h){var cl=false;try{cl=localStorage.getItem("nuHide")=="1"}catch(e){}
+ s.classList.toggle("cl",cl);var b=document.createElement("span");b.className="hb";h.appendChild(b);function up(){b.textContent=s.classList.contains("cl")?"▸ Show":"▾ Hide"}up();
+ h.onclick=function(){var c=s.classList.toggle("cl");try{localStorage.setItem("nuHide",c?"1":"0")}catch(e){}up()}}}}}catch(e){}return r};
+})();
+</script>
+<style>.rsec.nusec>h3 .hb{background:transparent!important;color:var(--mu)!important;border:1px solid var(--bd)!important;font-size:12px!important;padding:4px 12px!important;text-transform:none!important;letter-spacing:0!important}.rsec.nusec>h3:hover .hb{background:#e8470f!important;border-color:#e8470f!important;color:#fff!important}</style>
 </body>
 </html>
