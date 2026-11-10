@@ -4264,5 +4264,323 @@ var dr=deployRun;deployRun=window.deployRun=function(fid){window.__flashId=fid;r
 var cg=cuGo;cuGo=window.cuGo=function(fid){window.__flashId=fid;return cg.apply(this,arguments)};
 })();
 </script>
+
+<style>
+#flhelp.g2{display:block!important;padding:0!important;border-radius:16px;overflow:hidden}
+#flhelp.g2 .gh{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-weight:800;font-size:14px;user-select:none}
+#flhelp.g2 .gh i{font-style:normal;width:26px;height:26px;border-radius:50%;background:#e8470f;color:#fff;display:grid;place-items:center;font-size:14px}
+#flhelp.g2 .gh span{margin-left:auto;color:var(--mu);font-size:12px;font-weight:700;transition:.2s}
+#flhelp.g2.cl .gh span{transform:rotate(0)}#flhelp.g2 .gh span:after{content:"\25B4 hide"}#flhelp.g2.cl .gh span:after{content:"\25BE show"}
+#flhelp.g2 .gb{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;padding:0 16px 14px}
+#flhelp.g2.cl .gb,#flhelp.g2.cl .gt{display:none}
+#flhelp.g2 .gs{padding:11px 13px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);font-size:12.5px;line-height:1.45;color:var(--mu);transition:.15s;animation:flin .4s ease both}
+#flhelp.g2 .gs:hover{transform:translateY(-3px);border-color:#e8470f88}
+#flhelp.g2 .gs b{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:13px;margin-bottom:4px}
+#flhelp.g2 .gs b em{font-style:normal;width:20px;height:20px;border-radius:50%;background:#e8470f;color:#fff;display:grid;place-items:center;font-size:11px;flex:none}
+#flhelp.g2 .gs code{background:color-mix(in srgb,var(--tx) 10%,transparent);padding:1px 6px;border-radius:6px;font-size:11.5px;color:var(--tx);font-style:normal;font-weight:700}
+#flhelp.g2 .gt{margin:0 16px 14px;padding:10px 13px;border-radius:12px;background:rgba(245,158,11,.1);border:1px solid #f59e0b66;font-size:12.5px;line-height:1.5}
+#flhelp.g2 .gt b{color:#f59e0b}
+</style>
+<script>
+(function(){
+var S=[["Add the unit","Press <code>+ Add</code> and fill in the unit. New units start as <u class=\"k\" style=\"color:#38bdf8\">Available</u> in the garage."],
+["Deploy it","Press <code>▶ Deploy</code> on an Available unit. Pick the site (or <code>＋ New site / client</code> if it has no record yet), then tick the free operators."],
+["Unit is working","Once it has a site and operator, it becomes <u class=\"k\" style=\"color:#22c55e\">Rented (on job)</u> with its site and client."],
+["Change operator","Press <code>⇄ Change operator</code> on a unit that already has one. Choose who leaves and who takes over — the unit is never left empty."],
+["Move an operator","An operator already on a unit can’t be ticked in Deploy. Use <u class='k'>Change operator</u>, or remove him from his old unit first."],
+["Make available","Press <code>⏏ Make available</code> to remove all operators. The unit goes back to Available and its site shows “No data”; an empty site is closed automatically."],
+["Pull out","When Monitoring says <u class='k'>Pull out</u>, the unit goes back to the garage automatically — no operator, no site."]];
+function build(d){var cl=false;try{cl=localStorage.getItem("flg")=="1"}catch(e){}
+ d.className="g2"+(cl?" cl":"");d.setAttribute("data-v2","1");
+ d.innerHTML='<div class="gh"><i>?</i>How the Fleet works<span></span></div><div class="gb">'+S.map(function(s,i){return '<div class="gs" style="animation-delay:'+i*45+'ms"><b><em>'+(i+1)+'</em>'+s[0]+'</b>'+s[1]+'</div>'}).join("")+'</div><div class="gt"><u class="k" style="color:#f59e0b">Tips:</u> you decide the site for every unit — nothing is auto-assigned, because one unit can go to different sites per contract. Operators in the list are only the free ones. A unit with no operator can’t be Rented.</div>';
+ d.querySelector(".gh").onclick=function(){var c=d.classList.toggle("cl");try{localStorage.setItem("flg",c?"1":"0")}catch(e){}}}
+var tg=table;table=function(){var r=tg.apply(this,arguments);try{if(cur=="fleet"){var d=document.getElementById("flhelp");if(d&&!d.getAttribute("data-v2"))build(d)}}catch(e){}return r};
+})();
+</script>
+<style>#flhelp.g2 .k{text-decoration:none;font-weight:800;display:inline!important}#flhelp.g2 .gs .k{color:var(--tx)}</style>
+
+<style>
+/* ---- landing -> sign in transition ---- */
+#lnw{position:fixed;inset:0;z-index:300;pointer-events:none;display:flex}
+#lnw .pn{flex:1;background:repeating-linear-gradient(-45deg,#f2711c 0 18px,#1c1917 18px 36px);transform:translateX(-101%);transition:transform .55s cubic-bezier(.7,0,.2,1)}
+#lnw .pn.r{transform:translateX(101%)}
+#lnw.in .pn{transform:none}
+#lnw.out .pn{transition-duration:.7s;transform:translateX(-101%)}#lnw.out .pn.r{transform:translateX(101%)}
+#lnw .hk{position:absolute;left:50%;top:0;width:4px;margin-left:-2px;height:0;background:#0c0a09;transition:height .6s cubic-bezier(.3,1.4,.5,1) .35s;z-index:2}
+#lnw.in .hk{height:42vh}
+#lnw .hk:after{content:"";position:absolute;left:50%;bottom:-24px;margin-left:-12px;width:24px;height:30px;border:5px solid #f2711c;border-top-color:transparent;border-radius:0 0 50% 50%;background:transparent}
+#lnw .tx{position:absolute;left:0;right:0;top:50%;text-align:center;font:800 clamp(18px,3vw,30px) "Barlow Condensed",Inter,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px #000;z-index:3;opacity:0;transition:opacity .3s .5s}
+#lnw.in .tx{opacity:1}#lnw.out .tx,#lnw.out .hk{opacity:0;transition:.2s}
+#lnd.leaving .ln-hero{transform:scale(1.06);filter:blur(3px);transition:.6s}
+#lnd .ln-btn{transition:transform .15s,box-shadow .15s}
+#lnd .ln-btn:hover{transform:translateY(-2px)}#lnd .ln-btn:active{transform:scale(.95)}
+/* ---- guide ---- */
+nav#nav a.gd i{background:#f2711c33;color:#f2711c;font-weight:900;font-size:17px}
+.gdw{max-width:900px}.gdw .gq{width:100%;padding:12px 16px;border-radius:14px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx);font-size:15px;margin-bottom:14px}
+.gdw .gq:focus{outline:none;border-color:#e8470f}
+.gdh{padding:18px 20px;border-radius:18px;background:linear-gradient(135deg,#1a1411,#3a1a12 60%,#b4361b);color:#fff;margin-bottom:14px}
+.gdh h3{margin:0 0 4px;font-size:22px;color:#fff}.gdh p{margin:0;opacity:.85;font-size:13.5px;line-height:1.5}
+.gdw details{border:1px solid var(--bd);border-radius:14px;background:var(--card);margin-bottom:10px;overflow:hidden;animation:flin .35s ease both;transition:border-color .15s}
+.gdw details[open]{border-color:#e8470f88}
+.gdw summary{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;font-weight:800;font-size:15px;list-style:none}
+.gdw summary::-webkit-details-marker{display:none}
+.gdw summary i{font-style:normal;width:32px;height:32px;border-radius:10px;background:#e8470f;color:#fff;display:grid;place-items:center;font-size:16px;flex:none}
+.gdw summary small{display:block;font-weight:500;color:var(--mu);font-size:12.5px}
+.gdw summary:after{content:"\25BE";margin-left:auto;color:var(--mu);transition:.2s}.gdw details[open] summary:after{transform:rotate(180deg)}
+.gdw .gc{padding:2px 18px 16px 60px;font-size:13.5px;line-height:1.55;color:var(--mu)}
+.gdw .gc ol,.gdw .gc ul{margin:6px 0 8px;padding-left:20px}.gdw .gc li{margin:3px 0}
+.gdw .gc b{color:var(--tx)}.gdw .gc code{background:color-mix(in srgb,var(--tx) 10%,transparent);padding:1px 6px;border-radius:6px;color:var(--tx);font-weight:700;font-size:12.5px}
+.gdw .gc .tip{margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(245,158,11,.1);border:1px solid #f59e0b55;color:var(--tx);font-size:12.5px}
+.gdw .none{padding:20px;text-align:center;color:var(--mu)}
+</style>
+<script>
+(function(){
+/* landing transition */
+var lnd=document.getElementById("lnd");
+if(lnd){var busy=false;document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest("#lnd [data-go]");if(!t||busy||t.__rep)return;
+ e.stopImmediatePropagation();e.preventDefault();busy=true;lnd.classList.add("leaving");
+ var w=document.createElement("div");w.id="lnw";w.innerHTML='<div class="pn"></div><div class="pn r"></div><div class="hk"></div><div class="tx">Opening the yard…</div>';document.body.appendChild(w);
+ requestAnimationFrame(function(){requestAnimationFrame(function(){w.classList.add("in")})});
+ setTimeout(function(){t.__rep=true;t.click();t.__rep=false;w.classList.add("out");setTimeout(function(){w.remove();busy=false;lnd.classList.remove("leaving")},800)},1100)},true)}
+/* guide */
+var G=[
+["▦","Dashboard","Overview of the whole business",'<ol><li>Open <b>Dashboard</b> first thing every morning.</li><li>Cards show units rented vs available, operators on duty, open rescues and low stock.</li><li>Tap any card or chart to jump to that page.</li></ol><div class="tip">If a number looks wrong, open the page it comes from — the Dashboard only summarises.</div>'],
+["🚛","Fleet / Site Clients","Units, operators, sites and clients",'<ul><li><b>Add a unit:</b> <code>+ Add</code> → fill the form. New units start <b>Available</b>.</li><li><b>Deploy:</b> <code>▶ Deploy</code> → choose the site (or <code>＋ New site / client</code>) → tick free operators → Deploy. The unit becomes <b>Rented</b>.</li><li><b>Change operator:</b> <code>⇄ Change operator</code> on a unit that already has one — choose who leaves and who takes over.</li><li><b>Make available:</b> <code>⏏ Make available</code> removes all operators and clears the site. An empty site closes automatically.</li><li><b>Pull out:</b> recorded in Monitoring → the unit returns to the garage by itself.</li><li><b>Sites & Clients tab:</b> every site with its client, units and operators. Use <code>Move</code> to send a unit elsewhere.</li></ul><div class="tip">You decide the site for each unit — nothing is assigned automatically, because one unit can serve different sites per contract.</div>'],
+["🛠","Rescue","Breakdowns and repair trips",'<ol><li><code>+ Add</code> a rescue: unit, problem, location.</li><li>Assign the mechanic / rescue team and set the status (Dispatched, Repairing, Done).</li><li>Add expenses (parts, fuel, labor) so the cost of each breakdown is tracked.</li></ol><div class="tip">Close the rescue when the unit is working again so it stops showing as open on the Dashboard.</div>'],
+["👥","People","Employees, operators and rates",'<ul><li>Cards are grouped by role. Tap a card for the full <b>profile</b>: contact, unit, attendance, payslip.</li><li><b>Daily rate and OT/hour</b> must be filled in for every operator. A banner warns you when they’re missing — use <code>Set rates now</code>.</li><li><b>Assigned unit</b> fills in automatically when you deploy the operator in Fleet.</li><li><b>Pulled out / no unit</b> operators appear in their own section — press <code>Assign</code> to put them back.</li><li>Crane operators use a <b>monthly salary</b> instead of a daily rate.</li></ul>'],
+["⏱","Monitoring","Daily attendance and unit activity",'<ol><li>Pick the date, then record each operator: <b>Operating, Half day, Standby, Not operating, Leave, Pull out</b>.</li><li>Enter time in/out and overtime hours.</li><li>If someone did not operate, type the <b>reason</b>. It appears on the payroll and payslip so the office knows it was real, not forgotten.</li><li>Use <b>Pull out</b> when a unit leaves the site — it goes back to the garage automatically.</li></ol><div class="tip">An operator with no record for a day is flagged in Payroll as “not monitored”.</div>'],
+["₱","Payroll","Weekly payroll (Monday–Sunday)",'<ol><li>Pick the week. Pay is computed from Monitoring × daily rate + OT.</li><li>Check the <b>alert panel</b>: unverified employees, missing monitoring, missing rates.</li><li>Verify each employee (the list shows who is verified and who is not). Set the pay method: <b>Cash</b> or <b>GCash</b>.</li><li>Add remarks for no-operation days. Then release — typically Tuesday.</li></ol><div class="tip">Payroll is only visible to the Payroll Officer account.</div>'],
+["📄","Documents","Quotations and DTR forms",'<ul><li><b>Quotations:</b> create an editable one-page quote (rate, hours, mob/demob). Print or download as PDF.</li><li><b>DTR Form:</b> printable daily time record per operator.</li></ul>'],
+["📦","Parts & Stock","Inventory, stock in/out, purchase orders",'<ul><li><b>Parts inventory:</b> every part with quantity and minimum level. Low-stock warnings appear when quantity reaches the minimum.</li><li><b>Stock in / out:</b> record every receipt or issue so the count stays right.</li><li><b>Purchase orders:</b> request parts, then fill the PO form. Mark cash-basis when needed.</li></ul>'],
+["⚙","Daily routine","A simple day-to-day flow",'<ol><li><b>Morning:</b> Dashboard → Monitoring (record who is operating).</li><li><b>New job:</b> Fleet → Deploy a unit to a site with its operators.</li><li><b>Breakdown:</b> Rescue → add the case and costs.</li><li><b>Weekly:</b> People (check rates) → Payroll → verify → release.</li></ol>'],
+["❓","Quick tips","Shortcuts and good habits",'<ul><li>Press <code>/</code> to jump to the search box.</li><li>The ☾ / ☀ button in the top corner switches dark and light mode.</li><li>The <b>Ask Yuval</b> button answers how-to questions about the system.</li><li>Always <b>Ctrl+F5</b> after the site is updated.</li></ul>']];
+window.guideOpen=function(q){window.__gv=true;try{nav()}catch(e){}var t=document.getElementById("ttl"),m=document.getElementById("mt"),a=document.getElementById("add");if(t)t.textContent="Guide";if(m)m.textContent="Guide";if(a)a.style.display="none";var sb=document.getElementById("sub");if(sb)sb.innerHTML="";var qq=document.getElementById("q");if(qq)qq.style.display="none";document.querySelectorAll("#nav a:not(.gd).on").forEach(function(x){x.classList.remove("on")});document.body.classList.remove("menu");
+ var v=document.getElementById("view");q=(q||"").toLowerCase();
+ var L=G.filter(function(g){return !q||(g[1]+" "+g[2]+" "+g[3]).toLowerCase().indexOf(q)>-1});
+ v.innerHTML='<div class="gdw"><div class="gdh"><h3>How to use the system</h3><p>One section for every item in the sidebar. Tap a section to open the steps. Use the box to search — e.g. “deploy”, “pull out”, “rate”.</p></div><input class="gq" id="gq" placeholder="Search the guide…" value="'+q.replace(/"/g,"")+'">'+(L.length?L.map(function(g,i){return '<details style="animation-delay:'+i*40+'ms"'+(q||i==0?" open":"")+'><summary><i>'+g[0]+'</i><span>'+g[1]+'<small>'+g[2]+'</small></span></summary><div class="gc">'+g[3]+'</div></details>'}).join(""):'<div class="none">Nothing found for “'+q+'”.</div>')+'</div>';
+ var i=document.getElementById("gq");i.oninput=function(){var p=i.selectionStart;guideOpen(i.value);var n=document.getElementById("gq");n.focus();n.setSelectionRange(p,p)};
+ try{v.scrollTop=0;window.scrollTo(0,0)}catch(e){}};
+var og=go;go=window.go=function(){window.__gv=false;var qq=document.getElementById("q");if(qq)qq.style.display="";return og.apply(this,arguments)};
+var ot=table;table=function(){if(window.__gv)return;return ot.apply(this,arguments)};
+var on=nav;nav=window.nav=function(){var r=on.apply(this,arguments);try{var n=document.getElementById("nav");if(n&&!n.querySelector("a.gd")){var a=document.createElement("a");a.className="gd"+(window.__gv?" on":"");a.title="Guide";a.innerHTML='<i>?</i><span>Guide</span>';a.onclick=function(e){e.stopPropagation();guideOpen()};var sp=n.querySelector(".nsp");n.insertBefore(a,sp)}}catch(e){}return r};
+})();
+</script>
+
+<style>
+#login .lcard.lift{animation:crsway 1.6s ease-in-out infinite;transform-origin:50% -40px;z-index:5}
+@keyframes crsway{0%,100%{transform:translateY(-26px) rotate(-1.4deg)}50%{transform:translateY(-34px) rotate(1.4deg)}}
+#login .lcard.shk{animation:crshk .5s}
+@keyframes crshk{0%,100%{transform:none}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(4px)}}
+#login .lcard.fly{animation:crfly .95s cubic-bezier(.5,0,.8,.3) forwards;transform-origin:50% -40px}
+@keyframes crfly{0%{transform:translateY(-30px)}25%{transform:translateY(-10px) rotate(1deg)}100%{transform:translateY(-130vh) rotate(-2deg)}}
+#crw{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+#crw svg{position:absolute;right:-20px;top:0;height:min(78vh,620px);opacity:.95;transform:translateY(-110%);transition:transform .8s cubic-bezier(.2,.9,.3,1)}
+#crw.on svg{transform:none}
+#crw .cab{position:absolute;width:3px;background:linear-gradient(#f2711c,#fbbf24);transform-origin:50% 0;top:0;height:0;transition:height .7s cubic-bezier(.3,1.3,.5,1)}
+#crw .hook{position:absolute;width:26px;height:34px;margin-left:-13px;border:5px solid #fbbf24;border-top-color:transparent;border-radius:0 0 50% 50%;transition:opacity .3s}
+#crw .stat{position:absolute;left:0;right:0;bottom:11vh;text-align:center;font:800 clamp(14px,2vw,20px) "Barlow Condensed",Inter,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#fbbf24;text-shadow:0 2px 10px #000}
+#crw .tape{position:absolute;left:0;right:0;bottom:0;height:10px;background:repeating-linear-gradient(-45deg,#fbbf24 0 16px,#1c1917 16px 32px);transform:translateX(-100%);transition:transform 1.2s linear}
+#crw.on .tape{transform:none}
+#login.outro{transition:opacity .45s .55s;opacity:0}
+</style>
+<script>
+(function(){
+function stage(){return document.getElementById("login")}
+function card(){return document.querySelector("#login .lcard")}
+function mk(){var s=stage(),c=card();if(!s||!c||document.getElementById("crw"))return;
+ var w=document.createElement("div");w.id="crw";
+ w.innerHTML='<svg viewBox="0 0 300 640" fill="none"><g stroke="#f2711c" stroke-width="5"><path d="M230 640V70M270 640V70M230 120l40 40M230 200l40-40M230 200l40 40M230 280l40-40M230 280l40 40M230 360l40-40M230 360l40 40M230 440l40-40M230 440l40 40M230 520l40-40M230 520l40 40M230 600l40-40"/></g><rect x="-400" y="56" width="720" height="16" fill="#f2711c"/><path d="M250 56L150 4M250 56L-380 40" stroke="#fbbf24" stroke-width="3"/><rect x="214" y="22" width="52" height="34" rx="4" fill="#fbbf24"/></svg><div class="cab"></div><div class="hook"></div><div class="stat">Lifting your yard…</div><div class="tape"></div>';
+ s.appendChild(w);requestAnimationFrame(function(){w.classList.add("on")});
+ var r=c.getBoundingClientRect(),sr=s.getBoundingClientRect(),cab=w.querySelector(".cab"),hk=w.querySelector(".hook");
+ var x=r.left+r.width/2-sr.left;cab.style.left=x+"px";hk.style.left=x+"px";
+ var h=Math.max(0,r.top-sr.top-52);setTimeout(function(){cab.style.height=h+"px";hk.style.top=(h-4)+"px"},250);
+ var tx=w.querySelector(".stat");tx.style.bottom="auto";tx.style.top=Math.max(8,r.top-sr.top-46)+"px";tx.style.display="none"}
+function rm(){var w=document.getElementById("crw");if(w)w.remove()}
+if(typeof doLogin=="function"){var od=doLogin;doLogin=window.doLogin=async function(){var c=card();if(c){c.classList.remove("shk","fly");c.classList.add("lift");mk()}
+ var r=await od.apply(this,arguments);
+ if(!window.__outro){var c2=card();if(c2){c2.classList.remove("lift");c2.classList.add("shk");setTimeout(function(){c2.classList.remove("shk")},600)}rm()}
+ return r}}
+if(typeof start=="function"){var os=start;start=window.start=async function(){var s=stage(),c=card();window.__outro=true;
+ if(s&&c&&s.style.display!="none"){c.classList.remove("lift");c.classList.add("fly");s.classList.add("outro");await new Promise(function(r){setTimeout(r,1000)});}
+ try{return await os.apply(this,arguments)}finally{window.__outro=false;if(c)c.classList.remove("fly","lift");if(s)s.classList.remove("outro");rm()}}}
+})();
+</script>
+
+<style>
+/* remove fleet guide + Guide sidebar */
+#flhelp,#flhelp.g2{display:none!important}
+/* page-change motion for every sidebar page */
+@keyframes pgin{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes pgrow{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+#view.pgin>*{animation:pgin .45s cubic-bezier(.2,.8,.3,1) both}
+#view.pgin .card,#view.pgin .pcard,#view.pgin .fcard,#view.pgin .sitec,#view.pgin .rsec,#view.pgin .grid>*,#view.pgin .alb,#view.pgin .kpi,#view.pgin .stat{animation:pgin .5s cubic-bezier(.2,.8,.3,1) both}
+#view.pgin tbody tr{animation:pgrow .4s ease both}
+/* hover / press everywhere */
+#view .card,#view .pcard,#view .fcard,#view .sitec,#view .kpi,#view .stat,#view .grid>div{transition:transform .18s,box-shadow .18s,border-color .18s}
+#view .card:hover,#view .pcard:hover,#view .fcard:hover,#view .sitec:hover,#view .kpi:hover,#view .grid>div:hover{transform:translateY(-4px)!important;box-shadow:0 12px 28px rgba(0,0,0,.2)!important;border-color:#e8470f88!important;position:relative;z-index:1}
+#view tbody tr{transition:background .15s,box-shadow .15s}
+#view tbody tr:hover{background:rgba(232,71,15,.07)!important;box-shadow:inset 4px 0 0 #e8470f}
+#view button,#view .chip,#view .s,#add{transition:transform .15s,box-shadow .15s,filter .15s}
+#view button:hover,#view .chip:hover,#add:hover{transform:translateY(-2px);filter:brightness(1.08)}
+#view button:active,#view .chip:active,#add:active{transform:scale(.94)}
+#view .chip.on{animation:chpop .3s}
+@keyframes chpop{50%{transform:scale(1.1)}}
+nav#nav a{transition:background .15s,color .15s,transform .15s}
+nav#nav a:hover{transform:translateX(5px)}
+nav#nav a:hover i{transform:scale(1.12) rotate(-4deg)}
+nav#nav a.on i{animation:navp .5s}
+@keyframes navp{40%{transform:scale(1.25) rotate(-8deg)}}
+#ttl{animation:pgin .4s ease both}
+dialog[open],.dc,.modal>div{animation:pgin .3s cubic-bezier(.2,.9,.3,1.1) both}
+.toast,#toast{animation:pgin .3s ease both}
+@media(prefers-reduced-motion:reduce){#view *,nav#nav *{animation:none!important;transition:none!important}}
+</style>
+<script>
+(function(){
+var og=go;go=window.go=function(){var r=og.apply(this,arguments);try{var v=document.getElementById("view");if(v){v.classList.remove("pgin");void v.offsetWidth;
+ v.classList.add("pgin");var q=0;v.querySelectorAll(".card,.pcard,.fcard,.sitec,.rsec,.kpi,.stat,.alb,.grid>div,tbody tr").forEach(function(el){el.style.animationDelay=Math.min(q++,18)*40+"ms"});
+ clearTimeout(window.__pgT);window.__pgT=setTimeout(function(){v.classList.remove("pgin")},1500)}}catch(e){}return r};
+})();
+</script>
+<style>
+@media print{#thm,#ybB,#ybB.rd,button#ybB,#ybP,#ybG,#ybN,#sync,#mbar,#tabs,#toast,.toast{display:none!important}}
+.dtpage{max-width:1000px!important}
+table.dtx td{height:34px!important}
+.dti{font-size:13px!important}
+table.dtx td:first-child .dti,table.dtx td:nth-child(2) .dti{font-size:13px!important;font-weight:600}
+@media print{
+ table.dtx col:nth-child(1){width:21%!important}table.dtx col:nth-child(2){width:10%!important}
+ table.dtx col:nth-child(3),table.dtx col:nth-child(4),table.dtx col:nth-child(5),table.dtx col:nth-child(6){width:7.5%!important}
+ table.dtx col:nth-child(7){width:6%!important}table.dtx col:nth-child(8){width:5%!important}
+ table.dtx col:nth-child(9){width:12%!important}table.dtx col:nth-child(10){width:16%!important}
+ .dth img{width:22mm!important;height:18mm!important}.dt2{font-size:26px!important}.dt1{font-size:12px!important}.dt3{font-size:9.5px!important;line-height:1.3!important}.dth{margin-bottom:2mm!important}
+ table.dtx th{font-size:9.5px!important;padding:3px 2px!important}
+ table.dtx td{height:40px!important;box-sizing:border-box}table.dtx td,table.dtx th{border:1px solid #000!important}table.dtx{border-collapse:separate!important;border-spacing:0!important;border-right:0;border-bottom:0}table.dtx td,table.dtx th{border-top:0!important;border-left:0!important;border-right:1px solid #000!important;border-bottom:1px solid #000!important}table.dtx tr:first-child th{border-top:1px solid #000!important}table.dtx td:first-child,table.dtx th:first-child{border-left:1px solid #000!important}
+ .dti{font-size:13.5px!important;padding:2px 4px!important}
+ table.dtx td:first-child .dti{font-size:14px!important;font-weight:700}
+ .dtc{height:136mm!important}
+}
+</style>
+
+<style>
+.lk.lkc{position:relative;overflow:visible!important;transition:transform .18s,box-shadow .18s,border-color .18s}
+.lk.lkc:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 10px 24px rgba(0,0,0,.18);z-index:3}
+.lki{position:absolute;right:10px;top:6px;font-size:28px;line-height:1;font-style:normal;user-select:none;display:inline-block}
+.lki.w{animation:icwork 1.1s ease-in-out infinite;transform-origin:50% 90%}
+.lki.z{animation:iczz 2.6s ease-in-out infinite}
+.lki.z:after{content:"z\1D22";position:absolute;right:-6px;top:-10px;font-size:13px;font-weight:900;color:#a8a29e;animation:iczf 2.2s ease-in infinite}
+.lki.s{animation:icsr 2.4s ease-in-out infinite}
+.lki.t{animation:icfl 2s ease-in-out infinite}
+@keyframes icwork{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(18deg) translateY(2px)}}
+@keyframes iczz{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(3px) rotate(6deg)}}
+@keyframes iczf{0%{opacity:0;transform:translate(0,6px) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-16px) scale(1.3)}}
+@keyframes icsr{0%,100%{transform:translateX(-6px) rotate(-12deg)}50%{transform:translateX(6px) rotate(12deg)}}
+@keyframes icfl{0%,100%{transform:scale(1)}50%{transform:scale(1.18) rotate(-6deg)}}
+.lk.lkc:hover .lki{animation-duration:.45s}
+.lk.lkc[data-fun]:hover:before{content:attr(data-fun);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;background:#1c1917;color:#fff;font-size:12px;font-weight:700;padding:6px 11px;border-radius:10px;z-index:9;animation:icpop .22s cubic-bezier(.2,1.5,.4,1);pointer-events:none;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+@keyframes icpop{from{opacity:0;transform:translateX(-50%) translateY(6px) scale(.7)}}
+.lk.lkc.clk .lki{animation:icbig .6s}
+@keyframes icbig{40%{transform:scale(2) rotate(15deg)}}
+.sem{display:inline-block;margin-left:5px;animation:icfl 2s ease-in-out infinite}
+.lvh .ldot+*{}
+</style>
+<script>
+(function(){
+var M={"Operating today":["👷","w","Sipag ng tropa! Trabaho lang, boss 💪"],"Not operating (standby / off)":["😴","z","Zzz… pahinga muna, boss"],"No record yet":["🕵️","s","Hoy! Nasaan ka na? Walang record 🔍"],"Total operators":["🦾","t","Ito ang buong tropa natin!"]};
+if(typeof liveInner=="function"){var oi=liveInner;liveInner=window.liveInner=function(){var h=oi.apply(this,arguments);
+ try{h=h.replace(/<div class="lk ([^"]*) lkc"([^>]*)><b>(.*?)<\/b><span>(.*?)<\/span><\/div>/g,function(m,c,a,v,l){var x=M[l];if(!x)return m;return '<div class="lk '+c+' lkc" data-fun="'+x[2]+'"'+a+'><i class="lki '+x[1]+'">'+x[0]+'</i><b>'+v+'</b><span>'+l+'</span></div>'});
+  h=h.replace(/(\d+) of (\d+) operating/g,function(m,a,b){var e=+a==+b&&+b>0?"🎉":+a==0?"😴":"💪";return m+'<i class="sem" style="font-style:normal">'+e+'</i>'});
+  h=h.replace(/(<summary[^>]*>\s*<b[^>]*>)?Site history/,function(m){return m.replace("Site history","🏁 Site history")})}catch(e){}return h}}
+document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest(".lk.lkc");if(t){t.classList.add("clk");setTimeout(function(){t.classList.remove("clk")},700)}},true);
+})();
+</script>
+
+<style>
+#tgl{display:flex;align-items:center;gap:10px;margin:2px 0 12px;padding:9px 14px;border-radius:14px;border:1px solid var(--bd);border-left:5px solid #e8470f;background:linear-gradient(90deg,rgba(232,71,15,.09),transparent 70%);cursor:pointer;user-select:none;transition:transform .18s,box-shadow .18s;animation:pgin .5s ease both}
+#tgl:hover{transform:translateX(5px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+#tgl:active{transform:scale(.98)}
+#tgl .te{font-size:24px;display:inline-block;animation:tgw 2.2s ease-in-out infinite;flex:none}
+#tgl:hover .te{animation-duration:.5s}
+#tgl .tt{font-size:14px;font-weight:700;line-height:1.35;color:var(--tx);flex:1}
+#tgl .tn{font-size:11px;font-weight:800;color:var(--mu);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+#tgl.sw .tt{animation:tgo .35s}
+#tgl.sw .te{animation:tgb .5s}
+@keyframes tgw{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(12deg) translateY(-2px)}}
+@keyframes tgo{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tgb{40%{transform:scale(1.7) rotate(18deg)}}
+@media(max-width:600px){#tgl .tn{display:none}}
+@media print{#tgl{display:none!important}}
+</style>
+<script>
+(function(){
+var P={
+dash:[["☕","Good morning, tropa! Kape muna bago boom truck."],["🏗️","Operator ka? Edi ikaw ang bida ng site!"],["🍚","Basta may sipag, may sahod. Basta may sahod, may ulam!"],["🔧","Ang unit nasisira, ang pag-asa hindi."],["💪","Lunes man o Sabado, tuloy ang trabaho. Kaya yan!"],["👷","Hard hat on, problema off!"],["📋","Kapag walang record, parang hindi ka pumasok. Pa-monitor!"],["🚜","Ang unit na walang operator, parang kape na walang asukal."],["💸","Tuesday ang sweldo, pero Monday pa lang masaya na!"],["🧐","I-check muna bago i-release ang sahod, para walang balikan."],["🚑","Sira ang unit? Wag mag-panic, andiyan ang rescue team!"],["🔩","Low stock? Bili na bago magalit ang mekaniko!"],["📍","Saan man mapunta, basta may kontrata, andun ang Yuval!"],["⛑️","Safety first, para uuwi ka nang buo, boss!"],["🌦️","Maulan man o maaraw, tuloy ang trabaho!"],["😋","Pagod ka na? Konting tiis, malapit na ang merienda!"],["💦","Ang pawis ng operator, ginto ng kumpanya!"],["🛞","Unit check muna bago alis: gulong, langis, at tubig!"]],
+fleet:[["🚜","Ang unit na walang operator, parang kape na walang asukal."],["😢","Wag iiwan ang unit sa garahe, nagtatampo yan!"],["💔","Isang click lang, rented na! Sana ganito rin kadali ang love life."],["😎","Pogi ang unit, pero mas pogi ang naka-deploy!"]],
+sites:[["📍","Saan man mapunta, basta may kontrata, andun ang Yuval!"],["🌫️","Bagong site, bagong adventure, bagong alikabok!"],["🧭","Hinahanap ang site? Wag mag-GPS, dito lang yan!"]],
+employees:[["💪","Ito ang tropa: sila ang dahilan kung bakit umiikot ang gulong!"],["💦","Ang pawis ng operator, ginto ng kumpanya!"],["😅","Lagyan ng rate, para hindi na mag-“Boss, magkano po ako?”"],["👷","Hard hat on, problema off!"]],
+attendance:[["📋","Kapag walang record, parang hindi ka pumasok. Pa-monitor!"],["🕐","Late ka ba? Wag nang magdahilan, may record yan!"],["😴","Operating o tulog? Ang monitoring ang may alam."],["🕵️","Walang nakakalusot sa monitoring, boss!"]],
+payroll:[["💸","Sahod day na ba? Pati kalendaryo excited!"],["🎉","Tuesday ang sweldo, pero Monday pa lang masaya na!"],["🧐","I-check muna bago i-release, kasi si Boss laging nagtatanong!"],["🤑","Kapag verified na lahat, tulog nang mahimbing ang accountant."]],
+rescue:[["🚑","Sira ang unit? Wag mag-panic, andiyan ang rescue team!"],["🔧","Walang sirang makina sa taong matiyaga mag-ayos!"],["😂","Breakdown ka? Break muna, tapos rescue!"]],
+inventory:[["🔍","Ang stock parang pag-ibig: kapag nawala, saka mo hahanapin!"],["🔩","Low stock? Bili na bago magalit ang mekaniko!"],["🛞","Isang gulong na lang, wag nang hintaying maubos!"]],
+stock:[["📦","Bawat turnilyo may kwento. Isulat mo bago makalimutan!"],["😅","Nawawalang gamit? Hindi nawawala, naka-tago lang!"]],
+po:[["🛒","Bili nang may PO, para walang “sino ang kumuha nito?”"],["✍️","Pirma muna bago pera. Walang pirma, walang bili!"]],
+docs:[["✍️","Papel, pirma, at sipag: ang tatlong sangkap ng trabaho!"],["📄","Magandang quotation, magandang simula ng kontrata!"]],
+dtr:[["🖊️","Pirma ni Engr. dito, para walang “sabi niya lang!”"],["⏰","Time in, time out, at wag kalimutan ang kape sa gitna!"]],
+trips:[["🛣️","Kilometro-kilometro ang pagod, pero ₱₱₱ ang kapalit!"]],
+guide:[["🤓","Basahin muna ang manual bago magtanong kay Boss!"]],
+all:[["🍀","Sipag at tiyaga, hindi mo kailangan ng lucky charm!"],["🏠","Ingat sa site, hinihintay ka ng pamilya mo!"],["😋","Pagod ka na? Konting tiis, may merienda na!"],["🦶","Hindi ka tamad, nagre-recharge ka lang!"],["🌦️","Maulan man o maaraw, tuloy ang trabaho!"],["😴","Tulog muna... joke lang, trabaho na!"],["🚛","Ang tunay na kaibigan, nag-aabot ng tubig sa site."]]};
+var idx={};
+function pool(k){return P.dash}
+function set(sw){var k=window.__gv?"guide":cur;if(k!="dash"){var o=document.getElementById("tgl");if(o)o.remove();return}var L=pool(k),n=idx[k]==null?Math.floor(Math.random()*L.length):idx[k]+1;idx[k]=n%L.length;var x=L[idx[k]];
+ var el=document.getElementById("tgl");if(!el){var h=document.querySelector("#mhead .top")||document.querySelector("main .top");if(!h)return;el=document.createElement("div");el.id="tgl";el.title="Click for another one";el.onclick=function(){set(true)};h.insertAdjacentElement("afterend",el)}
+ el.innerHTML='<span class="te">'+x[0]+'</span><span class="tt">'+x[1]+'</span><span class="tn">Next ↻</span>';
+ if(sw){el.classList.remove("sw");void el.offsetWidth;el.classList.add("sw")}}
+var og=go;go=window.go=function(){var r=og.apply(this,arguments);try{idx={};delete idx[cur];set(false)}catch(e){}return r};
+var gg=window.guideOpen;if(gg){window.guideOpen=function(){var r=gg.apply(this,arguments);try{set(false)}catch(e){}return r}}
+setInterval(function(){try{var el=document.getElementById("tgl");if(el&&!el.matches(":hover")&&document.visibilityState=="visible")set(true)}catch(e){}},25000);
+})();
+</script>
+
+<style>
+#memeb{margin:0 0 14px;border:1px solid var(--bd);border-radius:18px;background:var(--card);overflow:hidden;animation:pgin .5s ease both}
+#memeb .mh{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--bd)}
+#memeb .mh b{font-size:14px}#memeb .mh small{color:var(--mu);font-size:12px}
+#memeb .mh .lv{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#16a34a;letter-spacing:.06em;text-transform:uppercase;margin-left:auto}
+#memeb .mh .lv i{width:8px;height:8px;border-radius:50%;background:#16a34a;animation:fldot 1.4s infinite}
+#memeb .mh button{padding:7px 13px;border-radius:10px;border:0;background:#e8470f;color:#fff;font-weight:800;font-size:12.5px;cursor:pointer;transition:transform .15s}
+#memeb .mh button:hover{transform:translateY(-2px) rotate(-2deg)}#memeb .mh button:active{transform:scale(.92)}
+#memeb .mb{display:grid;place-items:center;padding:14px;min-height:180px;background:color-mix(in srgb,var(--tx) 4%,transparent)}
+#memeb .mb img{max-width:100%;max-height:420px;border-radius:12px;display:block;animation:pgin .45s ease both;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+#memeb .mt{padding:10px 16px;font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center}
+#memeb .mt span{flex:1}#memeb .mt a{color:var(--mu);font-size:11.5px;font-weight:600;text-decoration:none}
+#memeb .sk{width:100%;height:190px;border-radius:12px;background:linear-gradient(90deg,transparent,rgba(128,128,128,.25),transparent) 0 0/200% 100%,color-mix(in srgb,var(--tx) 8%,transparent);animation:mmsh 1.2s linear infinite}
+@keyframes mmsh{to{background-position:-200% 0}}
+#memeb .er{color:var(--mu);font-size:13px;text-align:center;line-height:1.6}
+@media print{#memeb{display:none!important}}
+</style>
+<script>
+(function(){
+var SUBS=["wholesomememes","memes","CatMemes","funny"],BUSY=false,SEEN=[],LAST=0;
+try{SEEN=JSON.parse(localStorage.getItem("memeSeen")||"[]")}catch(e){}
+function seen(u){return SEEN.indexOf(u)>-1}
+function mark(u){SEEN.push(u);SEEN=SEEN.slice(-200);try{localStorage.setItem("memeSeen",JSON.stringify(SEEN))}catch(e){}}
+function ok(m){return m&&m.url&&!m.nsfw&&!m.spoiler&&/\.(jpe?g|png|gif|webp)(\?|$)/i.test(m.url)&&!seen(m.url)}
+async function get(){var tries=0;while(tries++<3){var sub=SUBS[Math.floor(Math.random()*SUBS.length)];
+ var ctl=new AbortController(),to=setTimeout(function(){ctl.abort()},8000);
+ try{var r=await fetch("https://meme-api.com/gimme/"+sub+"/8",{signal:ctl.signal,cache:"no-store"});clearTimeout(to);if(!r.ok)continue;var j=await r.json();var L=(j.memes||[j]).filter(ok);if(L.length)return L[Math.floor(Math.random()*L.length)]}catch(e){clearTimeout(to)}}return null}
+function src(m){if(/\.gif(\?|$)/i.test(m.url))return m.url;var p=m.preview;return p&&p.length?p[Math.min(p.length-1,3)]:m.url}
+function box(){var b=document.getElementById("memeb");if(b)return b;var q=document.getElementById("qcard");if(!q||cur!="dash")return null;
+ b=document.createElement("div");b.id="memeb";b.innerHTML='<div class="mh"><span style="font-size:22px">😂</span><div><b>Meme ng Araw</b><br><small>Bagong meme galing sa internet, real-time</small></div><span class="lv"><i></i>Live</span><button type="button">Next meme ↻</button></div><div class="mb"></div><div class="mt"></div>';
+ q.insertAdjacentElement("afterend",b);b.querySelector("button").onclick=function(){load(true)};return b}
+async function load(force){var b=box();if(!b||BUSY)return;BUSY=true;var mb=b.querySelector(".mb"),mt=b.querySelector(".mt");mb.innerHTML='<div class="sk"></div>';mt.innerHTML="";
+ var m=await get();BUSY=false;if(!document.getElementById("memeb"))return;
+ if(!m){mb.innerHTML='<div class="er">Walang makuhang meme ngayon.<br>Check ang internet, tapos pindutin ang <b>Next meme</b>.</div>';return}
+ mark(m.url);var im=new Image();im.referrerPolicy="no-referrer";im.alt=m.title||"meme";im.onload=function(){mb.innerHTML="";mb.appendChild(im);mt.innerHTML='<span>'+String(m.title||"").replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})+'</span><a href="'+(m.postLink||"#")+'" target="_blank" rel="noopener">r/'+(m.subreddit||"")+'</a>'};
+ im.onerror=function(){if(!force)load(true);else mb.innerHTML='<div class="er">Hindi ma-load ang larawan. Pindutin ang <b>Next meme</b>.</div>'};im.src=src(m);LAST=Date.now()}
+var ob=null;function check(){if(cur=="dash"&&document.getElementById("qcard")&&!document.getElementById("memeb")){load(false)}}
+try{new MutationObserver(function(){clearTimeout(ob);ob=setTimeout(check,150)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
+setInterval(function(){if(cur=="dash"&&document.visibilityState=="visible"&&Date.now()-LAST>120000&&document.getElementById("memeb"))load(true)},30000);
+})();
+</script>
 </body>
 </html>
