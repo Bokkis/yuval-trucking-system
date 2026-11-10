@@ -498,7 +498,7 @@ async function sync(){if(busy){tmr=setTimeout(sync,500);return}busy=true;dirty=f
   for(const T of [...TB].reverse()){if(T.k=="coll"&&NOCOLL)continue;const old=snap[T.t],ids=new Set(db[T.k].map(o=>String(o.id))),del=Object.keys(old).filter(i=>!ids.has(i));
    if(del.length){for(let i=0;i<del.length;i+=100){const{error}=await SB.from(T.t).delete().in("id",del.slice(i,i+100));if(error)throw error}del.forEach(i=>delete old[i])}}
   for(const k of Object.keys(db.ded)){if(db.ded[k]!==dsn[k]){const[e,f,to]=k.split("|"),{error}=await SB.from("payroll_deductions").upsert({employee_id:+e,period_from:f,period_to:to,amount:+db.ded[k]||0},{onConflict:"employee_id,period_from,period_to"});if(error)throw error;dsn[k]=db.ded[k]}}
-  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs","trips","altop"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
+  for(const k of ["logo","sig","rcfg","paycfg","scanh","mondone","payappr","suppin","pods","invm","invopt","qh","cfiles","sdone","rentp","disp","mrec","dsppin","needs","trips","altop","empx"].concat(Object.keys(db).filter(function(x){return/^mm_/.test(x)}))){if(db[k]!==undefined&&db[k]!==ssn[k]){const{error}=await SB.from("app_settings").upsert({key:k,value:db[k]});if(error)throw error;ssn[k]=db[k]}}
   saveBanner("");setSt("\u25cf Saved","#1f9d55")}catch(e){setSt("Save failed","#d64545");toast("Save failed: "+(e.message||e));saveBanner(e.message||String(e))}
  busy=false;if(dirty)save()}
 function lEye(){const p=document.getElementById("lpw");p.type=p.type=="password"?"text":"password"}
@@ -1346,6 +1346,42 @@ boot();
 (function(){const E=(t,w)=>eqSvg(t,"move",w);document.getElementById("lscene").innerHTML=`<div class="sun"></div><div class="h1"></div><div class="h2"></div><div class="gd"></div><div class="rd"></div><div class="exc">${E("Excavator",210)}</div><i class="dust"></i><i class="dust d2"></i><i class="dust d3"></i><div class="veh" style="--d:19s">${E("Dump Truck",190)}</div><div class="veh rv" style="--d:26s;--dl:-7s">${E("Crane",170)}</div><div class="veh" style="--d:31s;--dl:-16s;bottom:5%">${E("Wheel Loader",150)}</div><div class="veh rv" style="--d:22s;--dl:-15s;bottom:5.5%">${E("Truck",130)}</div>`})();
 document.getElementById("llogo").src=LOGO;document.getElementById("mlogo").src=LOGO;
 </script>
+<script>
+var MV="list",MNEED=false;
+function monMk(id,td){var e=db.employees.find(function(x){return x.id==id}),s=siteOf(e);return {id:Date.now()+Math.floor(Math.random()*100000),emp:id,date:td,act:"Operating",ain:"",aout:"",pin:"",pout:"",tin:"",tout:"",hrs:0,ot:0,why:"",site:s?s.name:((e&&canonSite(e.place))||""),rem:""}}
+function monFill(a,act){
+ if(act=="Operating"||act=="Shop rate"){a.act=act;a.ain="08:00";a.aout="12:00";a.pin="13:00";a.pout="17:00";a.tin="08:00";a.tout="17:00";a.hrs=8;a.ot=0;a.why=""}
+ else if(act=="Half day"){a.act=act;a.ain="08:00";a.aout="12:00";a.pin="";a.pout="";a.tin="08:00";a.tout="12:00";a.hrs=4;a.ot=0;a.why=""}
+ else if(act=="Not operating (paid)"){a.act=act;a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="Paid by client"}
+ else if(act=="Leave"){a.act="Leave";a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="On leave"}
+ else if(act=="Pull out"){a.act="Not operating";a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="Pull out"}
+ else{a.act=act;a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="Other"}}
+function monTime(id,f,v){var td=mday(),L=db.attendance.filter(function(a){return a.emp==id&&a.date==td}),a=L[L.length-1];if(!a){a=monMk(id,td);db.attendance.push(a)}
+ if(a.act=="Standby"||a.act=="Not operating"||a.act=="Leave"){a.act="Operating";a.why=""}
+ a[f]=v||"";a.tin=a.ain||a.pin||"";a.tout=a.pout||a.aout||"";var h=sessHrs(a);if(h>0){a.hrs=h;a.ot=Math.max(0,Math.round((h-8)*100)/100)}else{a.hrs=0;a.ot=0}
+ save();table()}
+function monRem(id,v){var td=mday(),L=db.attendance.filter(function(a){return a.emp==id&&a.date==td}),a=L[L.length-1];if(!a){a=monMk(id,td);a.act="";db.attendance.push(a)}a.rem=v;save();toast("Remarks saved")}
+function badgeE(a){var act=a.act||"Operating",h=badge(act),e=db.employees.find(function(x){return x.id==a.emp});if(e&&OFFROLES.includes(e.role)){var l=act=="Operating"?"Present":act=="Not operating"?"Absent":"";if(l)h=h.replace(act,l)}return h}
+function monAct(id,act){if(!act)return;var absent=act=="Absent";if(act=="Present")act="Operating";if(absent)act="Not operating";var td=mday(),e=db.employees.find(function(x){return x.id==id}),L=db.attendance.filter(function(a){return a.emp==id&&a.date==td}),a=L[L.length-1];
+ if(act=="Pull out"&&e&&!e.equip&&!window.__poSkip){return poPick(id)}
+ window.__poSkip=0;if(!a){a=monMk(id,td);db.attendance.push(a)}
+ monFill(a,act);if(absent)a.why="Absent";save();table();toast(absent?"Absent saved":(act=="Standby"||act=="Not operating")?act+" saved. The reason is set to Other; press Edit to change it.":act=="Pull out"?"Pull out saved. The unit now shows as Pulled out in Fleet.":act+" saved")}
+function poPick(id){var e=db.employees.find(function(x){return x.id==id}),d=document.getElementById("podlg");if(!d){d=document.createElement("dialog");d.id="podlg";d.className="chdlg";d.style.width="min(460px,96vw)";d.addEventListener("click",function(ev){if(ev.target==d){d.close();table()}});document.body.appendChild(d)}
+ var U=db.fleet.filter(function(f){return String(f.type||"").toLowerCase()!="trailer"});
+ d.innerHTML='<h3 style="margin:0 0 4px">Which unit was pulled out?</h3><div style="color:var(--mu);font-size:13px;margin-bottom:10px"><b>'+e.name+'</b> has no unit on file. Pick the unit that was pulled out so Fleet shows it in the Pulled out list.</div><label>Unit / equipment</label><select id="po_u"><option value="">\u2014 select unit \u2014</option>'+U.map(function(f){return '<option value="'+f.id+'">'+f.name+(f.plate?" ("+f.plate+")":"")+'</option>'}).join("")+'</select><div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap"><button class="s g" style="margin-right:auto" onclick="document.getElementById(\'podlg\').close();window.__poSkip=1;monAct('+id+',\'Pull out\')">No unit, just pull out</button><button class="s" onclick="document.getElementById(\'podlg\').close();table()">Cancel</button><button class="s" style="background:#000;color:#fff" onclick="poGo('+id+')">Pull out</button></div>';d.showModal()}
+function poGo(id){var u=+document.getElementById("po_u").value;if(!u)return toast("Pick a unit first");var e=db.employees.find(function(x){return x.id==id});e.equip=u;document.getElementById("podlg").close();monAct(id,"Pull out")}
+function monSiteAll(ek){var k=decodeURIComponent(ek),td=mday(),have={};db.attendance.forEach(function(a){if(a.date==td)have[a.emp]=1});
+ var ids=db.employees.filter(function(e){if(e.status=="Inactive"||e.status=="On leave"||have[e.id]||(window.altOff&&altOff(e)))return false;var s=siteOf(e);return (s?s.name:(canonSite(e.place)||"No site"))==k}).map(function(e){return e.id});
+ if(!ids.length)return toast("Everyone in "+k+" already has a record");
+ document.getElementById("cm").textContent="Mark "+ids.length+" operator(s) at "+k+" as Operating for "+td+" (8:00–12:00, 1:00–5:00 = 8 hrs)? You can still change anyone who was absent or on standby.";
+ document.getElementById("cy").onclick=function(){ids.forEach(function(id){var a=monMk(id,td);monFill(a,"Operating");db.attendance.push(a)});save();document.getElementById("cd").close();table();toast(ids.length+" operator(s) marked as Operating at "+k)};
+ document.getElementById("cd").showModal()}
+function monListTbl(L,td,mI){var O=["Operating","Half day","Shop rate","Standby","Not operating","Not operating (paid)","Pull out","Leave"];
+ return '<div class="wrap mlw"><table class="mlist"><colgroup><col style="width:11%"><col style="width:8%"><col style="width:11%"><col style="width:15%"><col style="width:15%"><col style="width:4%"><col style="width:14%"><col style="width:8%"><col style="width:14%"></colgroup><tr><th>Operator</th><th>Unit</th><th>Status</th><th>Morning</th><th>Afternoon</th><th>Hrs</th><th>Remarks</th><th>Monitored</th><th></th></tr>'+L.map(function(r){var e=r.e,t=r.t,pull=pullEmp(e.id)&&!OFFROLES.includes(e.role),cur_=pull?"Pull out":!t?"":(t.act||"Operating"),d=mI(e.id),off=OFFROLES.includes(e.role),OO=off?["Present","Half day","Absent","Leave"]:O;if(off&&t)cur_=cur_=="Operating"?"Present":cur_=="Half day"||cur_=="Leave"?cur_:"Absent";
+  return '<tr class="'+(d?"mdone":"")+(pull?" mpull":"")+'"><td><b>'+e.name+'</b><br><small>'+(e.role||"")+(window.altTag?altTag(e):"")+'</small></td><td>'+(pull?"<b>Pull out</b>":r.f?r.f.name:"<small>—</small>")+'</td><td><select class="mls"'+(pull?" disabled title=\"Locked until the unit is back in the garage\"":"")+' onchange="monAct('+e.id+',this.value)">'+(t||pull?"":'<option value="">Not operating (no record)</option>')+OO.map(function(o){return '<option'+(o==cur_?" selected":"")+'>'+o+'</option>'}).join("")+'</select></td><td class="mlt"><input type="time" value="'+(t?(t.ain||(!t.pin&&!t.pout?t.tin:"")||""):"")+'" onchange="monTime('+e.id+',\'ain\',this.value)" title="Morning in"><input type="time" value="'+(t&&t.aout||"")+'" onchange="monTime('+e.id+',\'aout\',this.value)" title="Morning out"></td><td class="mlt"><input type="time" value="'+(t&&t.pin||"")+'" onchange="monTime('+e.id+',\'pin\',this.value)" title="Afternoon in"><input type="time" value="'+(t&&t.pout||"")+'" onchange="monTime('+e.id+',\'pout\',this.value)" title="Afternoon out"></td><td>'+(t?(t.hrs||0):"—")+'</td><td class="mrm"><input type="text" value="'+String(t&&t.rem||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'" placeholder="Remarks" onchange="monRem('+e.id+',this.value)" title="Remarks"></td><td><button class="chip'+(d?" on":"")+'" onclick="monTog('+e.id+')">'+(d?"✓ Done":"Mark done")+'</button></td><td class="nw">'+(pull?(e.equip?'<button class="s" style="background:#16a34a;color:#fff" onclick="backGarage('+e.equip+')">\u2714 Back in garage</button>':"<small>Fleet \u2192 Back in garage</small>")+' <button class="s g" onclick="pullUndo('+e.id+')" title="Selected by mistake? Undo the pull out">\u21a9 Undo</button>':(t?'<button class="s" onclick="open_('+t.id+')">Edit</button>':'<button class="s" onclick="logFor('+e.id+',\''+td+'\')">'+(d?"Edit":"+ Log")+'</button>'))+' <button class="s g" onclick="openRecords('+e.id+')">Records</button></td></tr>'}).join("")+'</table></div>'}
+</script>
+<style>.mlw{margin-bottom:14px}.mlist td,.mlist th{vertical-align:middle}.mlist tr.mdone td{opacity:.62}.mlist .mls{min-width:0;width:100%;padding:6px 8px}.mlist{table-layout:fixed;width:100%;min-width:1350px}.mrm input{width:100%;min-width:0;padding:5px 7px;font-size:12px}.mlt input{width:calc(50% - 3px);min-width:0;padding:4px 3px;font-size:12px;margin:0 1px}.mlist td:last-child,.mlist td:nth-child(6),.mlist td:nth-child(7),.mlist td:nth-child(8){overflow:visible}.mlt input::-webkit-calendar-picker-indicator{display:none}.mlist td:nth-child(4),.mlist td:nth-child(5){white-space:nowrap;font-size:13px;overflow:visible}.mlist td{overflow:hidden;text-overflow:ellipsis}.mlist .nw{white-space:nowrap;overflow:visible}</style>
+
 <script>(function(){function fit(){document.querySelectorAll("#view .wrap,#view .hscr").forEach(function(e){if(e.closest(".paper"))return;var t=e.getBoundingClientRect().top+scrollY,h=Math.max(260,innerHeight-Math.min(t,380)-24-(e.querySelector("table.inv")?40:0));e.style.maxHeight=h+"px"})}var tm;function q(){clearTimeout(tm);tm=setTimeout(fit,60)}var v=document.getElementById("view");if(v)new MutationObserver(q).observe(v,{childList:true,subtree:true});addEventListener("resize",q);q()})()</script>
 <style>
 #ybB{position:fixed;right:18px;bottom:18px;z-index:70;width:58px;height:58px;border-radius:50%;border:0;background:var(--ac,#e8470f);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 8px 24px #0006;display:none;place-items:center}#ybB.rd{display:grid}
@@ -3694,39 +3730,48 @@ function mk(){var v=document.getElementById("view");if(!v||document.getElementBy
 var t=table;table=function(){var r=t.apply(this,arguments);return r};
 })();
 </script>
-</body>
-</html><script>
-var MV="list",MNEED=false;
-function monMk(id,td){var e=db.employees.find(function(x){return x.id==id}),s=siteOf(e);return {id:Date.now()+Math.floor(Math.random()*100000),emp:id,date:td,act:"Operating",ain:"",aout:"",pin:"",pout:"",tin:"",tout:"",hrs:0,ot:0,why:"",site:s?s.name:((e&&canonSite(e.place))||""),rem:""}}
-function monFill(a,act){
- if(act=="Operating"||act=="Shop rate"){a.act=act;a.ain="08:00";a.aout="12:00";a.pin="13:00";a.pout="17:00";a.tin="08:00";a.tout="17:00";a.hrs=8;a.ot=0;a.why=""}
- else if(act=="Half day"){a.act=act;a.ain="08:00";a.aout="12:00";a.pin="";a.pout="";a.tin="08:00";a.tout="12:00";a.hrs=4;a.ot=0;a.why=""}
- else if(act=="Not operating (paid)"){a.act=act;a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="Paid by client"}
- else if(act=="Leave"){a.act="Leave";a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="On leave"}
- else if(act=="Pull out"){a.act="Not operating";a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="Pull out"}
- else{a.act=act;a.ain=a.aout=a.pin=a.pout=a.tin=a.tout="";a.hrs=0;a.ot=0;a.why="Other"}}
-function monTime(id,f,v){var td=mday(),L=db.attendance.filter(function(a){return a.emp==id&&a.date==td}),a=L[L.length-1];if(!a){a=monMk(id,td);db.attendance.push(a)}
- if(a.act=="Standby"||a.act=="Not operating"||a.act=="Leave"){a.act="Operating";a.why=""}
- a[f]=v||"";a.tin=a.ain||a.pin||"";a.tout=a.pout||a.aout||"";var h=sessHrs(a);if(h>0){a.hrs=h;a.ot=Math.max(0,Math.round((h-8)*100)/100)}else{a.hrs=0;a.ot=0}
- save();table()}
-function monRem(id,v){var td=mday(),L=db.attendance.filter(function(a){return a.emp==id&&a.date==td}),a=L[L.length-1];if(!a){a=monMk(id,td);a.act="";db.attendance.push(a)}a.rem=v;save();toast("Remarks saved")}
-function badgeE(a){var act=a.act||"Operating",h=badge(act),e=db.employees.find(function(x){return x.id==a.emp});if(e&&OFFROLES.includes(e.role)){var l=act=="Operating"?"Present":act=="Not operating"?"Absent":"";if(l)h=h.replace(act,l)}return h}
-function monAct(id,act){if(!act)return;var absent=act=="Absent";if(act=="Present")act="Operating";if(absent)act="Not operating";var td=mday(),e=db.employees.find(function(x){return x.id==id}),L=db.attendance.filter(function(a){return a.emp==id&&a.date==td}),a=L[L.length-1];
- if(act=="Pull out"&&e&&!e.equip&&!window.__poSkip){return poPick(id)}
- window.__poSkip=0;if(!a){a=monMk(id,td);db.attendance.push(a)}
- monFill(a,act);if(absent)a.why="Absent";save();table();toast(absent?"Absent saved":(act=="Standby"||act=="Not operating")?act+" saved. The reason is set to Other; press Edit to change it.":act=="Pull out"?"Pull out saved. The unit now shows as Pulled out in Fleet.":act+" saved")}
-function poPick(id){var e=db.employees.find(function(x){return x.id==id}),d=document.getElementById("podlg");if(!d){d=document.createElement("dialog");d.id="podlg";d.className="chdlg";d.style.width="min(460px,96vw)";d.addEventListener("click",function(ev){if(ev.target==d){d.close();table()}});document.body.appendChild(d)}
- var U=db.fleet.filter(function(f){return String(f.type||"").toLowerCase()!="trailer"});
- d.innerHTML='<h3 style="margin:0 0 4px">Which unit was pulled out?</h3><div style="color:var(--mu);font-size:13px;margin-bottom:10px"><b>'+e.name+'</b> has no unit on file. Pick the unit that was pulled out so Fleet shows it in the Pulled out list.</div><label>Unit / equipment</label><select id="po_u"><option value="">\u2014 select unit \u2014</option>'+U.map(function(f){return '<option value="'+f.id+'">'+f.name+(f.plate?" ("+f.plate+")":"")+'</option>'}).join("")+'</select><div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap"><button class="s g" style="margin-right:auto" onclick="document.getElementById(\'podlg\').close();window.__poSkip=1;monAct('+id+',\'Pull out\')">No unit, just pull out</button><button class="s" onclick="document.getElementById(\'podlg\').close();table()">Cancel</button><button class="s" style="background:#000;color:#fff" onclick="poGo('+id+')">Pull out</button></div>';d.showModal()}
-function poGo(id){var u=+document.getElementById("po_u").value;if(!u)return toast("Pick a unit first");var e=db.employees.find(function(x){return x.id==id});e.equip=u;document.getElementById("podlg").close();monAct(id,"Pull out")}
-function monSiteAll(ek){var k=decodeURIComponent(ek),td=mday(),have={};db.attendance.forEach(function(a){if(a.date==td)have[a.emp]=1});
- var ids=db.employees.filter(function(e){if(e.status=="Inactive"||e.status=="On leave"||have[e.id]||(window.altOff&&altOff(e)))return false;var s=siteOf(e);return (s?s.name:(canonSite(e.place)||"No site"))==k}).map(function(e){return e.id});
- if(!ids.length)return toast("Everyone in "+k+" already has a record");
- document.getElementById("cm").textContent="Mark "+ids.length+" operator(s) at "+k+" as Operating for "+td+" (8:00–12:00, 1:00–5:00 = 8 hrs)? You can still change anyone who was absent or on standby.";
- document.getElementById("cy").onclick=function(){ids.forEach(function(id){var a=monMk(id,td);monFill(a,"Operating");db.attendance.push(a)});save();document.getElementById("cd").close();table();toast(ids.length+" operator(s) marked as Operating at "+k)};
- document.getElementById("cd").showModal()}
-function monListTbl(L,td,mI){var O=["Operating","Half day","Shop rate","Standby","Not operating","Not operating (paid)","Pull out","Leave"];
- return '<div class="wrap mlw"><table class="mlist"><colgroup><col style="width:11%"><col style="width:8%"><col style="width:11%"><col style="width:15%"><col style="width:15%"><col style="width:4%"><col style="width:14%"><col style="width:8%"><col style="width:14%"></colgroup><tr><th>Operator</th><th>Unit</th><th>Status</th><th>Morning</th><th>Afternoon</th><th>Hrs</th><th>Remarks</th><th>Monitored</th><th></th></tr>'+L.map(function(r){var e=r.e,t=r.t,pull=pullEmp(e.id)&&!OFFROLES.includes(e.role),cur_=pull?"Pull out":!t?"":(t.act||"Operating"),d=mI(e.id),off=OFFROLES.includes(e.role),OO=off?["Present","Half day","Absent","Leave"]:O;if(off&&t)cur_=cur_=="Operating"?"Present":cur_=="Half day"||cur_=="Leave"?cur_:"Absent";
-  return '<tr class="'+(d?"mdone":"")+(pull?" mpull":"")+'"><td><b>'+e.name+'</b><br><small>'+(e.role||"")+(window.altTag?altTag(e):"")+'</small></td><td>'+(pull?"<b>Pull out</b>":r.f?r.f.name:"<small>—</small>")+'</td><td><select class="mls"'+(pull?" disabled title=\"Locked until the unit is back in the garage\"":"")+' onchange="monAct('+e.id+',this.value)">'+(t||pull?"":'<option value="">Not operating (no record)</option>')+OO.map(function(o){return '<option'+(o==cur_?" selected":"")+'>'+o+'</option>'}).join("")+'</select></td><td class="mlt"><input type="time" value="'+(t?(t.ain||(!t.pin&&!t.pout?t.tin:"")||""):"")+'" onchange="monTime('+e.id+',\'ain\',this.value)" title="Morning in"><input type="time" value="'+(t&&t.aout||"")+'" onchange="monTime('+e.id+',\'aout\',this.value)" title="Morning out"></td><td class="mlt"><input type="time" value="'+(t&&t.pin||"")+'" onchange="monTime('+e.id+',\'pin\',this.value)" title="Afternoon in"><input type="time" value="'+(t&&t.pout||"")+'" onchange="monTime('+e.id+',\'pout\',this.value)" title="Afternoon out"></td><td>'+(t?(t.hrs||0):"—")+'</td><td class="mrm"><input type="text" value="'+String(t&&t.rem||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;")+'" placeholder="Remarks" onchange="monRem('+e.id+',this.value)" title="Remarks"></td><td><button class="chip'+(d?" on":"")+'" onclick="monTog('+e.id+')">'+(d?"✓ Done":"Mark done")+'</button></td><td class="nw">'+(pull?(e.equip?'<button class="s" style="background:#16a34a;color:#fff" onclick="backGarage('+e.equip+')">\u2714 Back in garage</button>':"<small>Fleet \u2192 Back in garage</small>")+' <button class="s g" onclick="pullUndo('+e.id+')" title="Selected by mistake? Undo the pull out">\u21a9 Undo</button>':(t?'<button class="s" onclick="open_('+t.id+')">Edit</button>':'<button class="s" onclick="logFor('+e.id+',\''+td+'\')">'+(d?"Edit":"+ Log")+'</button>'))+' <button class="s g" onclick="openRecords('+e.id+')">Records</button></td></tr>'}).join("")+'</table></div>'}
+
+<style>
+#flhelp{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin:0 0 12px}
+#flhelp div{border:1px solid var(--bd);background:var(--card);border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.4;color:var(--mu)}
+#flhelp b{display:block;color:var(--tx);font-size:13px;margin-bottom:2px}
+.flr .fop2 .no{color:#f59e0b!important;font-weight:600}
+.flr .fop2 .free{display:block;color:var(--mu);font-size:11.5px;margin-top:2px}
+</style>
+<script>
+(function(){
+function busy(f){return (db.rentals||[]).some(function(r){return r.equip==f.id&&r.stage=="Active"})||(db.trips||[]).some(function(t){return t.fid==f.id&&!t.back})}
+window.freeEmptyUnits=function(){var n=[];(db.fleet||[]).forEach(function(f){if(f.status=="Rented"&&!opsOf(f).length&&!busy(f)){f.status="Available";f.site="";n.push(f.name)}});if(n.length){try{save()}catch(e){}}return n};
+var t=table;table=function(){var fr=[];try{if(cur=="fleet"||cur=="sites")fr=freeEmptyUnits()}catch(e){}var r=t.apply(this,arguments);
+ try{if(fr.length)toast(fr.length==1?fr[0]+" has no operator — now Available again":fr.length+" units have no operator — now Available again");
+ if(cur=="fleet"&&!document.getElementById("flhelp")){var v=document.getElementById("view");if(v&&v.firstChild){var d=document.createElement("div");d.id="flhelp";d.innerHTML='<div><b>1 · Assign operator</b>Click the Operator box of a unit. The unit follows the operator\'s site and client.</div><div><b>2 · Unit is working</b>Status shows <b style="display:inline;color:#22c55e">Rented (on job)</b> with its site and client.</div><div><b>3 · Remove all operators</b>The unit goes back to <b style="display:inline;color:#38bdf8">Available</b> automatically — Site and Client show “No data”.</div>';v.insertBefore(d,v.firstChild)}}
+ document.querySelectorAll(".flr .fop2 .no").forEach(function(s){var r=s.closest(".flr");if(r&&r.classList.contains("av")&&!s.nextElementSibling)s.insertAdjacentHTML("afterend",'<span class="free">Unit is free</span>')})}catch(e){}return r};
+var o=opSet;opSet=function(fid,eid,on){var e=db.employees.find(function(x){return x.id==eid});o.apply(this,arguments);try{if(!on&&e){e.place="";db.employees.filter(function(h){return h.role=="Helper"&&h.helps==eid}).forEach(function(h){h.place=""});save()}}catch(x){}};
+})();
 </script>
-<style>.mlw{margin-bottom:14px}.mlist td,.mlist th{vertical-align:middle}.mlist tr.mdone td{opacity:.62}.mlist .mls{min-width:0;width:100%;padding:6px 8px}.mlist{table-layout:fixed;width:100%;min-width:1350px}.mrm input{width:100%;min-width:0;padding:5px 7px;font-size:12px}.mlt input{width:calc(50% - 3px);min-width:0;padding:4px 3px;font-size:12px;margin:0 1px}.mlist td:last-child,.mlist td:nth-child(6),.mlist td:nth-child(7),.mlist td:nth-child(8){overflow:visible}.mlt input::-webkit-calendar-picker-indicator{display:none}.mlist td:nth-child(4),.mlist td:nth-child(5){white-space:nowrap;font-size:13px;overflow:visible}.mlist td{overflow:hidden;text-overflow:ellipsis}.mlist .nw{white-space:nowrap;overflow:visible}</style>
+
+<script>
+(function(){
+ if(typeof sync!="function"||typeof load!="function")return;
+ var s0=save;save=function(){try{var x={};(db.employees||[]).forEach(function(e){if(+e.msal>0)x[e.id]=+e.msal});var j=JSON.stringify(x);if(j!=db.empx)db.empx=j}catch(e){}return s0.apply(this,arguments)};
+ var l0=load;load=async function(){await l0.apply(this,arguments);try{var x=JSON.parse(db.empx||"{}");(db.employees||[]).forEach(function(e){if(x[e.id]!=null)e.msal=+x[e.id]})}catch(e){}};
+ function now(){if(dirty&&!busy){clearTimeout(tmr);sync()}}
+ document.addEventListener("visibilitychange",function(){if(document.visibilityState=="hidden")now()});
+ window.addEventListener("pagehide",now);
+ window.addEventListener("beforeunload",function(e){if(dirty||busy){now();e.preventDefault();e.returnValue="Your last change is still saving.";return e.returnValue}});
+ save=(function(f){return function(){var r=f.apply(this,arguments);clearTimeout(tmr);tmr=setTimeout(sync,250);return r}})(save);
+})();
+</script>
+
+<script>
+(function(){
+window.autoBack=function(){var n=[];(db.fleet||[]).forEach(function(f){if(f.status!="Pulled out")return;var id=f.id,ids=db.employees.filter(function(e){return e.equip==id}).map(function(e){return e.id}),sid=f.site,st=db.sites.find(function(x){return x.id==sid}),who=db.employees.filter(function(e){return ids.indexOf(e.id)>-1}).map(function(e){return e.name});
+ db.employees.forEach(function(e){if(ids.indexOf(e.id)>-1||(e.role=="Helper"&&ids.indexOf(e.helps)>-1)){e.equip=0;e.place=""}});
+ f.site="";f.status="Available";
+ if(st&&!db.fleet.some(function(x){return x.site==sid})){var H=sdoneL().filter(function(x){return x.sid!=sid});H.unshift({k:"sid"+sid+"|"+ltoday(),sid:sid,date:ltoday(),name:st.client||st.name,loc:st.name,co:st.company||"",n:who.length,who:who});db.sdone=JSON.stringify(H.slice(0,150))}
+ n.push(f.name)});if(n.length){try{save()}catch(e){}}return n};
+var t=table;table=function(){var n=[];try{n=autoBack()}catch(e){}var r=t.apply(this,arguments);try{if(n.length)toast(n.length==1?n[0]+" pulled out — back in the garage, Available":n.length+" pulled-out units are back in the garage, Available")}catch(e){}return r};
+})();
+</script>
+</body>
+</html>
