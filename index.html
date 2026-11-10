@@ -865,7 +865,7 @@ function opPick(fid){const f=db.fleet.find(x=>x.id==fid);if(!f)return;let d=docu
  <div style="max-height:36vh;overflow:auto">${pool.map(e=>row(e,0)).join("")||'<div style="color:var(--mu);font-size:13px;padding:8px 0">No one found.</div>'}</div>
  <div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" onclick="document.getElementById('opdlg').close()">Done</button></div>`;if(!d.open)d.showModal()}
 function rmOp(fid,eid){const e=db.employees.find(x=>x.id==eid),f=db.fleet.find(x=>x.id==fid);if(!e||!f)return;if(!confirm("Remove "+e.name+" from "+f.name+"?\n\nThe operator becomes unassigned (no unit). Their helpers are unassigned too."))return;opSet0(fid,eid)}
-function opSet0(fid,eid){const e=db.employees.find(x=>x.id==eid),f=db.fleet.find(x=>x.id==fid);e.equip=0;db.employees.filter(h=>h.role=="Helper"&&h.helps==eid).forEach(h=>h.equip=0);save();table();toast(e.name+" removed from "+f.name)}
+function opSet0(fid,eid){const e=db.employees.find(x=>x.id==eid),f=db.fleet.find(x=>x.id==fid);e.equip=0;e.place="";db.employees.filter(h=>h.role=="Helper"&&h.helps==eid).forEach(h=>{h.equip=0;h.place=""});save();table();toast(e.name+" removed from "+f.name)}
 function moveUnit(fid){const f=db.fleet.find(x=>x.id==fid);if(!f)return;let d=document.getElementById("mvdlg");if(!d){d=document.createElement("dialog");d.id="mvdlg";d.className="chdlg";d.style.width="min(460px,96vw)";d.addEventListener("click",e=>{if(e.target==d)d.close()});document.body.appendChild(d)}
  const E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),cur=db.sites.find(x=>x.id==f.site),P=opsOf(f),S=[...db.sites].filter(x=>x.id!=f.site&&!siteDone(x)).sort((a,b)=>String(a.client||a.name).localeCompare(String(b.client||b.name)));
  d.innerHTML=`<h3 style="margin:0 0 4px">Move to another site</h3><p style="color:var(--mu);font-size:13px;margin:0 0 10px"><b>${E(f.name)}</b>${f.plate?" · "+E(f.plate):""}<br>Now at: ${cur?E((cur.client||cur.name)+" \u00b7 "+cur.name):"No site"}<br>Operators moving with it: ${P.length?E(P.map(e=>e.name).join(", ")):"none"}</p><label>New site</label><select id="mv_s"><option value="">\u2014 choose the new site \u2014</option>${S.map(x=>`<option value="${x.id}">${E((x.client||x.name)+" \u00b7 "+x.name)}</option>`).join("")}</select><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button type="button" onclick="document.getElementById('mvdlg').close()">Cancel</button><button type="button" class="go" onclick="moveUnitSave(${fid})">Move</button></div>`;d.showModal()}
@@ -1327,15 +1327,15 @@ function toast(t){let e=$("#toast");if(!e){e=document.createElement("div");e.id=
 function del(id){const r=db[cur].find(x=>x.id==id);$("#cm").textContent='Delete "'+(r?r[M[cur].m]:"")+'"? This cannot be undone.';$("#cy").onclick=()=>{if(cur=="inventory")invArchive([r]);if(cur=="stock")stockFx(r,-1);db[cur]=db[cur].filter(x=>x.id!=id);save();$("#cd").close();go();toast("Deleted")};$("#cd").showModal()}
 $("#sv").onclick=()=>{const mf=$("#frm").elements[M[cur].m];if(mf&&!String(mf.value).trim())return toast("Please fill in: "+M[cur].f.find(f=>f[0]==M[cur].m)[1]);if(cur=="fleet"&&$("#frm").elements.site&&$("#frm").elements.site.value=="__new"){const t=String($("#newsite").value||"").trim();if(!t)return toast("Type the name of the new site");let st=db.sites.find(x=>String(x.name).toLowerCase()==t.toLowerCase());if(!st){st={id:Date.now(),name:t,client:"",company:"",scope:""};db.sites.push(st)}const op=document.createElement("option");op.value=st.id;$("#frm").elements.site.appendChild(op);$("#frm").elements.site.value=st.id}if(cur=="attendance"){autoAct();const E=$("#frm").elements,a=E.act.value;if((a=="Standby"||a=="Not operating")&&!E.why.value.trim())return toast("Please type the reason for "+a.toLowerCase()+".")}
  if(cur=="stock"){const E=$("#frm").elements,nm=E.iname.value.trim().toLowerCase(),p=db.inventory.find(x=>String(x.part||"").trim().toLowerCase()==nm),q=+E.qty.value||0,od=edit?db.stock.find(x=>x.id==edit):null;if(!nm)return toast("Please type the item name");if(q<=0)return toast("Enter a quantity");if(p&&E.mv.value=="OUT"){const eff=od&&od.part==p.id?(od.mv=="IN"?od.qty:-od.qty):0;if(q>p.qty-eff)return toast("Not enough stock: only "+(p.qty-eff)+" "+(p.unit||"")+" left")}}
- const o=edit?db[cur].find(x=>x.id==edit):{id:Date.now()};const _old=cur=="stock"&&edit?{...o}:null;const _pt=[o.ain,o.aout,o.pin,o.pout].join("|"),_ph=o.hrs;
+ const o=edit?db[cur].find(x=>x.id==edit):{id:Date.now()};const _old=cur=="stock"&&edit?{...o}:null;const _pt=[o.ain,o.aout,o.pin,o.pout].join("|"),_ph=o.hrs,_oe=o.equip;
  M[cur].f.forEach(f=>{if(f[2]=="i"||f[2]=="im"){o[f[0]]=tmp[f[0]];return}let v=$("#frm").elements[f[0]].value;if(f[2]=="n")v=+v||0;else if(f[2]=="r")v=+v;o[f[0]]=v});if(cur=="attendance"&&o.act=="Leave"){o.hrs=0;o.ot=0;o.ain=o.aout=o.pin=o.pout=o.tin=o.tout="";if(!o.why)o.why="On leave"}if(cur=="attendance"&&o.act=="Pull out"){const t=String(o.why||"").replace(/^pull ?out\s*[-\u2013:]?\s*/i,"").trim();o.act="Not operating";o.why="Pull out"+(t?" \u2013 "+t:"")}if(cur=="attendance"&&o.act=="Operating")o.why="";
  if(cur=="attendance"){if(o.act=="Standby"||o.act=="Not operating"){o.ain=o.aout=o.pin=o.pout=o.tin=o.tout="";o.hrs=0;o.ot=0}o.tin=o.ain||o.pin||"";o.tout=o.pout||o.aout||"";{const e0=db.employees.find(x=>x.id==o.emp),s0_=e0&&siteOf(e0);o.site=s0_?s0_.name:((e0&&e0.place)||o.site||"")}const ns=[o.ain,o.aout,o.pin,o.pout].join("|"),h=sessHrs(o);if(h>0&&(!o.hrs||(edit&&o.hrs==_ph&&_pt!=ns))){o.hrs=h;if(!o.ot||(edit&&_pt!=ns))o.ot=Math.max(0,Math.round((h-8)*100)/100)}}
  if(!edit)db[cur].push(o);
  if(cur=="stock"){const _n=String(o.iname||"").trim().toLowerCase(),_p=db.inventory.find(x=>String(x.part||"").trim().toLowerCase()==_n);o.part=_p?_p.id:stockMake(o);if(!o.time)o.time=new Date().toTimeString().slice(0,5);stockFx(_old,-1);stockFx(o,1)}
  if(cur=="employees"&&NOPAY.includes(o.role)){o.equip=0;o.rate=0;o.otrate=0}if(cur=="employees"&&NOEQ.includes(o.role))o.equip=0;
  if(cur=="employees"){if(o.role=="Helper"){const op=db.employees.find(x=>x.id==o.helps);o.rate=+o.rate>0?+o.rate:700;o.otrate=0;o.equip=op?op.equip||0:0}else o.helps=0;if(NOPAY.includes(o.role))o.helps=0}
- if(cur=="employees"){const f=db.fleet.find(x=>x.id==o.equip),s=f&&db.sites.find(x=>x.id==f.site);if(s)o.place=s.name}
- if(cur=="fleet"){const v=$("#frm").elements["__op"].value;db.employees.forEach(e=>{if(e.equip==o.id&&e.id!=v)e.equip=0});if(v){const e=db.employees.find(x=>x.id==v);if(e)e.equip=o.id}{const s=db.sites.find(x=>x.id==o.site);if(s)db.employees.forEach(e=>{if(e.equip==o.id)e.place=s.name})}}
+ if(cur=="employees"){const f=db.fleet.find(x=>x.id==o.equip),s=f&&db.sites.find(x=>x.id==f.site);if(s)o.place=s.name;else if(String(o.equip||0)!=String(_oe||0))o.place="";db.employees.filter(h=>h.role=="Helper"&&h.helps==o.id).forEach(h=>{h.equip=o.equip;h.place=o.place||""})}
+ if(cur=="fleet"){const v=$("#frm").elements["__op"].value;db.employees.forEach(e=>{if(e.equip==o.id&&e.id!=v){e.equip=0;e.place=""}});if(v){const e=db.employees.find(x=>x.id==v);if(e)e.equip=o.id}{const s=db.sites.find(x=>x.id==o.site);if(s)db.employees.forEach(e=>{if(e.equip==o.id)e.place=s.name})}}
  if(cur=="rentals"&&o.stage=="Active"){const e=db.fleet.find(x=>x.id==o.equip);if(e)e.status="Rented"}
  if(cur=="rentals"&&o.stage=="Returned"){const e=db.fleet.find(x=>x.id==o.equip);if(e)e.status="Available"}
  save();$("#dlg").close();go()};
@@ -2119,18 +2119,23 @@ main{padding:20px 24px}
 .pplbar input{max-width:340px;border-radius:99px;padding:10px 16px;font-size:14px}
 .pplbar .cnt{color:var(--mu);font-size:13px}
 .pplbar .rc{display:flex;gap:6px;flex-wrap:wrap}
-.pplbar .rc button{padding:5px 11px;font-size:12px}
+.pplbar .rc button{padding:5px 11px;font-size:12px}.pplbar .rc .chip.on{background:#f59e0b!important;color:#111!important;border-color:#f59e0b!important;font-weight:700}
+#view.rfon .pcard{padding:6px 9px!important;column-gap:8px}#view.rfon .pcard .pav{width:36px!important;height:36px!important;font-size:14px!important}#view.rfon .pcard{grid-template-columns:36px 1fr auto}#view.rfon .pgrid{gap:6px!important}#view.rfon .rsec{margin-bottom:6px!important}
 </style>
 <script>
 (function(){
  var Q="",RF="";
  function apply(){var v=document.getElementById("view");if(!v)return;var q=Q.trim().toLowerCase(),n=0,tot=0;
-  v.querySelectorAll(".rsec").forEach(function(sec){var vis=0;sec.querySelectorAll(".pcard").forEach(function(c){tot++;var ok=(!q||c.textContent.toLowerCase().indexOf(q)>-1);c.style.display=ok?"":"none";if(ok){vis++;n++}});sec.style.display=vis?"":"none"});
+  v.querySelectorAll(".rsec").forEach(function(sec){var vis=0;sec.querySelectorAll(".pcard").forEach(function(c){tot++;var ok=(!q||c.textContent.toLowerCase().indexOf(q)>-1);c.style.display=ok?"":"none";if(ok){vis++;n++}});sec.style.display=(vis&&(!RF||sec.getAttribute("data-r")==RF))?"":"none"});
+  v.classList.toggle("rfon",!!RF);v.querySelectorAll(".pgrid").forEach(function(g){g.style.gridTemplateColumns=""});
+  if(RF){var sc=[].filter.call(v.querySelectorAll(".rsec"),function(x){return x.style.display!="none"})[0];if(sc){var g=sc.querySelector(".pgrid"),cn=[].filter.call(g.children,function(c){return c.style.display!="none"}).length,top=g.getBoundingClientRect().top,av=Math.max(220,window.innerHeight-Math.max(top,0)-20),rows=Math.max(1,Math.floor(av/62)),cols=Math.max(1,Math.ceil(cn/rows)),w=g.clientWidth||800,mw=Math.max(150,Math.floor(w/cols)-8);g.style.gridTemplateColumns="repeat(auto-fill,minmax("+mw+"px,1fr))"}}
+  v.querySelectorAll(".pplbar .rc .chip").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-r")==RF)});
   var c=document.getElementById("pplc");if(c)c.textContent=(q?"Showing "+n+" of "+tot:tot+" employees")}
  function build(){if(typeof cur=="undefined"||cur!="employees")return;var v=document.getElementById("view");if(!v||v.querySelector(".pplbar"))return;var first=v.querySelector(".rsec");if(!first)return;
   var b=document.createElement("div");b.className="pplbar";b.innerHTML='<input id="pplq" type="search" placeholder="🔎 Find employee: name, role, machine..." autocomplete="off"><span class="cnt" id="pplc"></span><div class="rc" id="pplr"></div>';first.parentNode.insertBefore(b,first);
   var i=b.querySelector("input");i.value=Q;i.oninput=function(){Q=i.value;apply()};
-  var R=document.getElementById("pplr");v.querySelectorAll(".rsec h3").forEach(function(h){var t=h.firstChild.textContent.trim(),sec=h.closest(".rsec"),a=document.createElement("button");a.type="button";a.className="chip";a.textContent=t+" "+sec.querySelectorAll(".pcard").length;a.onclick=function(){sec.scrollIntoView({behavior:"smooth",block:"start"})};R.appendChild(a)});
+  var R=document.getElementById("pplr");v.querySelectorAll(".rsec h3").forEach(function(h){var t=h.firstChild.textContent.trim(),sec=h.closest(".rsec"),a=document.createElement("button");a.type="button";a.className="chip";sec.setAttribute("data-r",t);a.setAttribute("data-r",t);a.textContent=t+" "+sec.querySelectorAll(".pcard").length;a.onclick=function(){RF=(RF==t?"":t);apply()};R.appendChild(a)});
+  var al=document.createElement("button");al.type="button";al.className="chip";al.textContent="All";al.setAttribute("data-r","");al.onclick=function(){RF="";apply()};R.insertBefore(al,R.firstChild);
   v.querySelectorAll(".pcard").forEach(function(c){var m=c.getAttribute("style");});
   apply()}
  var t=table;table=function(){try{if(cur=="employees"){EVW="cards";ERL="";EST=""}}catch(e){}var r=t.apply(this,arguments);try{if(cur=="employees"){var v=document.getElementById("view");v&&v.querySelectorAll(".efbar").forEach(function(x){x.style.display="none"})}build()}catch(e){}return r};
@@ -3680,13 +3685,13 @@ function body(){var roles=[];elig().forEach(function(e){if(roles.indexOf(e.role)
 window.qaQ=function(v){QQ=v;var i=document.getElementById("qaq"),p=i&&i.selectionStart;draw();i=document.getElementById("qaq");if(i){i.focus();try{i.setSelectionRange(p,p)}catch(e){}}};
 window.qaR=function(r){QR=r;draw()};
 window.qaSet=function(id,v){var e=db.employees.find(function(x){return x.id==id});if(!e)return;v=+v||0;var f=v&&db.fleet.find(function(x){return x.id==v});
- e.equip=v;var st=f&&db.sites.find(function(x){return x.id==f.site});if(st)e.place=st.name;
- db.employees.filter(function(h){return h.role=="Helper"&&h.helps==e.id}).forEach(function(h){h.equip=v});
+ e.equip=v;var st=f&&db.sites.find(function(x){return x.id==f.site});e.place=st?st.name:"";
+ db.employees.filter(function(h){return h.role=="Helper"&&h.helps==e.id}).forEach(function(h){h.equip=v;h.place=e.place});
  save();QO=true;draw();var r=document.getElementById("qa"+id);if(r){r.classList.add("flash");setTimeout(function(){r.classList.remove("flash")},900)}
  toast(v?e.name+" → "+(f.plate||f.name):e.name+" removed from unit")};
 function draw(){var d=document.getElementById("qa");if(!d)return;QO=d.open;d.querySelector(".qb").innerHTML=body()}
 function mk(){var v=document.getElementById("view");if(!v||document.getElementById("qa"))return;var d=document.createElement("details");d.id="qa";d.open=QO;d.addEventListener("toggle",function(){QO=d.open});d.innerHTML='<summary>⚡ Quick assign — change or remove a unit without opening each profile</summary><div class="qb">'+body()+'</div>';v.insertBefore(d,v.firstChild)}
-var t=table;table=function(){var r=t.apply(this,arguments);try{if(cur=="employees")mk()}catch(e){}return r};
+var t=table;table=function(){var r=t.apply(this,arguments);return r};
 })();
 </script>
 </body>
