@@ -4652,5 +4652,28 @@ function wire(el){var src=el.getAttribute("oninput")||"",fn;try{fn=new Function(
 var q=quoteView;quoteView=function(){var r=q.apply(this,arguments);try{document.querySelectorAll(".paper input[oninput]").forEach(function(el){var a=el.getAttribute("oninput")||"";if(/qItemSet\(\d+,'amount'/.test(a)||/qMd\('mdAmt'/.test(a))wire(el)})}catch(e){console.error(e)}return r};
 })();
 </script>
+<style>#mrmsg{display:none;margin:10px 0 0;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:600;background:#3a1612;color:#ffd7d2;border:1px solid #d64545}#mrmsg.ok{background:#12301f;color:#bff0d0;border-color:#1f9d55}#mrd .bad{border-color:#d64545!important;box-shadow:0 0 0 3px rgba(214,69,69,.2)}#mrd .mrdr{font-size:12px;color:var(--mu);margin-top:8px}</style>
+<script>
+(function(){
+var KEY="mrdraft",DRAFT=false;
+function L(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}
+function S(){try{if(MRE&&!mrL().some(function(x){return x.id==MRE.id})){if(MRE.equip||MRE.op||MRE.site||MRE.kind)localStorage.setItem(KEY,JSON.stringify(MRE));else localStorage.removeItem(KEY)}}catch(e){}}
+function C(){try{localStorage.removeItem(KEY)}catch(e){}}
+function msg(t,ok,el){var d=document.getElementById("mrd");if(!d)return;var m=document.getElementById("mrmsg");if(!m){m=document.createElement("div");m.id="mrmsg";var row=d.querySelector("div[style*='justify-content:flex-end']");if(row)row.parentNode.insertBefore(m,row);else d.appendChild(m)}
+ m.className=ok?"ok":"";m.textContent=t;m.style.display=t?"block":"none";d.querySelectorAll(".bad").forEach(function(x){x.classList.remove("bad")});if(el){el.classList.add("bad");try{el.focus()}catch(e){}}}
+/* the box must not close by a stray click outside (it used to lose everything typed) */
+document.addEventListener("click",function(e){var d=document.getElementById("mrd");if(d&&e.target==d){e.stopImmediatePropagation();e.preventDefault()}},true);
+document.addEventListener("input",function(e){var d=document.getElementById("mrd");if(d&&d.contains(e.target)){setTimeout(S,0);var m=document.getElementById("mrmsg");if(m&&!m.classList.contains("ok"))msg("")}},true);
+var o=mrOpen;mrOpen=function(id){var r=o.apply(this,arguments);try{if(!id){var dr=L();if(dr&&(dr.equip||dr.op||dr.site||dr.kind)){MRE=dr;mrDraw();msg("Your unsaved draft was restored.",true)}}}catch(e){}return r};
+var dr0=mrDraw;mrDraw=function(){var r=dr0.apply(this,arguments);try{var d=document.getElementById("mrd");if(d&&!d.querySelector(".mrdr")){var row=d.querySelector("div[style*='justify-content:flex-end']");if(row)row.insertAdjacentHTML("beforebegin",'<div class="mrdr">What you type is kept as a draft until you press Save.</div>')}}catch(e){}return r};
+var sv=mrSave;mrSave=function(){var d=document.getElementById("mrd");if(MRM===null){msg("Wait \u2014 the saved proof is still loading.");return}
+ var eq=d.querySelector("input[list=mreq]");if(!String(MRE.equip||"").trim()&&!String(MRE.kind||"").trim()){msg("Type the equipment or what was done before saving.",false,eq);return}
+ if(!MRE.date){msg("Pick the date.",false,d.querySelector("input[type=date]"));return}
+ if(!String(MRE.equip||"").trim())MRE.equip="(equipment not stated)";
+ var n0=mrL().length;try{sv.apply(this,arguments)}catch(e){msg("Could not save: "+(e.message||e));return}
+ if(d.open){msg("Could not save \u2014 try again.");return}C()};
+var dl=mrDel;mrDel=function(id){var r=dl.apply(this,arguments);return r};
+})();
+</script>
 </body>
 </html>
