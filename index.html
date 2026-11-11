@@ -4675,5 +4675,66 @@ var sv=mrSave;mrSave=function(){var d=document.getElementById("mrd");if(MRM===nu
 var dl=mrDel;mrDel=function(id){var r=dl.apply(this,arguments);return r};
 })();
 </script>
+<style>
+#mrx{border:1px solid var(--bd);border-radius:18px;background:var(--card);color:var(--tx);padding:0;width:min(440px,94vw);box-shadow:0 30px 80px #000a}
+#mrx::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+#mrx[open]{animation:mrxin .22s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes mrxin{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
+#mrx .mxb{padding:24px 24px 20px;text-align:center}
+#mrx .mxi{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:rgba(239,68,68,.15);color:#ef4444;position:relative}
+#mrx .mxi:after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(239,68,68,.35);animation:mxp 1.6s ease-out infinite}
+@keyframes mxp{from{transform:scale(.85);opacity:1}to{transform:scale(1.25);opacity:0}}
+#mrx .mxi svg{width:30px;height:30px;animation:mxw .5s .15s both}
+@keyframes mxw{0%{transform:rotate(0)}30%{transform:rotate(-14deg)}60%{transform:rotate(10deg)}100%{transform:rotate(0)}}
+#mrx.ok .mxi{background:rgba(34,197,94,.15);color:#22c55e}#mrx.ok .mxi:after{border-color:rgba(34,197,94,.35)}
+#mrx h3{margin:0 0 6px;font-size:19px}
+#mrx p{margin:0;color:var(--mu);font-size:13.5px;line-height:1.45}
+#mrx .mxs{margin:14px 0 4px;padding:10px 12px;border:1px dashed var(--bd);border-radius:12px;text-align:left;font-size:13px}
+#mrx .mxs b{display:block;font-size:14.5px}#mrx .mxs small{color:var(--mu)}
+#mrx .mxs span{display:inline-block;margin-top:4px;color:var(--mu)}
+#mrx .mxt{margin-top:12px;width:100%;box-sizing:border-box;text-align:center;letter-spacing:.2em;font-weight:800;text-transform:uppercase}
+#mrx .mxa{display:flex;gap:10px;padding:0 24px 22px}
+#mrx .mxa button{flex:1;padding:11px 14px;border-radius:11px;font-weight:700;font-size:14px;cursor:pointer;margin:0;transition:.15s}
+#mrx .mxc{background:var(--bg)!important;color:var(--tx)!important;border:1px solid var(--bd)!important}
+#mrx .mxc:hover{border-color:var(--mu)!important}
+#mrx .mxd{background:#ef4444!important;color:#fff!important;border:1px solid #ef4444!important}
+#mrx .mxd:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 18px rgba(239,68,68,.4)}
+#mrx .mxd:disabled{opacity:.35;cursor:not-allowed}
+#mrx.ok .mxd{background:#22c55e!important;border-color:#22c55e!important}
+#mrbin{margin-top:16px;border:1px dashed var(--bd);border-radius:14px;overflow:hidden}
+#mrbin>button{width:100%;display:flex;align-items:center;gap:8px;padding:11px 14px;background:transparent!important;color:var(--mu)!important;border:0!important;border-radius:0!important;font-weight:700;font-size:13px;cursor:pointer;text-align:left;margin:0}
+#mrbin>button:hover{color:var(--tx)!important}
+#mrbin>button i{margin-left:auto;font-style:normal;transition:.2s}#mrbin.op>button i{transform:rotate(180deg)}
+#mrbin .bl{display:none;border-top:1px dashed var(--bd)}#mrbin.op .bl{display:block}
+#mrbin .br{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bd);animation:mxrow .25s both}
+@keyframes mxrow{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+#mrbin .br:last-child{border-bottom:0}#mrbin .br div{flex:1;min-width:0}#mrbin .br b{display:block;font-size:13.5px}#mrbin .br small{color:var(--mu);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mrbin .br button{padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;margin:0}
+#mrbin .rs{background:#16a34a!important;color:#fff!important;border:0!important}
+#mrbin .fv{background:transparent!important;color:#ef4444!important;border:1px solid #ef444455!important}
+</style>
+<script>
+(function(){
+var BIN=false,L0=mrL,S0=mrS;
+function E(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+mrL=function(){return L0().filter(function(x){return!x.del})};
+mrS=function(a){var g=L0().filter(function(x){return x.del&&!a.some(function(y){return y.id==x.id})});S0(a.concat(g))};
+function dlg(){var d=document.getElementById("mrx");if(!d){d=document.createElement("dialog");d.id="mrx";d.addEventListener("click",function(e){if(e.target==d)d.close()});document.body.appendChild(d)}return d}
+var TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>',BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5"/></svg>';
+function sum(r){return'<div class="mxs"><b>'+E(r.equip||"—")+'</b><small>'+E(r.op||"")+(r.op&&r.date?" \u00b7 ":"")+E(r.date||"")+'</small><br><span>'+E(r.kind||"")+'</span>'+((r.mi||r.mv)?'<br><span>\ud83d\udcf7 '+(r.mi||0)+' \u00b7 \ud83c\udfac '+(r.mv||0)+' proof file(s) will be kept</span>':"")+'</div>'}
+function ask(r,mode,go){var d=dlg(),f=mode=="forever";d.className="";
+ d.innerHTML='<div class="mxb"><div class="mxi">'+TRASH+'</div><h3>'+(f?"Delete forever?":"Delete this record?")+'</h3><p>'+(f?"This removes the record and its photos / videos for good. It cannot be brought back.":"It moves to <b>Recently deleted</b> at the bottom of this page. Nothing is lost \u2014 you can restore it anytime.")+'</p>'+sum(r)+(f?'<input class="mxt" id="mxt" placeholder="type DELETE" autocomplete="off">':"")+'</div><div class="mxa"><button type="button" class="mxc" id="mxc">Cancel</button><button type="button" class="mxd" id="mxd"'+(f?" disabled":"")+'>'+(f?"Delete forever":"Delete")+'</button></div>';
+ document.getElementById("mxc").onclick=function(){d.close()};
+ document.getElementById("mxd").onclick=function(){d.close();go()};
+ if(f){var t=document.getElementById("mxt"),b=document.getElementById("mxd");t.oninput=function(){b.disabled=t.value.trim().toUpperCase()!="DELETE"};t.onkeydown=function(e){if(e.key=="Enter"&&!b.disabled)b.click()}}
+ if(!d.open)d.showModal();setTimeout(function(){try{(f?document.getElementById("mxt"):document.getElementById("mxc")).focus()}catch(e){}},50)}
+mrDel=function(id){var r=L0().find(function(x){return x.id==id});if(!r)return;ask(r,"soft",function(){var A=L0();A.forEach(function(x){if(x.id==id){x.del=1;x.delAt=new Date().toISOString()}});S0(A);var m=document.getElementById("mrd");if(m&&m.open)m.close();toast("Moved to Recently deleted \u2014 you can restore it below");BIN=true;if(cur=="mrec")mrView()})};
+window.mrRestore=function(id){var A=L0();A.forEach(function(x){if(x.id==id){delete x.del;delete x.delAt}});S0(A);toast("Record restored \u2714");if(cur=="mrec")mrView()};
+window.mrForever=function(id){var r=L0().find(function(x){return x.id==id});if(!r)return;ask(r,"forever",function(){S0(L0().filter(function(x){return x.id!=id}));var k="mm_"+id;if(db[k]!==undefined&&db[k]!=="[]")db[k]="[]";try{save()}catch(e){}toast("Deleted for good");if(cur=="mrec")mrView()})};
+window.mrBinTog=function(){BIN=!BIN;var b=document.getElementById("mrbin");if(b)b.classList.toggle("op",BIN)};
+var V0=mrView;mrView=function(){var r=V0.apply(this,arguments);try{var G=L0().filter(function(x){return x.del}).sort(function(a,b){return String(b.delAt||"").localeCompare(String(a.delAt||""))});
+ if(G.length){document.getElementById("view").insertAdjacentHTML("beforeend",'<div id="mrbin" class="'+(BIN?"op":"")+'"><button type="button" onclick="mrBinTog()">'+TRASH.replace("<svg",'<svg width="16" height="16"')+' Recently deleted ('+G.length+')<i>\u25BE</i></button><div class="bl">'+G.map(function(x,i){return'<div class="br" style="animation-delay:'+i*40+'ms"><div><b>'+E(x.equip||"\u2014")+'</b><small>'+E(x.date||"")+' \u00b7 '+E(x.kind||"")+'</small></div><button type="button" class="rs" onclick="mrRestore(\''+x.id+'\')">Restore</button><button type="button" class="fv" onclick="mrForever(\''+x.id+'\')">Delete forever</button></div>'}).join("")+'</div></div>')}}catch(e){console.error(e)}return r};
+})();
+</script>
 </body>
 </html>
