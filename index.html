@@ -4637,5 +4637,20 @@ var t1=table;table=function(){var r=t1.apply(this,arguments);if(cur=="depmon"){t
 })();
 </script>
 <style>#mdb .rgd button.on{background:#f59e0b!important;color:#111!important;border-color:#f59e0b!important}#mdb .rgd button.on small,#mdb .rgd button.on b{color:#111!important}#mdb .rgd button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}#mdb .rgd{padding-top:2px}</style>
+<script>
+(function(){
+/* Comma separators while typing amounts in the quotation (RATE and MOB/DEMOB) */
+function fmt(raw){raw=String(raw).replace(/[^0-9.]/g,"");var p=raw.split("."),i=p[0].replace(/^0+(?=\d)/,"").replace(/\B(?=(\d{3})+(?!\d))/g,",");return p.length>1?i+"."+p.slice(1).join("").slice(0,2):i}
+function wire(el){var src=el.getAttribute("oninput")||"",fn;try{fn=new Function(src)}catch(e){return}
+ el.type="text";el.setAttribute("inputmode","decimal");el.removeAttribute("step");el.setAttribute("autocomplete","off");
+ if(el.value!==""&&+el.value)el.value=fmt(el.value);else if(el.value==="0")el.value="";
+ el.placeholder="0";el.style.textAlign="right";
+ el.oninput=function(){var pos=el.selectionStart,d=el.value.slice(0,pos).replace(/[^0-9.]/g,"").length,nv=fmt(el.value);el.value=nv;
+  var k=0,np=0;for(;np<nv.length&&k<d;np++){if(/[0-9.]/.test(nv[np]))k++}try{el.setSelectionRange(np,np)}catch(e){}
+  var s=nv;el.value=nv.replace(/,/g,"");try{fn.call(el)}finally{el.value=s}};
+}
+var q=quoteView;quoteView=function(){var r=q.apply(this,arguments);try{document.querySelectorAll(".paper input[oninput]").forEach(function(el){var a=el.getAttribute("oninput")||"";if(/qItemSet\(\d+,'amount'/.test(a)||/qMd\('mdAmt'/.test(a))wire(el)})}catch(e){console.error(e)}return r};
+})();
+</script>
 </body>
 </html>
