@@ -4671,7 +4671,7 @@ var sv=mrSave;mrSave=function(){var d=document.getElementById("mrd");if(MRM===nu
  if(!MRE.date){msg("Pick the date.",false,d.querySelector("input[type=date]"));return}
  if(!String(MRE.equip||"").trim())MRE.equip="(equipment not stated)";
  var n0=mrL().length;try{sv.apply(this,arguments)}catch(e){msg("Could not save: "+(e.message||e));return}
- if(d.open){msg("Could not save \u2014 try again.");return}C()};
+ if(d.open&&!(MRM&&MRM.some(function(m){return m.t=="i"}))){msg("Could not save \u2014 try again.");return}C()};
 var dl=mrDel;mrDel=function(id){var r=dl.apply(this,arguments);return r};
 })();
 </script>
@@ -4679,7 +4679,7 @@ var dl=mrDel;mrDel=function(id){var r=dl.apply(this,arguments);return r};
 /* Maintenance Records: own Supabase table (maintenance_records). Falls back to the old storage until the table exists. Old data is copied, never removed. */
 (function(){
 if(typeof SB=="undefined"||!SB||typeof SB.from!="function")return;
-var TBL="maintenance_records",COLS="id,equip,operator,site,kind,record_date,media_images,media_videos,thumb,deleted,deleted_at",ST="idle",CACHE=[],T0=0,PEND=null,MIG=false,ERR="",RF=0,
+var QM=Promise.resolve(),TBL="maintenance_records",COLS="id,equip,operator,site,kind,record_date,media_images,media_videos,thumb,deleted,deleted_at",ST="idle",CACHE=[],T0=0,PEND=null,MIG=false,ERR="",RF=0,
  L1=mrL,S1=mrS,V1=mrView,O1=mrOpen,SV1=mrSave;
 function toRec(r){var o={id:r.id,equip:r.equip||"",op:r.operator||"",site:r.site||"",kind:r.kind||"",date:r.record_date||"",mi:+r.media_images||0,mv:+r.media_videos||0,th:r.thumb||""};if(r.deleted){o.del=1;o.delAt=r.deleted_at||""}return o}
 function toRow(o,media){var r={id:String(o.id),equip:o.equip||"",operator:o.op||"",site:o.site||"",kind:o.kind||"",record_date:o.date||null,media_images:+o.mi||0,media_videos:+o.mv||0,thumb:o.th||"",deleted:!!o.del,deleted_at:o.del?(o.delAt||new Date().toISOString()):null,updated_at:new Date().toISOString()};if(media)r.media=media;return r}
@@ -4697,9 +4697,10 @@ mrS=function(a){if(ST!="on")return S1(a);
  var old={};CACHE.forEach(function(r){old[r.id]=sig(r)});var ids={},A=[],B=[],del=[],pm=PEND;
  a.forEach(function(r){ids[r.id]=1;if(pm&&pm.id==r.id){B.push(toRow(r,pm.media));try{delete db["mm_"+r.id];delete ssn["mm_"+r.id]}catch(e){}}else if(old[r.id]!==sig(r))A.push(toRow(r))});
  if(pm&&ids[pm.id])PEND=null;
- CACHE.forEach(function(r){if(!ids[r.id])del.push(r.id)});CACHE=a.map(function(r){return Object.assign({},r)});
- (async function(){try{if(A.length){var u=await SB.from(TBL).upsert(A);if(u.error)throw u.error}if(B.length){var u2=await SB.from(TBL).upsert(B);if(u2.error)throw u2.error}if(del.length){var d=await SB.from(TBL).delete().in("id",del);if(d.error)throw d.error}}
-  catch(e){try{toast("Maintenance table could not save: "+((e&&e.message)||e)+" — a backup copy was kept")}catch(x){}try{S1(a)}catch(x){}}})()};
+ CACHE.forEach(function(r){if(!ids[r.id])del.push(r.id)});var PREV=CACHE;CACHE=a.map(function(r){return Object.assign({},r)});
+ QM=QM.then(async function(){try{if(A.length){var u=await SB.from(TBL).upsert(A);if(u.error)throw u.error}if(B.length){var u2=await SB.from(TBL).upsert(B);if(u2.error)throw u2.error}if(del.length){var d=await SB.from(TBL).delete().in("id",del);if(d.error)throw d.error}return{ok:true}}
+  catch(e){CACHE=PREV;var m=(e&&e.message)||String(e);try{toast("Maintenance table could not save: "+m)}catch(x){}return{ok:false,err:m}}})};
+window.__mrQ=function(){return QM};
 mrSave=function(){if(ST=="on"&&MRE)PEND={id:MRE.id,media:(MRM||[])};return SV1.apply(this,arguments)};
 mrOpen=function(id){if(ST!="on"||!id)return O1.apply(this,arguments);var r=CACHE.find(function(x){return x.id==id});if(!r||!(r.mi||r.mv))return O1.apply(this,arguments);
  SB.from(TBL).select("media").eq("id",id).maybeSingle().then(function(x){var m=x&&x.data&&x.data.media;if(m&&m.length){var s=JSON.stringify(m);db["mm_"+id]=s;ssn["mm_"+id]=s}O1(id)}).catch(function(){O1(id)})};
@@ -4737,12 +4738,13 @@ function ensureFull(id){return new Promise(function(res){var k=String(id),r=CACH
 function commit(all){var old={},A=[],B=[],del=[],ids={};CACHE.forEach(function(r){old[String(r.id)]=r});
  all.forEach(function(r){var k=String(r.id);ids[k]=1;var o=old[k],full=FULL[k]||!o,ic=full&&(!o||is(r)!==is(o));if(ic)B.push(r);else if(!o||cs(r)!==cs(o))A.push(r)});
  CACHE.forEach(function(r){if(!ids[String(r.id)])del.push(String(r.id))});
- CACHE=all.map(function(r){return Object.assign({},r)});
+ var PREV=CACHE;CACHE=all.map(function(r){return Object.assign({},r)});
  var job=async function(){if(A.length){var u=await SB.from(TBL).upsert(A.map(function(r){return row(r,false)}));if(u.error)throw u.error}
   for(var i=0;i<B.length;i++){var th=await thumbP((B[i].imgs||[])[0]),u2=await SB.from(TBL).upsert(row(B[i],true,th));if(u2.error)throw u2.error;var c=CACHE.find(function(x){return String(x.id)==String(B[i].id)});if(c&&(B[i].imgs||[]).length){c.imgs=B[i].imgs}}
   if(del.length){var d=await SB.from(TBL).delete().in("id",del);if(d.error)throw d.error}};
- var tries=0,run=function(){return job().catch(function(e){tries++;if(tries<3)return new Promise(function(r){setTimeout(r,tries*4000)}).then(run);try{toast("Purchase orders could not save: "+((e&&e.message)||e)+". Do not refresh — press Save again.")}catch(x){}})};
- Q=Q.then(run)}
+ var tries=0,run=function(){return job().then(function(){return{ok:true}},function(e){tries++;if(tries<3)return new Promise(function(r){setTimeout(r,tries*3000)}).then(run);CACHE=PREV;var m=(e&&e.message)||String(e);try{toast("Purchase orders could not save: "+m)}catch(x){}return{ok:false,err:m}})};
+ Q=Q.then(run);return Q}
+window.__poQ=function(){return Q};
 POL=function(){return ST=="on"?CACHE.filter(function(r){return!r.del}).map(function(r){return Object.assign({},r)}):L1()};
 POS=function(a){if(ST!="on")return S1(a);var ids={};a.forEach(function(r){ids[String(r.id)]=1});commit(a.concat(CACHE.filter(function(r){return!ids[String(r.id)]})))};
 poNext=function(){var y=(ltoday()||"").slice(0,4),n=0;(ST=="on"?CACHE:L1()).forEach(function(p){var m=String(p.no||"").match(/(\d+)\s*$/);if(m&&String(p.no).indexOf(y)>-1)n=Math.max(n,+m[1])});return"PO-"+y+"-"+String(n+1).padStart(3,"0")};
@@ -4835,5 +4837,56 @@ var V0=mrView;mrView=function(){var r=V0.apply(this,arguments);try{var G=L0().fi
 })();
 </script>
 <style>#mrd textarea,.chdlg textarea{font:inherit!important;font-size:14.2px!important;color:var(--tx)!important;background:var(--bg)!important;line-height:1.45;min-height:84px;resize:vertical}#mrd textarea::placeholder{color:var(--mu);opacity:.8}</style>
+<style>
+#svd{border:1px solid var(--bd);border-radius:18px;background:var(--card);color:var(--tx);padding:0;width:min(400px,92vw);box-shadow:0 30px 80px #000a}
+#svd::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(3px)}
+#svd[open]{animation:mrxin .2s ease-out}
+#svd .sb{padding:26px 24px 22px;text-align:center}
+#svd .sr{width:58px;height:58px;margin:0 auto 14px;border-radius:50%;border:4px solid color-mix(in srgb,var(--tx) 14%,transparent);border-top-color:#f59e0b;animation:svs .8s linear infinite}
+@keyframes svs{to{transform:rotate(360deg)}}
+#svd h3{margin:0 0 6px;font-size:18px}#svd p{margin:0;color:var(--mu);font-size:13.5px;line-height:1.45;word-break:break-word}
+#svd .sm{margin:12px 0 0;padding:9px 12px;border:1px dashed var(--bd);border-radius:11px;font-size:13px;text-align:left}
+#svd .bar{height:5px;border-radius:99px;background:color-mix(in srgb,var(--tx) 10%,transparent);margin:16px 0 0;overflow:hidden}
+#svd .bar i{display:block;height:100%;width:38%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#ef4444);animation:svb 1.1s ease-in-out infinite}
+@keyframes svb{0%{margin-left:-40%}100%{margin-left:102%}}
+#svd .ck{width:58px;height:58px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:rgba(34,197,94,.16);color:#22c55e;animation:svp .4s cubic-bezier(.2,1.4,.4,1)}
+#svd .ck svg{width:30px;height:30px;stroke-dasharray:30;stroke-dashoffset:30;animation:svd .45s .1s forwards}
+@keyframes svd{to{stroke-dashoffset:0}}@keyframes svp{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+#svd .ck.bad{background:rgba(239,68,68,.16);color:#ef4444}
+#svd .ck.bad svg{stroke-dasharray:none;stroke-dashoffset:0}
+#svd .sa{display:flex;gap:10px;margin-top:18px}
+#svd .sa button{flex:1;padding:10px 12px;border-radius:11px;font-weight:700;cursor:pointer;margin:0}
+#svd .s1{background:#f59e0b!important;color:#111!important;border:0!important}
+#svd .s2{background:var(--bg)!important;color:var(--tx)!important;border:1px solid var(--bd)!important}
+#svmsg{margin:10px 0 0;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:600;background:#3a1612;color:#ffd7d2;border:1px solid #d64545}
+</style>
+<script>
+(function(){
+var BUSY=false;
+function E(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function box(){var d=document.getElementById("svd");if(!d){d=document.createElement("dialog");d.id="svd";d.addEventListener("cancel",function(e){if(BUSY)e.preventDefault()});document.body.appendChild(d)}return d}
+function show(h){var d=box();d.innerHTML='<div class="sb">'+h+'</div>';if(!d.open)d.showModal()}
+function sum(kind){try{if(kind=="mr"&&MRE)return[MRE.equip,MRE.op,MRE.kind].filter(Boolean).join(" · ");if(kind=="po"&&PE)return[PE.no,PE.supplier,"₱"+poTotal(PE.items||[]).toLocaleString()].filter(Boolean).join(" · ")}catch(e){}return""}
+function saving(label,s){show('<div class="sr"></div><h3>Saving '+label+'…</h3><p>Please wait — do not close or refresh this page.</p>'+(s?'<div class="sm">'+E(s)+'</div>':"")+'<div class="bar"><i></i></div>')}
+function waitSaved(){return new Promise(function(res,rej){var t0=Date.now();
+ Promise.all([window.__poQ?window.__poQ():null,window.__mrQ?window.__mrQ():null]).then(function(r){var bad=r.filter(function(x){return x&&x.ok===false})[0];if(bad)return rej(new Error(bad.err||"Could not save"));
+  var poll=function(){try{if(typeof dirty!="undefined"&&typeof busy!="undefined"){var st=(document.getElementById("sync")||{}).textContent||"";if(/failed/i.test(st))return rej(new Error("The server did not accept the save. Check your connection and try again."));if(!dirty&&!busy&&Date.now()-t0>400)return res();if(Date.now()-t0>30000)return rej(new Error("It is taking too long. Check your connection, then try again."));return setTimeout(poll,200)}}catch(e){}setTimeout(res,600)};poll()},rej)})}
+function inl(d,m){var o=document.getElementById("svmsg");if(o)o.remove();if(!m)return;var x=document.createElement("div");x.id="svmsg";x.textContent=m;var h=d.firstElementChild;if(h&&h.nextSibling)d.insertBefore(x,h.nextSibling);else d.appendChild(x);setTimeout(function(){try{d.addEventListener("input",function f(){x.remove();d.removeEventListener("input",f)})}catch(e){}},0)}
+function guard(kind,id,label,get,set){var o=get();set(function(){var d=document.getElementById(id),pr=arguments[0];
+ if(!d||!d.open||BUSY||(kind=="po"&&pr))return o.apply(this,arguments);
+ var self=this,a=arguments,msgs=[],t0=toast,s0=sum(kind);toast=function(m){msgs.push(String(m))};var r;try{r=o.apply(self,a)}finally{toast=t0}
+ var mm=document.getElementById("mrmsg"),inlineBad=kind=="mr"&&mm&&mm.style.display!="none"&&!mm.classList.contains("ok");
+ if(d.open&&(msgs.length||inlineBad)){if(msgs.length&&!inlineBad)inl(d,msgs.join(" "));else if(msgs.length)msgs.forEach(function(m){t0(m)});return r}
+ BUSY=true;saving(label,s0);
+ var fail=function(e){BUSY=false;var m=(e&&e.message)||String(e);show('<div class="ck bad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div><h3>Not saved yet</h3><p>'+E(m)+'</p><div class="sm">'+E(s0)+'</div><div class="sa"><button type="button" class="s2" id="svk">Back to the form</button><button type="button" class="s1" id="svr">Try again</button></div>');
+  document.getElementById("svk").onclick=function(){box().close();var f=document.getElementById(id);if(f&&!f.open)f.showModal()};
+  document.getElementById("svr").onclick=function(){box().close();var f=document.getElementById(id);if(f&&!f.open)f.showModal();setTimeout(function(){window[kind=="mr"?"mrSave":"poSave"]()},50)}};
+ var ok=function(){show('<div class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div><h3>Saved ✔</h3><p>'+E(s0)+'</p>');setTimeout(function(){BUSY=false;try{box().close()}catch(e){}t0(label+" saved ✔")},900)};
+ var t1=Date.now(),go=function(){waitSaved().then(ok,fail)},wc=function(){if(!d.open)return go();if(Date.now()-t1>10000)return fail(new Error("Could not finish saving. Try again."));setTimeout(wc,80)};wc();
+ return r})}
+guard("mr","mrd","maintenance record",function(){return mrSave},function(f){mrSave=f});
+guard("po","podlg","purchase order",function(){return poSave},function(f){poSave=f});
+})();
+</script>
 </body>
 </html>
