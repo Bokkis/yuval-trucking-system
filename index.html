@@ -4675,6 +4675,42 @@ var sv=mrSave;mrSave=function(){var d=document.getElementById("mrd");if(MRM===nu
 var dl=mrDel;mrDel=function(id){var r=dl.apply(this,arguments);return r};
 })();
 </script>
+<script>
+/* Maintenance Records: own Supabase table (maintenance_records). Falls back to the old storage until the table exists. Old data is copied, never removed. */
+(function(){
+if(typeof SB=="undefined"||!SB||typeof SB.from!="function")return;
+var TBL="maintenance_records",COLS="id,equip,operator,site,kind,record_date,media_images,media_videos,thumb,deleted,deleted_at",ST="idle",CACHE=[],T0=0,PEND=null,MIG=false,ERR="",RF=0,
+ L1=mrL,S1=mrS,V1=mrView,O1=mrOpen,SV1=mrSave;
+function toRec(r){var o={id:r.id,equip:r.equip||"",op:r.operator||"",site:r.site||"",kind:r.kind||"",date:r.record_date||"",mi:+r.media_images||0,mv:+r.media_videos||0,th:r.thumb||""};if(r.deleted){o.del=1;o.delAt=r.deleted_at||""}return o}
+function toRow(o,media){var r={id:String(o.id),equip:o.equip||"",operator:o.op||"",site:o.site||"",kind:o.kind||"",record_date:o.date||null,media_images:+o.mi||0,media_videos:+o.mv||0,thumb:o.th||"",deleted:!!o.del,deleted_at:o.del?(o.delAt||new Date().toISOString()):null,updated_at:new Date().toISOString()};if(media)r.media=media;return r}
+function sig(o){var r=toRow(o);delete r.updated_at;delete r.deleted_at;return JSON.stringify(r)}
+async function pull(){var all=[],from=0;for(;;){var x=await SB.from(TBL).select(COLS).order("record_date",{ascending:false}).range(from,from+999);if(x.error)throw x.error;var d=x.data||[];all=all.concat(d);if(d.length<1000)break;from+=1000}
+ MIG=all.some(function(r){return r.id=="__migrated__"});CACHE=all.filter(function(r){return String(r.id).indexOf("__")!=0}).map(toRec);T0=Date.now()}
+async function migrate(){var old=[];try{old=L1()}catch(e){}if(!Array.isArray(old))old=[];var have={};CACHE.forEach(function(r){have[r.id]=1});
+ var miss=old.filter(function(r){return r&&r.id&&!have[r.id]});
+ for(var i=0;i<miss.length;i++){var r=miss[i],media=null;
+  if(r.mi||r.mv){try{var m=db["mm_"+r.id];if(m===undefined){var x=await SB.from("app_settings").select("value").eq("key","mm_"+r.id).maybeSingle();m=x&&x.data&&x.data.value}if(m)media=JSON.parse(m)}catch(e){}}
+  var row=toRow(r,media||[]),u=await SB.from(TBL).upsert(row);if(u.error)throw u.error;CACHE.push(toRec(row))}}
+async function init(){try{await pull();if(!MIG){await migrate();var u=await SB.from(TBL).upsert({id:"__migrated__",equip:"",operator:"",site:"",kind:"migration marker",deleted:true,updated_at:new Date().toISOString()});if(u.error)throw u.error}ST="on"}catch(e){ST="off";ERR=(e&&e.message)||String(e)}}
+mrL=function(){return ST=="on"?CACHE.map(function(r){return Object.assign({},r)}):L1()};
+mrS=function(a){if(ST!="on")return S1(a);
+ var old={};CACHE.forEach(function(r){old[r.id]=sig(r)});var ids={},A=[],B=[],del=[],pm=PEND;
+ a.forEach(function(r){ids[r.id]=1;if(pm&&pm.id==r.id){B.push(toRow(r,pm.media));try{delete db["mm_"+r.id];delete ssn["mm_"+r.id]}catch(e){}}else if(old[r.id]!==sig(r))A.push(toRow(r))});
+ if(pm&&ids[pm.id])PEND=null;
+ CACHE.forEach(function(r){if(!ids[r.id])del.push(r.id)});CACHE=a.map(function(r){return Object.assign({},r)});
+ (async function(){try{if(A.length){var u=await SB.from(TBL).upsert(A);if(u.error)throw u.error}if(B.length){var u2=await SB.from(TBL).upsert(B);if(u2.error)throw u2.error}if(del.length){var d=await SB.from(TBL).delete().in("id",del);if(d.error)throw d.error}}
+  catch(e){try{toast("Maintenance table could not save: "+((e&&e.message)||e)+" — a backup copy was kept")}catch(x){}try{S1(a)}catch(x){}}})()};
+mrSave=function(){if(ST=="on"&&MRE)PEND={id:MRE.id,media:(MRM||[])};return SV1.apply(this,arguments)};
+mrOpen=function(id){if(ST!="on"||!id)return O1.apply(this,arguments);var r=CACHE.find(function(x){return x.id==id});if(!r||!(r.mi||r.mv))return O1.apply(this,arguments);
+ SB.from(TBL).select("media").eq("id",id).maybeSingle().then(function(x){var m=x&&x.data&&x.data.media;if(m&&m.length){var s=JSON.stringify(m);db["mm_"+id]=s;ssn["mm_"+id]=s}O1(id)}).catch(function(){O1(id)})};
+mrView=function(){if(ST=="idle"){ST="loading";document.getElementById("view").innerHTML='<div style="padding:30px;color:var(--mu)">Loading maintenance records…</div>';init().then(function(){if(cur=="mrec")mrView()});return}
+ if(ST=="loading")return;
+ var r=V1.apply(this,arguments);
+ try{if(ST=="off"){var m=/relation|does not exist|schema cache|could not find|not find the table/i.test(ERR);document.getElementById("view").insertAdjacentHTML("afterbegin",'<div style="margin-bottom:12px;padding:10px 14px;border:1px solid #f59e0b66;background:#f59e0b14;border-radius:10px;font-size:13px">'+(m?'<b>Maintenance has no table of its own yet.</b> Run <code>maintenance-table.sql</code> once in Supabase (SQL Editor), then refresh this page. Until then your records stay safe in the old storage and nothing is lost.':'<b>Could not reach the Maintenance table.</b> <span style="opacity:.8">'+String(ERR).replace(/</g,"&lt;").slice(0,160)+'</span> Records are kept in the old storage meanwhile.')+'</div>')}
+  else if(ST=="on"&&!RF&&Date.now()-T0>30000){RF=1;T0=Date.now();pull().catch(function(){}).then(function(){RF=0;var d=document.getElementById("mrd");if(cur=="mrec"&&!(d&&d.open))mrView()})}}catch(e){}
+ return r};
+})();
+</script>
 <style>
 #mrx{border:1px solid var(--bd);border-radius:18px;background:var(--card);color:var(--tx);padding:0;width:min(440px,94vw);box-shadow:0 30px 80px #000a}
 #mrx::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
