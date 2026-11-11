@@ -4562,5 +4562,78 @@ window.syncFleet=function(){var min=dstr(1);(db.fleet||[]).forEach(function(f){
  if(po&&f.status!="Pulled out"&&f.status!="Maintenance"&&f.status!="Breakdown")f.status="Pulled out"})};
 })();
 </script>
+<style>
+#mdb .dtn{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding-top:12px;margin-top:2px;border-top:1px dashed var(--bd)}
+#mdb .dts{display:inline-flex;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+#mdb .dts button{border:0!important;border-radius:0!important;background:var(--bg)!important;color:var(--mu)!important;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer;margin:0!important}
+#mdb .dts button.on{background:#f59e0b!important;color:#111!important}
+#mdb .dtp{display:inline-flex;align-items:stretch;gap:6px}
+#mdb .dtp>i{align-self:center;font-style:normal;color:var(--mu);font-size:18px}
+#mdb .dta{width:40px;border:1px solid var(--bd)!important;border-radius:10px!important;background:var(--bg)!important;color:var(--tx)!important;font-size:22px;line-height:1;cursor:pointer;padding:0!important;margin:0!important;transition:.15s}
+#mdb .dta:hover:not(:disabled){border-color:#f59e0b!important;color:#f59e0b!important;transform:translateY(-1px)}
+#mdb .dta:disabled{opacity:.3;cursor:not-allowed}
+#mdb .dtl{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:176px;padding:6px 16px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);cursor:pointer;transition:.15s;margin:0}
+#mdb .dtl.dr{min-width:130px}
+#mdb .dtl:hover{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+#mdb .dtl b{font-size:15px;display:block}
+#mdb .dtl small{font-size:11px!important;color:var(--mu);margin:0;text-transform:uppercase;letter-spacing:.05em}
+#mdb .dtl input{position:absolute;inset:0;width:100%!important;height:100%;opacity:0;cursor:pointer;padding:0!important;border:0!important;margin:0!important}
+#mdb .dtq{display:flex;gap:6px;flex-wrap:wrap}
+#mdb .dtq button{border:1px solid var(--bd)!important;background:var(--bg)!important;color:var(--tx)!important;border-radius:99px!important;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;margin:0!important;transition:.15s}
+#mdb .dtq button:hover{border-color:#f59e0b!important}
+#mdb .dtq button.on{background:#f59e0b!important;color:#111!important;border-color:#f59e0b!important}
+#mdb .rgd{display:flex;gap:6px;overflow-x:auto;padding:0 16px 12px}
+#mdb .rgd button{flex:0 0 auto;min-width:64px;border:1px solid var(--bd)!important;background:var(--bg)!important;color:var(--tx)!important;border-radius:10px!important;padding:6px 8px;cursor:pointer;text-align:center;margin:0!important;transition:.15s}
+#mdb .rgd button:hover{border-color:#f59e0b!important;transform:translateY(-2px)}
+#mdb .rgd button small{display:block;font-size:10.5px;color:var(--mu);text-transform:uppercase}
+#mdb .rgd button b{display:block;font-size:14px}
+#mdb .rgd button.z b{color:var(--mu);font-weight:500}
+#mdb .rgh{padding:0 16px 6px;color:var(--mu);font-size:12px}
+@media(max-width:640px){#mdb .dtl{min-width:0;flex:1}#mdb .dtp{width:100%}}
+</style>
+<script>
+(function(){
+var DR=null;
+function pad(n){return String(n).padStart(2,"0")}
+function ds(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function pd(s){return new Date(s+"T12:00:00")}
+function add(s,n){var d=pd(s);d.setDate(d.getDate()+n);return ds(d)}
+function mon(s){return add(s,-((pd(s).getDay()+6)%7))}
+function fmt(s,o){return pd(s).toLocaleDateString("en-PH",o||{weekday:"short",month:"short",day:"numeric",year:"numeric"})}
+function R2(x){return Math.round(x*100)/100}
+function E(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function hh(a){var h=0;try{h=sessHrs(a)}catch(e){}return h>0?h:(+a.hrs||0)}
+function span(){return Math.round((pd(DR.to)-pd(DR.from))/864e5)+1}
+window.dnMode=function(m){var td=ltoday();if(m=="range"){if(!DR)DR={from:mon(td),to:td}}else DR=null;table()};
+window.dnDay=function(v){if(!v)return;if(v>ltoday())v=ltoday();DR=null;depSet(v)};
+window.dnPrev=function(){dnStep(-1)};window.dnNext=function(){dnStep(1)};
+function dnStep(k){var td=ltoday();if(DR){var n=span(),f,t,fd=pd(DR.from);if(pd(DR.from).getDay()==1&&n<=7){f=add(DR.from,7*k);t=add(f,6)}else if(fd.getDate()==1){var m=new Date(fd.getFullYear(),fd.getMonth()+k,1,12);f=ds(m);t=ds(new Date(m.getFullYear(),m.getMonth()+1,0,12))}else{f=add(DR.from,k*n);t=add(DR.to,k*n)}if(f>td){return}if(t>td)t=td;DR={from:f,to:t};table()}else{var c=mday(),x=add(c,k);if(x>td)return;depSet(x)}}
+window.dnFrom=function(v){if(!v||!DR)return;if(v>ltoday())v=ltoday();DR.from=v;if(DR.to<v)DR.to=v;table()};
+window.dnTo=function(v){if(!v||!DR)return;if(v>ltoday())v=ltoday();DR.to=v;if(DR.from>v)DR.from=v;table()};
+window.dnJump=function(d){DR=null;depSet(d)};
+window.dnPre=function(k){var td=ltoday();if(k=="t"){DR=null;depSet("")}else if(k=="y"){DR=null;depSet(add(td,-1))}else if(k=="w")DR={from:mon(td),to:td};else if(k=="l")DR={from:add(mon(td),-7),to:add(mon(td),-1)};else if(k=="m")DR={from:td.slice(0,8)+"01",to:td};table()};
+function actv(k){var td=ltoday(),c=mday();if(k=="t")return!DR&&c==td;if(k=="y")return!DR&&c==add(td,-1);if(!DR)return false;if(k=="w")return DR.from==mon(td)&&DR.to==td;if(k=="l")return DR.from==add(mon(td),-7)&&DR.to==add(mon(td),-1);if(k=="m")return DR.from==td.slice(0,8)+"01"&&DR.to==td;return false}
+function nav(){var td=ltoday(),c=mday(),h='<div class="dtn"><div class="dts"><button type="button" class="'+(DR?"":"on")+'" onclick="dnMode(\'day\')">Day</button><button type="button" class="'+(DR?"on":"")+'" onclick="dnMode(\'range\')">Date range</button></div>';
+ if(!DR)h+='<div class="dtp"><button type="button" class="dta" title="Previous day" onclick="dnPrev()">\u2039</button><label class="dtl"><small>'+(c==td?"Today":c==add(td,-1)?"Yesterday":"Date")+'</small><b>'+fmt(c)+'</b><input type="date" value="'+c+'" max="'+td+'" onclick="try{this.showPicker()}catch(e){}" onchange="dnDay(this.value)"></label><button type="button" class="dta" title="Next day" onclick="dnNext()"'+(c>=td?" disabled":"")+'>\u203A</button></div>';
+ else h+='<div class="dtp"><button type="button" class="dta" title="Previous period" onclick="dnPrev()">\u2039</button><label class="dtl dr"><small>From</small><b>'+fmt(DR.from,{weekday:"short",month:"short",day:"numeric"})+'</b><input type="date" value="'+DR.from+'" max="'+td+'" onclick="try{this.showPicker()}catch(e){}" onchange="dnFrom(this.value)"></label><i>\u2192</i><label class="dtl dr"><small>To</small><b>'+fmt(DR.to,{weekday:"short",month:"short",day:"numeric"})+'</b><input type="date" value="'+DR.to+'" max="'+td+'" onclick="try{this.showPicker()}catch(e){}" onchange="dnTo(this.value)"></label><button type="button" class="dta" title="Next period" onclick="dnNext()"'+(DR.to>=td?" disabled":"")+'>\u203A</button></div>';
+ h+='<div class="dtq">'+[["t","Today"],["y","Yesterday"],["w","This week"],["l","Last week"],["m","This month"]].map(function(p){return'<button type="button" class="'+(actv(p[0])?"on":"")+'" onclick="dnPre(\''+p[0]+'\')">'+p[1]+'</button>'}).join("")+'</div></div>';return h}
+function rangeBody(mh){var from=DR.from,to=DR.to,s=mh.querySelectorAll("select"),dc=s[0]?s[0].value:"",dp=s[1]?s[1].value:"",dates=[],d=from;
+ while(d<=to&&dates.length<400){dates.push(d);d=add(d,1)}
+ var all=(window.__depData?window.__depData():[]).filter(function(r){return(!dc||r.client==dc)&&(!dp||String(r.e.id)==dp)});
+ var rows=all.map(function(r){var A=db.attendance.filter(function(a){return a.emp==r.e.id&&a.date>=from&&a.date<=to}),hr=0,ot=0,dy={};A.forEach(function(a){var h=hh(a);hr+=h;ot+=(+a.ot||0);if(h>0)dy[a.date]=1});
+  return{r:r,hr:R2(hr),ot:R2(ot),days:Object.keys(dy).length,mo:dates.filter(function(x){return monIs(r.e.id,x)}).length}});
+ var tot=rows.reduce(function(n,x){return n+x.hr},0),tot2=rows.reduce(function(n,x){return n+x.ot},0),mo=rows.reduce(function(n,x){return n+x.mo},0),cl={};rows.forEach(function(x){cl[x.r.client]=1});
+ var per=dates.slice(-31).map(function(x){var t=0;db.attendance.forEach(function(a){if(a.date==x&&all.some(function(r){return r.e.id==a.emp}))t+=hh(a)});return{d:x,t:R2(t)}});
+ var h='<div class="rgh">Showing '+dates.length+' day'+(dates.length>1?"s":"")+' \u00b7 click a day to open it</div><div class="rgd">'+per.map(function(p){return'<button type="button" class="'+(p.t?"":"z")+'" onclick="dnJump(\''+p.d+'\')"><small>'+fmt(p.d,{weekday:"short"})+'</small><b>'+fmt(p.d,{day:"numeric",month:"short"})+'</b><small>'+(p.t?p.t+" h":"\u2014")+'</small></button>'}).join("")+'</div>';
+ if(!rows.length)return h+'<div class="emp">No one to show for this filter.</div>';
+ h+='<div class="bk"><div><b>'+rows.length+'</b><span>deployed people</span></div><div><b>'+Object.keys(cl).length+'</b><span>clients</span></div><div><b>'+mo+'</b><span>monitored person-days</span></div><div><b>'+R2(tot)+' h</b><span>total hours</span></div><div><b>'+R2(tot2)+' h</b><span>overtime hours</span></div></div><div style="padding:0 16px 16px">';
+ var G={},ord=[];rows.forEach(function(x){var k=x.r.client+"|"+x.r.site;if(!G[k]){G[k]=[];ord.push(k)}G[k].push(x)});
+ ord.forEach(function(k){var L=G[k],r0=L[0].r,gh=R2(L.reduce(function(n,x){return n+x.hr},0)),go=R2(L.reduce(function(n,x){return n+x.ot},0));
+  h+='<div class="msg"><div class="msh gh"><div class="gt"><div><b>'+E(r0.client)+(r0.site!=r0.client?" \u00b7 "+E(r0.site):"")+'</b><small>'+L.length+' people \u00b7 '+gh+' h worked</small></div></div></div><div class="bw"><table><thead><tr><th>Name</th><th>Role</th><th>Unit</th><th>Days worked</th><th>Hours</th><th>OT hours</th><th>Monitored</th></tr></thead><tbody>'+L.map(function(x){return'<tr><td><b>'+E(x.r.e.name)+'</b></td><td>'+E(x.r.e.role)+'</td><td>'+E(x.r.f.plate||x.r.f.name)+'</td><td>'+x.days+' / '+dates.length+'</td><td class="hr'+(x.hr?"":" z")+'">'+x.hr+' h</td><td class="hr'+(x.ot?"":" z")+'">'+x.ot+' h</td><td>'+x.mo+' / '+dates.length+'</td></tr>'}).join("")+'<tr class="g"><td colspan="4">Total</td><td>'+gh+' h</td><td>'+go+' h</td><td></td></tr></tbody></table></div></div>'});
+ return h+'</div>'}
+var t1=table;table=function(){var r=t1.apply(this,arguments);if(cur=="depmon"){try{var mh=document.querySelector("#mdb .mh");if(mh&&!mh.querySelector(".dtn")){var i=mh.querySelector("input[type=date]");if(i)i.remove();[].slice.call(mh.querySelectorAll("button")).forEach(function(b){if(b.textContent.trim()=="Today")b.remove()});
+ if(DR){var sm=mh.querySelector("h3 small");if(sm)sm.textContent="Hours per person \u00b7 "+fmt(DR.from)+" \u2192 "+fmt(DR.to);while(mh.nextSibling)mh.parentNode.removeChild(mh.nextSibling);mh.insertAdjacentHTML("beforeend",nav());mh.parentNode.insertAdjacentHTML("beforeend",rangeBody(mh))}else mh.insertAdjacentHTML("beforeend",nav())}}catch(e){console.error(e)}}return r};
+})();
+</script>
 </body>
 </html>
