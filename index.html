@@ -4711,6 +4711,68 @@ mrView=function(){if(ST=="idle"){ST="loading";document.getElementById("view").in
  return r};
 })();
 </script>
+<script>
+/* Purchase Orders: own Supabase table (purchase_orders), one row per P.O., photos stored apart. Old data is copied, never removed. */
+(function(){
+if(typeof SB=="undefined"||!SB||typeof SB.from!="function")return;
+var TBL="purchase_orders",LC="id,po_no,po_date,supplier,material_for,total,data,thumb,img_count,deleted,deleted_at",ST="idle",CACHE=[],FULL={},T0=0,MIG=false,ERR="",RF=0,BIN=false,Q=Promise.resolve(),
+ L1=POL,S1=POS,V1=poView,O1=poOpen,SV1=poSave,P1=poPrint,F1=pofLoad,D1=poDel;
+function E(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function nid(i){return/^\d+$/.test(String(i))?+i:i}
+function tot(p){var t=0;try{t=poTotal(p.items||[])}catch(e){}return t}
+function toRec(r){var o=Object.assign({},r.data||{});o.id=nid(r.id);var n=+r.img_count||0;o.imgs=n?[r.thumb||""].concat(new Array(n-1).fill("")):[];if(r.deleted){o.del=1;o.delAt=r.deleted_at||""}return o}
+function core(o){var d=Object.assign({},o);delete d.imgs;delete d.del;delete d.delAt;delete d._f;return d}
+function row(o,wi,th){var r={id:String(o.id),po_no:String(o.no||""),po_date:o.date||null,supplier:String(o.supplier||""),material_for:String(o.mfor||""),total:tot(o),data:core(o),deleted:!!o.del,deleted_at:o.del?(o.delAt||new Date().toISOString()):null,updated_at:new Date().toISOString()};if(wi){r.imgs=o.imgs||[];r.img_count=(o.imgs||[]).length;r.thumb=th||""}return r}
+function cs(o){return JSON.stringify([core(o),!!o.del])}
+function is(o){return(o.imgs||[]).map(function(s){return String(s).length}).join(",")}
+function thumbP(u){return new Promise(function(res){if(!u||typeof mrThumb!="function")return res("");try{mrThumb(u,res)}catch(e){res("")}})}
+async function pull(){var all=[],from=0;for(;;){var x=await SB.from(TBL).select(LC).order("po_date",{ascending:false}).range(from,from+999);if(x.error)throw x.error;var d=x.data||[];all=all.concat(d);if(d.length<1000)break;from+=1000}
+ MIG=all.some(function(r){return r.id=="__migrated__"});CACHE=all.filter(function(r){return String(r.id).indexOf("__")!=0}).map(toRec);T0=Date.now()}
+async function migrate(){var old=[];try{old=L1()}catch(e){}if(!Array.isArray(old))old=[];var have={};CACHE.forEach(function(r){have[String(r.id)]=1});
+ var miss=old.filter(function(r){return r&&r.id!=null&&!have[String(r.id)]});
+ for(var i=0;i<miss.length;i++){var r=miss[i],th=await thumbP((r.imgs||[])[0]),w=row(r,true,th),u=await SB.from(TBL).upsert(w);if(u.error)throw u.error;CACHE.push(toRec({id:w.id,data:w.data,img_count:w.img_count,thumb:th,deleted:false}))}}
+async function init(){try{await pull();if(!MIG){await migrate();var u=await SB.from(TBL).upsert({id:"__migrated__",po_no:"",supplier:"migration marker",deleted:true,updated_at:new Date().toISOString()});if(u.error)throw u.error}ST="on"}catch(e){ST="off";ERR=(e&&e.message)||String(e)}}
+function ensureFull(id){return new Promise(function(res){var k=String(id),r=CACHE.find(function(x){return String(x.id)==k});if(ST!="on"||!r||FULL[k]||!(r.imgs||[]).length)return res(true);
+ SB.from(TBL).select("imgs").eq("id",k).maybeSingle().then(function(x){var m=x&&x.data&&x.data.imgs;if(m&&m.length){r.imgs=m;FULL[k]=1;res(true)}else res(false)}).catch(function(){res(false)})})}
+function commit(all){var old={},A=[],B=[],del=[],ids={};CACHE.forEach(function(r){old[String(r.id)]=r});
+ all.forEach(function(r){var k=String(r.id);ids[k]=1;var o=old[k],full=FULL[k]||!o,ic=full&&(!o||is(r)!==is(o));if(ic)B.push(r);else if(!o||cs(r)!==cs(o))A.push(r)});
+ CACHE.forEach(function(r){if(!ids[String(r.id)])del.push(String(r.id))});
+ CACHE=all.map(function(r){return Object.assign({},r)});
+ var job=async function(){if(A.length){var u=await SB.from(TBL).upsert(A.map(function(r){return row(r,false)}));if(u.error)throw u.error}
+  for(var i=0;i<B.length;i++){var th=await thumbP((B[i].imgs||[])[0]),u2=await SB.from(TBL).upsert(row(B[i],true,th));if(u2.error)throw u2.error;var c=CACHE.find(function(x){return String(x.id)==String(B[i].id)});if(c&&(B[i].imgs||[]).length){c.imgs=B[i].imgs}}
+  if(del.length){var d=await SB.from(TBL).delete().in("id",del);if(d.error)throw d.error}};
+ var tries=0,run=function(){return job().catch(function(e){tries++;if(tries<3)return new Promise(function(r){setTimeout(r,tries*4000)}).then(run);try{toast("Purchase orders could not save: "+((e&&e.message)||e)+". Do not refresh — press Save again.")}catch(x){}})};
+ Q=Q.then(run)}
+POL=function(){return ST=="on"?CACHE.filter(function(r){return!r.del}).map(function(r){return Object.assign({},r)}):L1()};
+POS=function(a){if(ST!="on")return S1(a);var ids={};a.forEach(function(r){ids[String(r.id)]=1});commit(a.concat(CACHE.filter(function(r){return!ids[String(r.id)]})))};
+poNext=function(){var y=(ltoday()||"").slice(0,4),n=0;(ST=="on"?CACHE:L1()).forEach(function(p){var m=String(p.no||"").match(/(\d+)\s*$/);if(m&&String(p.no).indexOf(y)>-1)n=Math.max(n,+m[1])});return"PO-"+y+"-"+String(n+1).padStart(3,"0")};
+poOpen=function(id){if(ST!="on"||!id)return O1.apply(this,arguments);var self=this,a=arguments;ensureFull(id).then(function(ok){if(ok)O1.apply(self,a);else toast("Could not load the photos of this P.O. — check your connection and try again")})};
+poSave=function(){if(ST=="on"&&PE)FULL[String(PE.id)]=1;return SV1.apply(this,arguments)};
+poPrint=function(id){if(ST!="on")return P1.apply(this,arguments);var a=arguments;ensureFull(id).then(function(ok){if(ok)P1.apply(null,a);else toast("Could not load the photos — try again")})};
+pofLoad=function(id){if(ST!="on"||!id)return F1.apply(this,arguments);var a=arguments;ensureFull(id).then(function(ok){if(ok)F1.apply(null,a);else toast("Could not load the photos — try again")})};
+var TR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>';
+function ask(r,forever,go){var d=document.getElementById("mrx");if(!d){d=document.createElement("dialog");d.id="mrx";d.addEventListener("click",function(e){if(e.target==d)d.close()});document.body.appendChild(d)}d.className="";
+ d.innerHTML='<div class="mxb"><div class="mxi">'+TR+'</div><h3>'+(forever?"Delete forever?":"Delete this purchase order?")+'</h3><p>'+(forever?"This removes the P.O. and its photos for good. It cannot be brought back.":"It moves to <b>Recently deleted</b> at the bottom of this page. Nothing is lost — you can restore it anytime.")+'</p><div class="mxs"><b>'+E(r.no||"—")+'</b><small>'+E(r.supplier||"no supplier")+' · '+E(r.date||"")+'</small><br><span>₱'+tot(r).toLocaleString()+(r.mfor?' · '+E(r.mfor):"")+'</span></div>'+(forever?'<input class="mxt" id="mxt" placeholder="type DELETE" autocomplete="off">':"")+'</div><div class="mxa"><button type="button" class="mxc" id="mxc">Cancel</button><button type="button" class="mxd" id="mxd"'+(forever?" disabled":"")+'>'+(forever?"Delete forever":"Delete")+'</button></div>';
+ document.getElementById("mxc").onclick=function(){d.close()};document.getElementById("mxd").onclick=function(){d.close();go()};
+ if(forever){var t=document.getElementById("mxt"),b=document.getElementById("mxd");t.oninput=function(){b.disabled=t.value.trim().toUpperCase()!="DELETE"};t.onkeydown=function(e){if(e.key=="Enter"&&!b.disabled)b.click()}}
+ if(!d.open)d.showModal();setTimeout(function(){try{(forever?document.getElementById("mxt"):document.getElementById("mxc")).focus()}catch(e){}},50)}
+poDel=function(id,fromDlg){if(ST!="on")return D1.apply(this,arguments);var r=CACHE.find(function(x){return String(x.id)==String(id)});if(!r)return;
+ ask(r,false,function(){var A=CACHE.map(function(c){return Object.assign({},c)});A.forEach(function(x){if(String(x.id)==String(id)){x.del=1;x.delAt=new Date().toISOString()}});commit(A);var d=document.getElementById("podlg");if(d&&d.open)d.close();toast("Moved to Recently deleted — you can restore it below");BIN=true;if(cur=="po")poView()})};
+window.poRestore=function(id){var A=CACHE.map(function(c){return Object.assign({},c)});A.forEach(function(x){if(String(x.id)==String(id)){delete x.del;delete x.delAt}});commit(A);toast("Purchase order restored ✔");if(cur=="po")poView()};
+window.poForever=function(id){var r=CACHE.find(function(x){return String(x.id)==String(id)});if(!r)return;ask(r,true,function(){commit(CACHE.filter(function(x){return String(x.id)!=String(id)}).map(function(c){return Object.assign({},c)}));toast("Deleted for good");if(cur=="po")poView()})};
+window.poBinTog=function(){BIN=!BIN;var b=document.getElementById("mrbin");if(b)b.classList.toggle("op",BIN)};
+window.poImport=function(){var i=document.createElement("input");i.type="file";i.accept=".json,application/json,text/plain";i.onchange=function(){var f=i.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var a=JSON.parse(rd.result);if(typeof a=="string")a=JSON.parse(a);if(!Array.isArray(a))throw 0;var all=CACHE.map(function(c){return Object.assign({},c)}),n=0;a.forEach(function(p){if(!p||p.id==null)return;if(all.some(function(x){return String(x.id)==String(p.id)||(p.no&&String(x.no)==String(p.no))}))return;FULL[String(p.id)]=1;all.push(p);n++});if(n)commit(all);toast(n?n+" purchase order(s) restored from the backup file ✔":"Nothing new in that file — everything is already here");if(cur=="po")poView()}catch(e){toast("That is not a valid backup file")}};rd.readAsText(f)};i.click()};
+poView=function(){if(ST=="idle"){ST="loading";document.getElementById("view").innerHTML='<div style="padding:30px;color:var(--mu)">Loading purchase orders…</div>';init().then(function(){if(cur=="po")poView()});return}
+ if(ST=="loading")return;
+ var r=V1.apply(this,arguments);
+ try{var v=document.getElementById("view");
+  if(ST=="off"){var m=/relation|does not exist|schema cache|could not find|not find the table/i.test(ERR);v.insertAdjacentHTML("afterbegin",'<div style="margin-bottom:12px;padding:10px 14px;border:1px solid #f59e0b66;background:#f59e0b14;border-radius:10px;font-size:13px">'+(m?'<b>Purchase orders have no table of their own yet.</b> Run <code>yuval-new-tables.sql</code> once in Supabase (SQL Editor), then refresh this page.':'<b>Could not reach the Purchase orders table.</b> <span style="opacity:.8">'+E(ERR).slice(0,160)+'</span>')+'</div>')}
+  else if(ST=="on"){var G=CACHE.filter(function(x){return x.del}).sort(function(a,b){return String(b.delAt||"").localeCompare(String(a.delAt||""))});
+   v.insertAdjacentHTML("beforeend",(G.length?'<div id="mrbin" class="'+(BIN?"op":"")+'"><button type="button" onclick="poBinTog()">'+TR.replace("<svg",'<svg width="16" height="16"')+' Recently deleted ('+G.length+')<i>▾</i></button><div class="bl">'+G.map(function(x,i){return'<div class="br" style="animation-delay:'+i*40+'ms"><div><b>'+E(x.no||"—")+' · '+E(x.supplier||"no supplier")+'</b><small>'+E(x.date||"")+' · ₱'+tot(x).toLocaleString()+'</small></div><button type="button" class="rs" onclick="poRestore(\''+x.id+'\')">Restore</button><button type="button" class="fv" onclick="poForever(\''+x.id+'\')">Delete forever</button></div>'}).join("")+'</div></div>':"")+'<div style="margin-top:14px;text-align:right"><a style="cursor:pointer;color:var(--mu);font-size:12px;text-decoration:underline" onclick="poImport()">Restore from a backup file…</a></div>');
+   if(!RF&&Date.now()-T0>30000){RF=1;T0=Date.now();pull().catch(function(){}).then(function(){RF=0;var d=document.getElementById("podlg");if(cur=="po"&&!(d&&d.open))poView()})}}}catch(e){console.error(e)}
+ return r};
+})();
+</script>
 <style>
 #mrx{border:1px solid var(--bd);border-radius:18px;background:var(--card);color:var(--tx);padding:0;width:min(440px,94vw);box-shadow:0 30px 80px #000a}
 #mrx::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
@@ -4772,5 +4834,6 @@ var V0=mrView;mrView=function(){var r=V0.apply(this,arguments);try{var G=L0().fi
  if(G.length){document.getElementById("view").insertAdjacentHTML("beforeend",'<div id="mrbin" class="'+(BIN?"op":"")+'"><button type="button" onclick="mrBinTog()">'+TRASH.replace("<svg",'<svg width="16" height="16"')+' Recently deleted ('+G.length+')<i>\u25BE</i></button><div class="bl">'+G.map(function(x,i){return'<div class="br" style="animation-delay:'+i*40+'ms"><div><b>'+E(x.equip||"\u2014")+'</b><small>'+E(x.date||"")+' \u00b7 '+E(x.kind||"")+'</small></div><button type="button" class="rs" onclick="mrRestore(\''+x.id+'\')">Restore</button><button type="button" class="fv" onclick="mrForever(\''+x.id+'\')">Delete forever</button></div>'}).join("")+'</div></div>')}}catch(e){console.error(e)}return r};
 })();
 </script>
+<style>#mrd textarea,.chdlg textarea{font:inherit!important;font-size:14.2px!important;color:var(--tx)!important;background:var(--bg)!important;line-height:1.45;min-height:84px;resize:vertical}#mrd textarea::placeholder{color:var(--mu);opacity:.8}</style>
 </body>
 </html>
