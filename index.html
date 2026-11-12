@@ -519,8 +519,8 @@ const net=r=>M.payroll.c[1](r);
 const ACK={"Not operating (paid)":"stby","Operating":"op","Half day":"half","Shop rate":"shop","Standby":"stby","Not operating":"off","Leave":"mnt","Maintenance":"mnt"};
 function badge(v){const g=["Available","Active","Approved","Done","Resolved","Returned","Contract","Operating","IN","VAT","Half day"],r=["Breakdown","Not operating","Reported","Cancelled","Inactive","Not resolved"],c=g.includes(v)?"ok":r.includes(v)?"bad":["Maintenance","OUT","Standby","Shop rate","Not operating (paid)","In process","Pending","Dispatched","In progress","Quotation","Rented","Scheduled","On leave","Leave"].includes(v)?"wa":"";return `<span class="b ${c}${ACK[v]?" ac-"+ACK[v]:""}">${v}</span>`}
 const GRP=[["dash","Dashboard",["dash"]],["ops","Fleet / Site Clients",["fleet","sites"]],["res","Rescue",["rescue"]],["ppl","People",["employees"]],["mon","Monitoring",["attendance"]],["pay","Payroll",["payroll"]],["bil","Documents",["docs","dtr"]],["exp","Parts & Stock",["inventory","stock","po"]]],GICON={mon:"attendance",pay:"payroll",dash:"dash",res:"rescue",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Monitoring",payroll:"Payroll",invoices:"Invoices",coll:"Collection",docs:"Quotations",dtr:"DTR Form",exp:"Purchase Order",inventory:"Parts inventory",stock:"Stock in / out",po:"Purchase orders",pof:"Purchase Order Form"};let GLAST={},ALDX="";
-function toggleRail(){document.body.classList.toggle("rail");try{localStorage.setItem("yuvalRail",document.body.classList.contains("rail")?"1":"0")}catch(e){}}
-try{if(localStorage.getItem("yuvalRail")=="1")document.body.classList.add("rail")}catch(e){}
+function toggleRail(){document.body.classList.add("rail");try{localStorage.setItem("yuvalRail",document.body.classList.contains("rail")?"1":"0")}catch(e){}}
+document.body.classList.add("rail");
 function nav(){const HIDE=["clients","rentals","maint","receipts","invoices","exp","coll"],keys=["dash",...Object.keys(M)].filter(k=>!HIDE.includes(k)&&(window.ROLE=="payroll"?k=="payroll":k!="payroll")),PR=window.ROLE=="payroll";document.body.classList.toggle("proly",PR);if(!keys.includes(cur))cur=keys[0];
  const gs=GRP.map(([id,l,ks])=>({id,l,ks:ks.filter(k=>keys.includes(k))})).filter(g=>g.ks.length),used=new Set(gs.flatMap(g=>g.ks)),more=keys.filter(k=>!used.has(k));
  const cg=gs.find(g=>g.ks.includes(cur));if(cg)GLAST[cg.id]=cur;
@@ -4962,5 +4962,27 @@ var pv=payView;payView=function(){var r=pv.apply(this,arguments);try{
 }catch(e){console.error(e)}return r};
 })();
 </script>
+<style>
+/* minimized sidebar: icon on top, small label under it */
+@media(min-width:901px){
+body.rail nav#nav{width:88px!important;padding:12px 8px 10px!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:none}
+body.rail nav#nav::-webkit-scrollbar{display:none}
+body.rail nav#nav .brand{flex-direction:column;align-items:center;gap:6px;padding:2px 0 10px!important;margin:0 0 8px!important}
+body.rail nav#nav .brand img{width:40px;height:40px}
+body.rail nav#nav a{flex-direction:column;justify-content:flex-start;align-items:center;gap:4px;padding:6px 2px 6px!important;margin:2px 0!important;border-radius:14px;text-align:center;background:none!important}
+body.rail nav#nav a:hover{background:#ffffff0a!important;transform:none!important}
+body.rail nav#nav a:hover i{transform:none!important;background:#ffffff1a}
+body.rail nav#nav a i{width:42px;height:32px;border-radius:12px}
+body.rail nav#nav a i svg{width:19px;height:19px}
+body.rail nav#nav a span{display:block!important;font-size:10.5px;line-height:1.15;font-weight:500;color:#b9afa4;max-width:100%;overflow:hidden;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+body.rail nav#nav a.on span{color:#fff;font-weight:700}
+body.rail nav#nav a.on::before{display:none!important}
+body.rail nav#nav a.on{box-shadow:none!important}
+body.rail nav#nav .rl{display:none!important}
+body.rail nav#nav a .nb{position:absolute;top:3px;right:14px;left:auto;width:9px;height:9px;min-width:0;padding:0;font-size:0;margin:0;border:2px solid #0b0908;box-sizing:content-box}
+body.rail nav#nav .nf{flex-direction:column;align-items:center;padding-top:10px;margin-top:6px}
+body.rail nav#nav .nf .lo{margin:0}
+}
+</style>
 </body>
 </html>
