@@ -3875,8 +3875,8 @@ tr.pgh.ok td{background:rgba(34,197,94,.15)!important;border-top-color:#22c55e!i
 <script>
 (function(){
 window.PSHOW0=false;
-var FIELD=["Operator","Driver","Helper"];
-var cp=calcPay;calcPay=function(){var R=cp.apply(this,arguments);if(PSHOW0)return R;return R.filter(function(r){return r.days>0||r.net!=0||(r.e.equip&&FIELD.indexOf(r.e.role)>-1)})};
+var FIELD=["Operator","Driver","Helper","Supervisor","Dispatcher","Trailer","Boom truck","Mechanic","Motorpool","Office","Welder","Painter","Security"];
+var cp=calcPay;calcPay=function(){var R=cp.apply(this,arguments);if(PSHOW0)return R;var sv=window.__sv;return R.filter(function(r){if(r.days>0||r.net!=0)return true;if(sv)return false;return (r.e.status!="Inactive"&&NOPAY.indexOf(r.e.role)<0)||(r.e.equip&&FIELD.indexOf(r.e.role)>-1)})};
 function pm(){try{return JSON.parse(db.paym||"{}")||{}}catch(e){return{}}}
 window.payMethodE=function(e){return pm()[e.id]||payMethod(e.role)};
 window.paymSet=function(id,v){var m=pm();if(v==payMethod((db.employees.find(function(x){return x.id==id})||{}).role))delete m[id];else m[id]=v;db.paym=JSON.stringify(m);save();payView();toast("Payment: "+v)};
@@ -3909,9 +3909,9 @@ function pp(){var tb=document.querySelector("table.ptb");if(!tb)return;
  if(!head.querySelector(".pvh")){var th=document.createElement("th");th.className="pvh np";th.textContent="Pay via";head.insertBefore(th,head.lastElementChild)}
  emp.forEach(function(x){if(x.r.querySelector(".pvc"))return;var e=db.employees.find(function(q){return q.id==x.id}),td=document.createElement("td");td.className="pvc np";var m=e?payMethodE(e):"Cash";td.innerHTML='<select onchange="paymSet('+x.id+',this.value)" style="padding:4px 6px;font-size:12px;font-weight:700;color:'+(m=="GCash"?"#3b82f6":"#22c55e")+'"><option'+(m=="Cash"?" selected":"")+'>Cash</option><option'+(m=="GCash"?" selected":"")+'>GCash</option></select>';x.r.insertBefore(td,x.r.lastElementChild)});
  /* group */
- if(!tb.querySelector("tr.pgh")){var un=emp.filter(function(x){return!x.ver}),vr=emp.filter(function(x){return x.ver}),anchor=emp[0].r,par=anchor.parentNode,after=emp[emp.length-1].r.nextSibling,mk=function(c,t){var tr=document.createElement("tr");tr.className="pgh "+c;tr.innerHTML='<td colspan="'+(n)+'">'+t+'</td>';return tr};
+ if(!tb.querySelector("tr.pgh")){var nn=function(x){var e=db.employees.find(function(q){return q.id==x.id});return !!e&&!empRecs(e,PF,PT).length},nr=emp.filter(nn),un=emp.filter(function(x){return!x.ver&&!nn(x)}),vr=emp.filter(function(x){return x.ver&&!nn(x)}),anchor=emp[0].r,par=anchor.parentNode,after=emp[emp.length-1].r.nextSibling,mk=function(c,t){var tr=document.createElement("tr");tr.className="pgh "+c;tr.innerHTML='<td colspan="'+(n)+'">'+t+'</td>';return tr};
   var frag=document.createDocumentFragment();if(un.length){frag.appendChild(mk("","⏳ Not verified yet · "+un.length+" — check these first"));un.forEach(function(x){frag.appendChild(x.r)})}
-  if(vr.length){frag.appendChild(mk("ok","✔ Verified · "+vr.length));vr.forEach(function(x){frag.appendChild(x.r)})}
+  if(vr.length){frag.appendChild(mk("ok","✔ Verified · "+vr.length));vr.forEach(function(x){frag.appendChild(x.r)})}if(nr.length){frag.appendChild(mk("nr","📭 No records this period · "+nr.length+" — log the days or add a remark"));nr.forEach(function(x){frag.appendChild(x.r)})}
   par.insertBefore(frag,after)}
  /* alert */
  var old=document.getElementById("palert");if(old)old.remove();
@@ -3926,7 +3926,7 @@ function pp(){var tb=document.querySelector("table.ptb");if(!tb)return;
  var v=document.getElementById("view"),fc=v&&v.querySelector(".card.np");if(v){if(fc&&fc.nextSibling)v.insertBefore(al,fc.nextSibling);else v.insertBefore(al,v.firstChild)}
  /* no-record toggle + site list from shown people */
  var rs=v&&v.querySelectorAll("select");var roleSel=[].filter.call(rs||[],function(s){return /All roles/.test(s.innerHTML)})[0];
- if(roleSel&&!document.getElementById("pshow0")){var w=document.createElement("div");w.innerHTML='<label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:12px;white-space:nowrap"><input type="checkbox" id="pshow0" '+(PSHOW0?"checked":"")+' onchange="PSHOW0=this.checked;payView()"> Show people with no records</label>';roleSel.parentNode.parentNode.appendChild(w.firstChild)}
+ if(roleSel&&!document.getElementById("pshow0")){var w=document.createElement("div");w.innerHTML='<label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:12px;white-space:nowrap"><input type="checkbox" id="pshow0" '+(PSHOW0?"checked":"")+' onchange="PSHOW0=this.checked;payView()"> Also show Inactive / non-payroll staff</label>';roleSel.parentNode.parentNode.appendChild(w.firstChild)}
  var siteSel=[].filter.call(rs||[],function(s){return /All sites/.test(s.innerHTML)})[0];if(siteSel){var shown={};calcPay(PF,PT,false).forEach(function(r){paySiteNames(r.e).forEach(function(n){shown[n]=1})});[].slice.call(siteSel.options).forEach(function(o){if(o.value&&!shown[o.value]&&o.value!=PSITE)o.remove()})}
  if(window.__rp)payRP(window.__rp)}
 var pv=payView;payView=function(){var sy=window.scrollY,vv=document.getElementById("view"),st=vv?vv.scrollTop:0,wr=document.querySelector(".pwrap"),wl=wr?wr.scrollLeft:0;var r=pv.apply(this,arguments);try{pp()}catch(e){console.error(e)}
@@ -3936,7 +3936,7 @@ var pv=payView;payView=function(){var sy=window.scrollY,vv=document.getElementBy
 
 <script>
 (function(){
-var FIELD=["Operator","Driver","Helper"],REM=["No operation — standby, no work","No operation — waiting for client / site","No operation — unit under maintenance / breakdown","On leave","Absent","Other (type below)"];
+var FIELD=["Operator","Driver","Helper","Supervisor","Dispatcher","Trailer","Boom truck","Mechanic","Motorpool","Office","Welder","Painter","Security"],REM=["No operation — standby, no work","No operation — waiting for client / site","No operation — unit under maintenance / breakdown","On leave","Absent","Other (type below)"];
 function rm(){try{return JSON.parse(db.payrem||"{}")||{}}catch(e){return{}}}
 function rk(id){return paKey()+"|"+id}
 window.payRemGet=function(id){return rm()[rk(id)]||null};
@@ -4073,12 +4073,12 @@ var os=opSet;opSet=function(fid,eid,on){var r=os.apply(this,arguments);try{if(on
 var om=opMove;opMove=function(fid,eid){var r=om.apply(this,arguments);try{fixRole(eid)}catch(e){}return r};
 var dg=deployGo;deployGo=function(fid){var ids=[].map.call(document.querySelectorAll("#dp_l input:checked"),function(i){return +i.value});var r=dg.apply(this,arguments);try{ids.forEach(fixRole);table()}catch(e){}return r};
 function lock(E){var f=(db.fleet||[]).find(function(x){return String(x.id)==String(E.equip.value)}),on=!!f&&LOCK.indexOf(E.role.value)>-1,n=document.getElementById("rolenote");
- E.role.style.pointerEvents=on?"none":"";E.role.style.opacity=on?".6":"";E.role.tabIndex=on?-1:0;if(n)n.textContent=on?"Role is automatic — set from the assigned unit.":""}
+ E.role.style.pointerEvents=on?"none":"";E.role.style.opacity=on?".6":"";E.role.tabIndex=on?-1:0;if(n)n.textContent=on?"Role is automatic — set from the assigned unit.":(LOCK.indexOf(E.role.value||"")>-1&&E.role.value!=""&&!E.equip.value?"Choose the role. For Operator / Driver / Boom truck / Trailer it is set automatically once a unit is assigned.":"")}
 function build(E){var s=E.equip;if(!s||s.getAttribute("data-ar"))return;s.setAttribute("data-ar","1");
  var f=(db.fleet||[]).find(function(x){return String(x.id)==String(s.value)});
- [].slice.call(s.options).forEach(function(o){if(!o.value)o.textContent="— none yet —"});
+ [].slice.call(s.options).forEach(function(o){if(!o.value)o.textContent="— none yet —"});if(![].some.call(s.options,function(o){return !o.value})){var bo=document.createElement("option");bo.value="";bo.textContent="— none yet —";s.insertBefore(bo,s.firstChild)}var cE=edit?(db.employees.find(function(x){return x.id==edit})||{}).equip:0;if(!cE)s.value="";
  s.style.pointerEvents="none";s.style.opacity=".6";s.tabIndex=-1;
- var n=document.createElement("small");n.style.cssText="display:block;color:var(--mu);font-size:11.5px;margin:3px 0 6px";n.textContent="Assigned automatically — set it in Fleet / Site Clients (click the unit’s Operator box or use ▶ Deploy).";s.insertAdjacentElement("afterend",n);
+ var n=document.createElement("small");n.style.cssText="display:block;color:var(--mu);font-size:11.5px;margin:3px 0 6px";n.textContent=cE?"Assigned automatically — change it in Fleet / Site Clients (click the unit’s Operator box or use ▶ Deploy).":"Leave blank. The unit is assigned later in Fleet / Site Clients (click an available unit’s Operator box or use ▶ Deploy).";s.insertAdjacentElement("afterend",n);
  var rn=document.createElement("small");rn.id="rolenote";rn.style.cssText="display:block;color:var(--mu);font-size:11.5px;margin:3px 0 6px";E.role.insertAdjacentElement("afterend",rn)}
 var ef=empFx;empFx=function(){ef.apply(this,arguments);try{var E=document.getElementById("frm").elements;if(E.equip&&E.role){build(E);lock(E)}}catch(e){console.error(e)}};
 })();
@@ -4946,6 +4946,20 @@ window.poZoom=function(src){var t=window.event&&window.event.target,list=[src],i
  if(row&&window.__poFull){var m=/poOpen\((\d+)\)/.exec(row.getAttribute("onclick")||"");if(m){L=[src];I=0;var d=dlg();render();if(!d.open)d.showModal();fitSz();window.__poFull(m[1]).then(function(a){if(a&&a.length&&d.open){L=a;render()}});return}}
  var root=t&&t.closest&&t.closest("#podlg,#mrd,.popg");if(root){var imgs=[].slice.call(root.querySelectorAll("img[onclick*='poZoom']")).map(function(i){return i.src});if(imgs.length){list=imgs;idx=Math.max(0,imgs.indexOf(src))}}
  L=list;I=idx;var d2=dlg();render();if(!d2.open)d2.showModal();fitSz()};
+})();
+</script>
+<style>
+tr.pgh.nr td{background:rgba(148,163,184,.16)!important;border-top-color:#94a3b8!important}
+.nrb{display:flex;gap:5px;flex-wrap:wrap}.nrb .s{padding:3px 8px!important;font-size:11.5px!important;white-space:nowrap}
+</style>
+<script>
+(function(){
+var sv0=slipsView;slipsView=function(){window.__sv=1;try{return sv0.apply(this,arguments)}finally{window.__sv=0}};
+var pv=payView;payView=function(){var r=pv.apply(this,arguments);try{
+ var tb=document.querySelector("table.ptb");if(!tb)return r;
+ [].slice.call(tb.querySelectorAll("tr")).forEach(function(tr){var m=/paVer\((\d+),/.exec(tr.innerHTML),c=tr.querySelector(".rmc");if(!m||!c||c.querySelector(".nrb"))return;var id=+m[1],e=db.employees.find(function(q){return q.id==id});if(!e||empRecs(e,PF,PT).length||(typeof payRemGet=="function"&&payRemGet(id)))return;
+  c.innerHTML='<div class="nrb"><button type="button" class="s g" onclick="payRP('+id+')">+ Log days</button><button type="button" class="s" onclick="payRP('+id+')">Add remark</button></div>'})
+}catch(e){console.error(e)}return r};
 })();
 </script>
 </body>
