@@ -1478,18 +1478,23 @@ function nowT(){return new Date().toLocaleTimeString([],{hour:"2-digit",minute:"
 function nice(d){return new Date(d+"T12:00:00").toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}
 function siteName(s){return s?(s.client||s.name):"No site"}
 function chip(c,t){return t?'<span class="'+c+'">'+t+'</span>':""}
+window.ybBk=function(f){var E=db.employees.filter(function(e){return e.equip==f.id}),ids=E.map(function(e){return e.id}),rem=[],cut=new Date(Date.now()-14*864e5-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  (db.rescue||[]).forEach(function(x){if(x.equip==f.id&&x.status!="Resolved"&&x.issue&&rem.indexOf(x.issue)<0)rem.push(x.issue)});
+  var A=(db.attendance||[]).filter(function(a){return ids.indexOf(a.emp)>-1&&a.why&&a.act!="Pull out"&&!/^pull ?out/i.test(a.why)&&String(a.date)>=cut}).sort(function(a,b){return String(a.date).localeCompare(String(b.date))});
+  if(A.length){var w=A[A.length-1].why;if(rem.indexOf(w)<0)rem.push(w)}
+  return{ops:E.map(function(e){return e.name}),rem:rem}};
 function dailyReport(){
  var td=ltoday(),D=liveData(),rows={};
  function R(n){return rows[n]=rows[n]||{n:n,op:0,half:0,shop:0,stand:0,off:0,none:0,mt:[],rs:0,rsn:[]}}
  D.sites.forEach(function(s){var r=R(s.name);s.on.concat(s.off,s.none).forEach(function(x){var a=x.a;if(!x.t)r.none++;else if(a=="Half day")r.half++;else if(a=="Shop rate")r.shop++;else if(a=="Standby")r.stand++;else if(a=="Not operating")r.off++;else r.op++})});
  var fs=function(f){var s=db.sites.find(function(x){return x.id==f.site});return siteName(s)};
- db.fleet.forEach(function(f){if(f.status=="Maintenance"||f.status=="Breakdown"){var r=R(fs(f));r.mt.push(f.name+(f.status=="Breakdown"?" (breakdown)":""))}});
+ db.fleet.forEach(function(f){if(f.status=="Maintenance"||f.status=="Breakdown"){var r=R(fs(f)),b=window.ybBk(f);r.mt.push(f.name+(f.status=="Breakdown"?" (breakdown)":" (maintenance)")+" \u2014 Operator: "+(b.ops.join(", ")||"none")+" \u2014 Remarks: "+(b.rem.join("; ")||"none"))}});
  var newR=0;(db.rescue||[]).forEach(function(x){if(x.status=="Resolved")return;var f=db.fleet.find(function(y){return y.id==x.equip}),r=R(f?fs(f):"No site");r.rs++;r.rsn.push((f?f.name:x.issue||"Incident")+(x.status?" ("+x.status+")":""));if(String(x.id).length>=13&&new Date(+x.id-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10)==td)newR++});
  var L=Object.keys(rows).map(function(k){return rows[k]}).filter(function(r){return r.op+r.half+r.shop+r.stand+r.off+r.none+r.mt.length+r.rs>0}).sort(function(a,b){return(b.op+b.half+b.shop+b.stand+b.off+b.none)-(a.op+a.half+a.shop+a.stand+a.off+a.none)});
  var T={op:0,half:0,shop:0,stand:0,off:0,none:0,mt:0,rs:0};L.forEach(function(r){for(var k in T)T[k]+=Array.isArray(r[k])?r[k].length:r[k]});
  var h='<h4>📋 Daily operator report</h4><div style="color:var(--mu);font-size:12px">'+nice(td)+'</div><div class="kp">'+chip("ok","✅ Operating "+(T.op+T.half))+chip("wa","⏸ Not operating "+(T.stand+T.off))+chip("in","🔧 Shop rate "+T.shop)+chip("wa","🛠 Maintenance "+T.mt)+chip("no","🚨 Rescue "+T.rs)+chip("no","📝 No record "+T.none)+'</div>';
  h+=L.map(function(r){var p=[];if(r.op)p.push("Operating <b>"+r.op+"</b>");if(r.half)p.push("Half day <b>"+r.half+"</b>");if(r.shop)p.push("Shop rate <b>"+r.shop+"</b>");if(r.stand)p.push("Standby <b>"+r.stand+"</b>");if(r.off)p.push("Not operating <b>"+r.off+"</b>");if(r.none)p.push("No record <b>"+r.none+"</b>");
-  return '<div class="st"><b class="sn">'+esc(r.n)+'</b>'+(p.length?p.join(" · "):"No operators")+(r.mt.length?'<div>🛠 Maintenance: '+esc(r.mt.join(", "))+'</div>':"")+(r.rs?'<div>🚨 Rescue: '+esc(r.rsn.join(", "))+'</div>':"")+'</div>'}).join("")||'<div class="st">No data for today yet.</div>';
+  return '<div class="st"><b class="sn">'+esc(r.n)+'</b>'+(p.length?p.join(" · "):"No operators")+(r.mt.length?r.mt.map(function(x){return '<div>🛠 '+esc(x)+'</div>'}).join(""):"")+(r.rs?'<div>🚨 Rescue: '+esc(r.rsn.join(", "))+'</div>':"")+'</div>'}).join("")||'<div class="st">No data for today yet.</div>';
  if(newR)h+='<div class="st">🚨 '+newR+' new rescue incident(s) reported today.</div>';
  return h+'<div class="bt"><button data-a="goAtt">Open monitoring</button><button data-a="copy">Copy</button></div>'}
 function pend(){return todoItems().filter(function(x){return x[3]!="pay"})}
@@ -1522,7 +1527,7 @@ function weeklyPay(){var r=payRange("last"),f=r[0],t=r[1],tot=0,days=0,list=[];
  list.sort(function(a,b){return b.s-a.s});
  return '<h4>💰 Weekly payroll report</h4><div style="color:var(--mu);font-size:12px">'+f+' to '+t+'</div><div class="kp">'+chip("in","Employees paid "+list.length)+chip("ok","Days "+Math.round(days*100)/100)+chip("wa","Total "+php(tot))+'</div>'+(list.slice(0,8).map(function(x){return '<div class="st"><b class="sn">'+esc(x.n)+'</b>'+esc(x.r||"")+" · "+x.d+" day(s) · "+php(x.s)+'</div>'}).join("")||'<div class="st">No attendance recorded for that week.</div>')+(list.length>8?'<div class="st">…and '+(list.length-8)+' more.</div>':"")+'<div class="bt"><button data-a="todo:pay">Open payroll</button></div>'}
 function rescueRep(){var o=(db.rescue||[]).filter(function(r){return r.status!="Resolved"});return '<h4>🛟 Rescue / incidents</h4>'+(o.length?o.map(function(r){var f=db.fleet.find(function(x){return x.id==r.equip});return '<div class="st"><b class="sn">'+esc(r.issue||"Incident")+'</b>'+esc((f?f.name:"")+(r.loc?" · "+r.loc:"")+" · "+(r.status||""))+'</div>'}).join(""):'<div class="st">✅ No open incidents.</div>')+'<div class="bt"><button data-a="todo:rescue">Open rescue</button></div>'}
-function mainRep(){var m=db.fleet.filter(function(f){return f.status=="Maintenance"||f.status=="Breakdown"});return '<h4>🛠 Maintenance</h4>'+(m.length?m.map(function(f){var s=db.sites.find(function(x){return x.id==f.site});return '<div class="st"><b class="sn">'+esc(f.name)+'</b>'+esc(f.status+(s?" · "+siteName(s):""))+'</div>'}).join(""):'<div class="st">✅ No units under maintenance.</div>')+'<div class="bt"><button data-a="todo:units">Open fleet</button></div>'}
+function mainRep(){var m=db.fleet.filter(function(f){return f.status=="Maintenance"||f.status=="Breakdown"});return '<h4>🛠 Maintenance</h4>'+(m.length?m.map(function(f){var s=db.sites.find(function(x){return x.id==f.site});var b=window.ybBk?window.ybBk(f):{ops:[],rem:[]};return '<div class="st"><b class="sn">'+esc(f.name)+'</b>'+esc(f.status+(s?" · "+siteName(s):""))+'<div>👷 Operator: '+esc(b.ops.join(", ")||"none")+'</div><div>📝 Remarks: '+esc(b.rem.join("; ")||"none")+'</div></div>'}).join(""):'<div class="st">✅ No units under maintenance.</div>')+'<div class="bt"><button data-a="todo:units">Open fleet</button></div>'}
 function add(html,me){msgs.push({h:html,me:!!me,t:nowT()});if(msgs.length>MAX)msgs.shift();ls(0,K,msgs);draw()}
 function draw(){var m=document.getElementById("ybM");if(!m)return;m.innerHTML=msgs.map(function(x){return '<div class="ybm'+(x.me?" me":"")+'">'+x.h+'<div class="ts">'+x.t+'</div></div>'}).join("");m.scrollTop=m.scrollHeight}
 function ybBadge(){var n=ready()?pend().reduce(function(s,x){return s+x[2]},0):0,b=document.getElementById("ybN");if(b){b.style.display=n?"grid":"none";b.textContent=n>99?"99+":n}}
@@ -2052,7 +2057,7 @@ main{padding:20px 24px}
   h+='<h3>2. Who is NOT working today</h3>'+tb(["Name","Machine","Reason"],off.map(function(r){return row([r.e.name,fl(r),(r.a||"Not operating")+(r.t&&r.t.why?" — "+r.t.why:"")])}),"Everyone has work today.");
   h+='<h3>3. No record yet (please update)</h3>'+tb(["Name","Machine","Site"],none.map(function(r){return row([r.e.name,fl(r),r.site])}),"Everyone has a record.");
   var mt=db.fleet.filter(function(f){return f.status=="Maintenance"||f.status=="Breakdown"});
-  h+='<h3>4. Machines under repair</h3>'+tb(["Machine","Problem"],mt.map(function(f){return row([f.name,f.status=="Breakdown"?"Broken down":"In maintenance"])}),"All machines are fine.");
+  h+='<h3>4. Machines under repair / broken down</h3>'+tb(["Machine","Status","Operator","Remarks"],mt.map(function(f){var b=window.ybBk?window.ybBk(f):{ops:[],rem:[]};return row([f.name,f.status=="Breakdown"?"Broken down":"In maintenance",b.ops.join(", ")||"\u2014",b.rem.join("; ")||"\u2014"])}),"All machines are fine.");
   var rs=(db.rescue||[]).filter(function(r){return r.status!="Resolved"});
   h+='<h3>5. Rescue / breakdown calls still open</h3>'+tb(["Machine","What happened","Status"],rs.map(function(r){var f=db.fleet.find(function(x){return x.id==r.equip});return row([f?f.name:"—",r.issue||"Incident",r.status||""])}),"No open rescue calls.");
   h+='<div class="sg"><div><span></span>Prepared by</div><div><span></span>Checked by</div><div><span></span>Approved by</div></div>';
