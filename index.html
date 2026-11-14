@@ -795,7 +795,7 @@ async function qPdf(){const src=document.querySelector(".paper"),q=db.quotes.fin
  const cl=src.cloneNode(true);cl.className="paper";cl.style.cssText="width:794px;max-width:none;margin:0;padding:34px 38px;border:0;border-radius:0;font-size:12.5px;line-height:1.5;color:#000;background:#fff";
  const live=src.querySelectorAll("input,textarea");
  cl.querySelectorAll("input,textarea").forEach((n,i)=>{const L=live[i],ta=n.tagName=="TEXTAREA";
-  if(!ta&&(L.getAttribute("oninput")||"").includes("'amount'")){const s=document.createElement("span");s.textContent=peso(+L.value);n.replaceWith(s);return}
+  if(!ta&&(L.getAttribute("oninput")||"").includes("'amount'")){const s=document.createElement("span");s.textContent=peso(+String(L.value).replace(/,/g,""));n.replaceWith(s);return}
   const s=document.createElement(ta?"div":"span");let v=L.value;
   if(L.type=="date"&&v)v=new Date(v+"T00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"}).replace(/ /g,"-");
   if(ta){s.style.cssText="margin-top:4px";v.split("\n").forEach(l=>{const d=document.createElement("div");d.textContent=l||"\u00a0";d.style.whiteSpace="pre-wrap";s.appendChild(d)})}else s.textContent=v;n.replaceWith(s)});
@@ -5162,6 +5162,75 @@ function qAsk(q){var d=document.getElementById("qbd");if(!d){d=document.createEl
  d.querySelector("#qb_d").onclick=function(){if(nw){db.quotes=db.quotes.filter(function(x){return x!==q})}else{var o=JSON.parse(SN);Object.keys(q).forEach(function(k){delete q[k]});Object.assign(q,o)}save();d.close();leave();toast(nw?"Quotation was not recorded":"Changes discarded")};
  d.showModal()}
 window.addEventListener("beforeunload",function(e){try{if(typeof QV!="undefined"&&QV&&unsaved(cq())){e.preventDefault();e.returnValue=""}}catch(x){}});
+})();</script>
+<style>.flh,.flr{grid-template-columns:minmax(150px,1.3fr) minmax(150px,1.4fr) minmax(120px,1fr) minmax(120px,1fr) 320px!important}.nocl .flh,.nocl .flr{grid-template-columns:minmax(150px,1.3fr) minmax(150px,1.4fr) minmax(120px,1fr) 320px!important}
+.flr .fa{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;justify-content:stretch;width:100%}
+.flr .fa>button{width:100%;min-height:40px;padding:8px 6px!important;font-size:13.5px!important;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin:0!important;order:1}
+.flr .fa>button.g,.flr .fa>button.d{order:2;font-weight:600}
+.flr .fa.one>button:not(.g):not(.d){grid-column:1/-1}
+@media(max-width:760px){.flr .fa{grid-template-columns:1fr 1fr;min-width:230px}}</style>
+<script>(function(){var t=table;table=window.table=function(){var r=t.apply(this,arguments);try{if(cur=="fleet")document.querySelectorAll(".flr .fa").forEach(function(a){var n=[].slice.call(a.children).filter(function(b){return b.offsetParent!==null&&!b.classList.contains("g")&&!b.classList.contains("d")}).length;a.classList.toggle("one",n<=1)})}catch(e){}return r}})();</script>
+<style>.flr .fa>button.d{display:none!important}.flr .fa>button.g{grid-column:1/-1}#dlg #dlgdel{margin-right:auto;background:transparent;color:#dc2626;border:1px solid #dc2626;font-weight:700}#dlg #dlgdel:hover{background:#dc2626;color:#fff}</style>
+<script>(function(){var o=open_;open_=window.open_=function(id){var r=o.apply(this,arguments);try{var old=document.getElementById("dlgdel");if(old)old.remove();if(cur=="fleet"&&id){var c=document.getElementById("cx");if(c){var b=document.createElement("button");b.type="button";b.id="dlgdel";b.className="d";b.textContent="\uD83D\uDDD1 Delete this unit";b.onclick=function(){document.getElementById("dlg").close();del(id)};c.parentNode.insertBefore(b,c)}}}catch(e){console.error(e)}return r}})();</script>
+<style>.flr .fa>button.dpb.go,.flr .fa>button.dpb.cg{display:none!important}#dlgact{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0;padding:12px;border-radius:12px;background:rgba(127,127,127,.1)}#dlgact b{width:100%;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}#dlgact button{flex:1 1 150px;min-height:44px;font-size:15px;font-weight:700}#dlgact .ca{background:#2563eb;color:#fff}#dlgact .cd2{background:#16a34a;color:#fff}</style>
+<script>(function(){var o=open_;open_=window.open_=function(id){var r=o.apply(this,arguments);try{var old=document.getElementById("dlgact");if(old)old.remove();if(cur=="fleet"&&id){var row=[].slice.call(document.querySelectorAll(".flr")).filter(function(x){return x.innerHTML.indexOf("open_("+id+")")>-1})[0];if(row){var bs=[].slice.call(row.querySelectorAll(".fa>button.dpb.cg,.fa>button.dpb.go"));if(bs.length){var box=document.createElement("div");box.id="dlgact";box.innerHTML="<b>Actions for this unit</b>";bs.forEach(function(x){var n=document.createElement("button");n.type="button";n.className=x.classList.contains("cg")?"ca":"cd2";n.textContent=x.textContent;n.onclick=function(){document.getElementById("dlg").close();x.click()};box.appendChild(n)});var f=document.getElementById("cx").parentNode;f.parentNode.insertBefore(box,f)}}}}catch(e){console.error(e)}return r}})();</script>
+<script>(function(){var qv=quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{qNum()}catch(e){console.error(e)}return r};
+function clean(v,max){v=String(v).replace(/[^0-9.]/g,"");var p=v.split(".");if(p.length>1)v=p[0]+"."+p.slice(1).join("");if(max!=null&&+v>max)v=String(max);return v}
+function qNum(){var P=document.querySelector(".paper");if(!P)return;
+ [].slice.call(P.querySelectorAll("input.qi")).forEach(function(el){var a=el.getAttribute("oninput")||"",m;
+  if(m=/^qItemSet\((\d+),'rateDesc'/.exec(a)){var i=+m[1];el.removeAttribute("oninput");el.type="text";el.setAttribute("inputmode","decimal");el.placeholder="Enter rate (numbers only)";
+   el.addEventListener("input",function(){var v=clean(el.value);if(v!==el.value)el.value=v;qItemSet(i,"rateDesc",v);qItemSet(i,"amount",v);var am=[].slice.call(P.querySelectorAll("input.qi")).filter(function(x){return(x.getAttribute("oninput")||"").indexOf("qItemSet("+i+",'amount'")==0})[0];if(am)am.value=+v||0})}
+  else if(/^qItemSet\(\d+,'tons'/.test(a)){var j=+/\((\d+)/.exec(a)[1];el.removeAttribute("oninput");el.type="text";el.setAttribute("inputmode","decimal");el.title="Up to 200 tons";el.addEventListener("input",function(){var v=clean(el.value,200);if(v!==el.value)el.value=v;qItemSet(j,"tons",v)})}
+  else if(/^qSet\('vat'/.test(a)){el.removeAttribute("oninput");el.type="text";el.setAttribute("inputmode","decimal");el.addEventListener("input",function(){var v=clean(el.value,100);if(v!==el.value)el.value=v;qSet("vat",v)})}
+  else if(/^qItemSet\(\d+,'amount'|^qMd\('mdAmt'/.test(a)){el.min=0}})}
+})();</script>
+<script>(function(){
+qStore=window.qStore=function(q,a){q.items=JSON.stringify(a);q.amount=a.reduce(function(s,x,i){return s+(+x.amount||0)+(i>0?(+x.mdAmt||0):0)},0)+(+q.mdAmt||0);q.equip=a[0].equip||"";q.tons=+a[0].tons||0;q.rateDesc=a[0].rateDesc||"";save();qCalc(q)};
+var dI=qDelItem;qDelItem=window.qDelItem=function(i){try{var q=db.quotes.find(function(x){return x.id==QV});if(q&&i==0){var a=qItems(q);if(a[1]){q.mdDesc=a[1].mdDesc||"";q.mdAmt=+a[1].mdAmt||0}}}catch(e){}return dI.apply(this,arguments)};
+var qv=quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{perMob()}catch(e){console.error(e)}return r};
+function clean(v){v=String(v).replace(/[^0-9.]/g,"");var p=v.split(".");return p.length>1?p[0]+"."+p.slice(1).join(""):v}
+function perMob(){var P=document.querySelector(".paper");if(!P)return;var q=db.quotes.find(function(x){return x.id==QV});if(!q)return;
+ var md=[].slice.call(P.querySelectorAll("input.qi")).filter(function(x){return(x.getAttribute("oninput")||"").indexOf("qMd('mdDesc'")==0})[0];if(!md)return;var mrow=md.closest("div[style*='justify-content']");if(!mrow)return;
+ var rates=[].slice.call(P.querySelectorAll('input[placeholder*="Enter rate"]'));if(!rates.length)return;var IT=qItems(q);
+ rates.forEach(function(rt,i){var rrow=rt.closest("div[style*='justify-content']");if(!rrow)return;
+  if(i==0){rrow.after(mrow);mrow.style.marginTop="8px";mrow.style.paddingRight=IT.length>1?"38px":"";return}
+  var it=IT[i]||{},row=document.createElement("div");row.setAttribute("style","display:flex;justify-content:space-between;align-items:center;margin-top:8px");
+  row.innerHTML='<div style="flex:1"><b>MOB/DEMOB:</b> <input class="qi" style="width:75%"></div><span><input class="qi" inputmode="decimal" style="width:120px;text-align:right"></span>';
+  var ins=row.querySelectorAll("input");ins[0].value=it.mdDesc||"";ins[1].value=it.mdAmt?(window.qFmt?window.qFmt(it.mdAmt):it.mdAmt):"";
+  ins[0].addEventListener("input",function(){qItemSet(i,"mdDesc",ins[0].value)});
+  ins[1].addEventListener("input",function(){var v=clean(ins[1].value);qItemSet(i,"mdAmt",v);ins[1].value=window.qFmt?window.qFmt(v):v});
+  row.style.paddingRight="38px";rrow.after(row)})}
+})();</script>
+<script>(function(){
+function raw(v){v=String(v).replace(/[^0-9.]/g,"");var p=v.split(".");return p.length>1?p[0]+"."+p.slice(1).join("").slice(0,2):v}
+window.qFmt=function(v){v=raw(v);var p=v.split("."),i=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");return p.length>1?i+"."+p[1]:i};
+var qv=quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{fmtAll()}catch(e){console.error(e)}return r};
+function setF(el){var v=el.value,f=window.qFmt(v);if(f!==v)el.value=f}
+function fmtAll(){var P=document.querySelector(".paper");if(!P)return;var all=[].slice.call(P.querySelectorAll("input.qi"));
+ all.forEach(function(el){var a=el.getAttribute("oninput")||"",m;
+  if(el.placeholder&&el.placeholder.indexOf("Enter rate")==0){if(/^[0-9.,]+$/.test(el.value))setF(el);el.addEventListener("input",function(){setF(el);var i=all.filter(function(x){return x.placeholder&&x.placeholder.indexOf("Enter rate")==0}).indexOf(el);var am=all.filter(function(x){return(x.dataset.am||"")=="a"+i})[0];if(am)am.value=window.qFmt(raw(el.value))})}
+  else if(m=/^qItemSet\((\d+),'amount'/.exec(a)){var i=+m[1];el.removeAttribute("oninput");el.setAttribute("oninput","/*'amount'*/");el.type="text";el.setAttribute("inputmode","decimal");el.dataset.am="a"+i;setF(el);el.addEventListener("input",function(){var v=raw(el.value);qItemSet(i,"amount",v);setF(el)})}
+  else if(/^qMd\('mdAmt'/.test(a)){el.removeAttribute("oninput");el.type="text";el.setAttribute("inputmode","decimal");setF(el);el.addEventListener("input",function(){var v=raw(el.value);qMd("mdAmt",v);setF(el)})}})}
+})();</script>
+<script>(function(){
+function raw(v){v=String(v).replace(/[^0-9.]/g,"");var p=v.split(".");return p.length>1?p[0]+"."+p.slice(1).join("").slice(0,2):v}
+var qv=quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{mobNum()}catch(e){console.error(e)}return r};
+function mobNum(){var P=document.querySelector(".paper");if(!P)return;
+ [].slice.call(P.querySelectorAll("b")).filter(function(b){return b.textContent.trim()=="MOB/DEMOB:"}).forEach(function(b,i){var row=b.parentElement&&b.parentElement.parentElement;if(!row)return;var ins=row.querySelectorAll("input");if(ins.length<2)return;
+  var l=ins[0].cloneNode(true);l.removeAttribute("oninput");ins[0].replaceWith(l);var rt=ins[1];
+  l.setAttribute("inputmode","decimal");l.placeholder="Enter MOB/DEMOB (numbers only)";if(/^[0-9.,]+$/.test(l.value))l.value=window.qFmt(l.value);
+  l.addEventListener("input",function(){var v=raw(l.value);l.value=window.qFmt(v);if(i==0){qMd("mdDesc",v);qMd("mdAmt",v)}else{qItemSet(i,"mdDesc",v);qItemSet(i,"mdAmt",v)}rt.value=window.qFmt(v)})})}
+})();</script>
+<script>(function(){
+function sums(q){var a=[];try{a=qItems(q)}catch(e){a=[]}var r=0,m=+q.mdAmt||0;a.forEach(function(x,i){r+=+x.amount||0;if(i>0)m+=+x.mdAmt||0});return{r:r,m:m}}
+function paint(){var q=db.quotes.find(function(x){return x.id==QV});if(!q)return;var s=sums(q),v=+q.vat||0,P=document.querySelector(".paper");if(!P)return;
+ var box=document.getElementById("qsum");
+ if(!box){var vr=document.getElementById("vr");if(!vr)return;box=document.createElement("div");box.id="qsum";box.style.cssText="margin-top:14px;padding-top:8px;border-top:2px solid #000";
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b>TOTAL RATE</b><b class="qtr"></b></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><b>TOTAL MOB/DEMOB</b><b class="qtm"></b></div>';vr.parentNode.insertBefore(box,vr)}
+ var sl0=document.getElementById("qsl"),vr0=document.getElementById("vr");if(sl0&&vr0&&vr0.nextElementSibling===sl0.parentNode){var sr=sl0.parentNode;sr.style.cssText+=";margin-top:6px;padding-top:6px;border-top:1px solid #999;display:flex;justify-content:space-between";vr0.parentNode.insertBefore(sr,vr0);vr0.style.marginTop="4px";var mc=vr0.nextElementSibling;if(mc)mc.style.marginTop="8px"}box.querySelector(".qtr").textContent=peso(s.r);box.querySelector(".qtm").textContent=peso(s.m);
+ var sl=document.getElementById("qsl");if(sl)sl.textContent="Subtotal amount (VAT EX)";document.querySelectorAll(".qs").forEach(function(e){e.textContent=peso(q.amount)})}
+var c0=qCalc;qCalc=window.qCalc=function(q){var r=c0.apply(this,arguments);try{paint()}catch(e){console.error(e)}return r};
+var qv=quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{paint()}catch(e){console.error(e)}return r};
 })();</script>
 </body>
 </html>
