@@ -5110,5 +5110,23 @@ function chPay(){
 if(typeof demoRole=="undefined"){window.demoRole=function(){var on=window.ROLE=="payroll";window.ROLE=on?"admin":"payroll";window.PNAME=on?"":"Payroll Officer";try{nav()}catch(e){}cur=on?"dash":"payroll";try{if(!on)SUPU=SUPU||"Payroll Officer"}catch(e){}go()}}
 </script>
 <style>.rhm,.rhp{display:none!important}</style>
+<style>
+.msh.gh .gs{gap:10px 12px}
+.mone{display:flex;flex-direction:column;gap:5px;min-width:190px;max-width:420px;padding:8px 14px;border-radius:14px;border:1px solid transparent}
+.mone.ok{background:#16a34a1c;border-color:#16a34a55}.mone.wa{background:#f59e0b1f;border-color:#f59e0b66}
+.mone b{font-size:15px;font-weight:800;font-family:inherit;display:block}.mone.ok b{color:#15803d}.mone.wa b{color:#b45309}
+.mone small{font-size:12.5px;color:var(--mu);line-height:1.3;display:block}
+.mone .mbar{display:block;height:6px;border-radius:9px;background:#00000018;overflow:hidden}.mone .mbar i{display:block;height:100%;border-radius:9px;background:#16a34a}.mone.wa .mbar i{background:#f59e0b}
+.mlist tr td:first-child{box-shadow:inset 5px 0 0 #f59e0b}.mlist tr.mdone td:first-child{box-shadow:inset 5px 0 0 #22c55e}.mlist tr.mpull td:first-child{box-shadow:inset 5px 0 0 #000}
+</style>
+<script>
+(function(){var t=table;table=window.table=function(){var r=t.apply(this,arguments);try{if(cur=="attendance")monOne()}catch(e){console.error(e)}return r};
+window.monOne=function(){var v=document.getElementById("view");if(!v)return;[].slice.call(v.querySelectorAll(".msg")).forEach(function(g){if(g.closest("#dsp"))return;var h=g.querySelector(".msh.gh");if(!h||h.dataset.one)return;var gs=h.querySelector(".gs");if(!gs)return;
+ var a=0,b=0,m;[].slice.call(gs.querySelectorAll(".gch")).forEach(function(c){var x=c.textContent.trim();if(m=/^Monitored (\d+) of (\d+)/.exec(x)){a=+m[1];b=+m[2]}});if(!b)return;h.dataset.one=1;
+ var names=[].slice.call(g.querySelectorAll("table.mlist tr:not(.mdone):not(.mpull)")).map(function(r){var e=r.querySelector("td b");return e?e.textContent:""}).filter(Boolean),done=a>=b,left=b-a,pc=Math.round(a/b*100);
+ var w=document.createElement("span");w.className="mone "+(done?"ok":"wa");w.innerHTML="<b>"+(done?"\u2714 All "+b+(b==1?" operator":" operators")+" done monitoring":a+" of "+b+" operators done monitoring")+"</b>"+(done?"":"<small>"+left+" not monitored yet"+(names.length?": "+names.slice(0,6).map(function(n){return n.replace(/</g,"&lt;")}).join(", ")+(names.length>6?" +"+(names.length-6)+" more":""):"")+"</small>")+'<span class="mbar"><i style="width:'+pc+'%"></i></span>';
+ var btn=gs.querySelector("button.chip"),tg=gs.querySelector(".gtg");gs.innerHTML="";gs.appendChild(w);if(btn)gs.appendChild(btn);if(tg)gs.appendChild(tg)})};
+})();
+</script>
 </body>
 </html>
