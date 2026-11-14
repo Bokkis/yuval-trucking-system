@@ -534,7 +534,7 @@ function nav(){const HIDE=["clients","rentals","maint","receipts","invoices","ex
  $("#tabs").innerHTML=gs.map(g=>`<a class="${g===cg?"on":""}" data-k="${tgt(g)}">${IC[GICON[g.id]||g.ks[0]]||""}<span>${g.l.split(" ")[0]}</span></a>`).join("");
  document.querySelectorAll("nav a[data-k], #sub a[data-k], #tabs a[data-k]").forEach(a=>a.onclick=()=>{cur=a.dataset.k;ASG="";$("#q").value="";FE=FF=FT="";AG=false;SK="";QV=null;ECAT="";FC="";ICAT="";PS=false;AST="";RV=false;RCT="";EXV="log";EST="";SEL.clear();document.body.classList.remove("menu");go()})}
 document.addEventListener("keydown",e=>{if(e.key=="/"&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||"")){const q=$("#q");if(q&&q.offsetParent){e.preventDefault();q.focus()}}});
-const OFFROLES=["Office","Accountant","Motorpool","Security","Welder","Painter","Dispatcher"],GARR=["Motorpool","Mechanic","Welder","Security","Painter","Helper"];
+const OFFROLES=["Office","Accountant","Motorpool","Security","Welder","Painter","Dispatcher","Mechanic"],GARR=["Motorpool","Mechanic","Welder","Security","Painter","Helper"];
 function liveData(){const td=ltoday(),S={},T={on:0,off:0,none:0};
  db.employees.filter(e=>e.status!="Inactive"&&isOpr(e)&&actEmp(e)).forEach(e=>{const L=db.attendance.filter(a=>a.emp==e.id&&a.date==td),t=L[L.length-1],ss=(t&&t.site&&db.sites.find(x=>x.name==t.site))||siteOf(e),nmS=ss?(ss.client||ss.name):((t&&t.site)||e.place||"No site assigned"),ky=ss?"s"+ss.id:nmS,a=t?(t.act||"Operating"):"",g=!t?"none":(a=="Operating"||a=="Half day"||a=="Shop rate")?"on":"off",o=S[ky]=S[ky]||{name:nmS,loc:ss?ss.name:"",co:ss?(ss.company||""):"",on:[],off:[],none:[]};o[g].push({e,t,a});T[g]++});
  return{sites:Object.values(S).sort((a,b)=>(b.on.length+b.off.length+b.none.length)-(a.on.length+a.off.length+a.none.length)||a.name.localeCompare(b.name)),T}}
@@ -4989,5 +4989,21 @@ body.rail nav#nav .nf{flex-direction:column;align-items:center;padding-top:10px;
 body.rail nav#nav .nf .lo{margin:0}
 }
 </style>
+<script>
+/* Re-assigned after a pull-out: the old "Pull out" mark must not stay on the person */
+(function(){
+var EQ=null,RX=/^pull ?out/i;
+function clear(id){var ch=0;(db.attendance||[]).forEach(function(a){if(a.emp==id&&a.act=="Not operating"&&RX.test(a.why||"")){a.why="Reassigned after pull out";ch=1}});return ch}
+function snap(){EQ={};db.employees.forEach(function(e){EQ[e.id]=e.equip||0});
+ /* one-time cleanup of people already re-assigned before this fix */
+ var ch=0;db.employees.forEach(function(e){if(!e.equip)return;var f=db.fleet.find(function(x){return x.id==e.equip});if(f&&f.status!="Pulled out"&&f.status!="Available")ch|=clear(e.id)});if(ch)try{save()}catch(x){}}
+function watch(){if(!db||!db.employees||!db.employees.length)return;if(!EQ){snap();return}
+ var ch=0;db.employees.forEach(function(e){var n=e.equip||0,o=EQ[e.id];if(o!==undefined&&n&&n!==o)ch|=clear(e.id);EQ[e.id]=n});return ch}
+function chk(){try{if(watch())save()}catch(e){}}
+var og=go;go=window.go=function(){chk();return og.apply(this,arguments)};
+var ot=table;table=window.table=function(){chk();return ot.apply(this,arguments)};
+var ol=liveData;liveData=window.liveData=function(){var D=ol.apply(this,arguments);try{D.sites.forEach(function(s){var keep=[];s.off.forEach(function(r){if(r.t&&/^reassigned after pull/i.test(r.t.why||"")){r.t=null;r.a="";s.none.push(r)}else keep.push(r)});s.off=keep})}catch(e){}return D};
+})();
+</script>
 </body>
 </html>
