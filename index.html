@@ -5262,5 +5262,22 @@ var pv=payView;payView=window.payView=function(){var r=pv.apply(this,arguments);
  var box=document.createElement("div");box.className="card np";box.style.cssText="margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center";box.innerHTML='<b>📋 Monitoring status</b><span style="color:#16a34a;font-weight:700">✔ '+full+' fully monitored</span><span style="color:'+(part?'#d97706':'var(--mu)')+';font-weight:700">⚠ '+part+' not fully monitored</span><span style="color:var(--mu)">'+none+' no records</span><span style="margin-left:auto;color:var(--mu);font-size:13px">📅 Payroll is released every <b style="display:inline;font-size:inherit">Tuesday</b> · this period: <b style="display:inline;font-size:inherit">'+paTueTxt()+'</b></span>';var w=T.closest(".pwrap");if(w)w.parentNode.insertBefore(box,w)}catch(x){console.error(x)}return r};
 var sn=paSlipNote;paSlipNote=window.paSlipNote=function(e){var r=sn.apply(this,arguments)||"";if(1)return r;try{var S=paStage(),s=monStat(e),ln='<div class="sv" style="margin:6px 0 2px;padding:7px 10px;border:1.5px solid '+(s.tot&&!s.left?'#16a34a':'#d97706')+';border-radius:6px;color:'+(s.tot&&!s.left?'#166534':'#92400e')+';font-size:12.5px"><b>Monitoring status:</b> '+(!s.tot?'no attendance records':(!s.left?'✔ Fully monitored ('+s.done+' of '+s.tot+' days)':'⚠ '+s.left+' of '+s.tot+' days not monitored'))+(S.rel?'':' · <b>Release date:</b> '+paTueTxt())+'</div>';return r+ln}catch(x){return r}};
 })();</script>
+<script>(function(){
+var T0=null;
+function clean(s){return String(s||"").replace(/[\\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim()}
+function nm(el){var d=el.querySelector(".sg div");return d?d.textContent.replace(/^\s*Employee:\s*/,"").trim():""}
+window.slipFileName=function(els){var per=PF+" to "+PT;if(els.length==1)return "Payslip - "+clean(nm(els[0]))+" - "+per;return "Payslips - "+els.length+" employees - "+per};
+slipsPdf=window.slipsPdf=async function(only){var els=only&&only.nodeType==1?[only]:[].slice.call(document.querySelectorAll(".slip"));if(!els.length)return;if(!window.html2canvas||!window.jspdf)return toast("PDF tools could not load. Check your internet connection.");toast("Preparing PDF...");
+ var box=document.createElement("div");box.style.cssText="position:fixed;left:-10000px;top:0;width:794px;background:#fff";els.forEach(function(e){var c=e.cloneNode(true);c.style.cssText="width:794px;max-width:none;margin:0;border:0;border-radius:0;padding:34px 38px";[].slice.call(c.querySelectorAll(".np")).forEach(function(x){x.remove()});box.appendChild(c)});document.body.appendChild(box);
+ try{var P=new window.jspdf.jsPDF({unit:"pt",format:"a4"}),pw=P.internal.pageSize.getWidth(),ph=P.internal.pageSize.getHeight(),m=20,first=true;
+  for(var i=0;i<box.children.length;i++){var c=box.children[i],cv=await html2canvas(c,{scale:2,backgroundColor:"#ffffff"}),iw=pw-2*m,ih=cv.height*iw/cv.width;if(ih>ph-2*m){iw=iw*(ph-2*m)/ih;ih=ph-2*m}if(!first)P.addPage();first=false;P.addImage(cv.toDataURL("image/jpeg",.95),"JPEG",(pw-iw)/2,m,iw,ih)}
+  var blob=P.output("blob"),name=window.slipFileName(els)+".pdf",dl=(typeof claude!="undefined"&&claude.use)?await claude.use("downloads"):null;
+  if(dl){await dl.save({filename:name,data:blob});toast("PDF ready: "+name)}else{var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast("PDF downloaded: "+name)}
+ }catch(e){if(!e||e.code!="declined")toast("Could not create PDF: "+((e&&e.message)||e))}
+ box.remove()};
+window.addEventListener("beforeprint",function(){try{var s=[].slice.call(document.querySelectorAll(".slip"));if(s.length){T0=document.title;document.title=window.slipFileName(s)}}catch(e){}});
+window.addEventListener("afterprint",function(){if(T0!==null){document.title=T0;T0=null}});
+var sv=slipsView;slipsView=window.slipsView=function(){var r=sv.apply(this,arguments);try{[].slice.call(document.querySelectorAll("#view .slip")).forEach(function(s){if(s.previousElementSibling&&s.previousElementSibling.classList.contains("slbar"))return;s.insertAdjacentHTML("beforebegin",'<div class="np slbar" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:14px 0 4px;color:var(--mu);font-size:13px"><span>'+nm(s).replace(/</g,"&lt;")+'</span><button class="g" style="padding:5px 12px;font-size:12.5px" onclick="slipsPdf(this.parentElement.nextElementSibling)">⬇ Save this PDF</button></div>')})}catch(e){console.error(e)}return r};
+})();</script>
 </body>
 </html>
