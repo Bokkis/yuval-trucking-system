@@ -5309,5 +5309,44 @@ if(typeof _c=="function"){chipify=window.chipify=function(){_c();var f=document.
  add("aout",["05:00","06:00"]);add("ain",["18:00","20:00"])}}
 })();
 </script>
+<style>
+.rcwx{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+#frm .rcb{padding:10px 14px;min-height:44px;border-radius:999px;border:2px solid #cbd5e1!important;background:#fff!important;color:#0f172a!important;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;width:auto}
+#frm .rcb.on{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+[data-theme=dark] #frm .rcb{background:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important}[data-theme=dark] #frm .rcb.on{background:#f59e0b!important;color:#111!important;border-color:#f59e0b!important}
+</style>
+<script>
+/* Clickable Activity + Reason buttons in the Monitoring form */
+(function(){
+var ACT=["Operating","Half day","Shop rate","Standby","Not operating","Not operating (paid)","Pull out","Leave"],
+WHY=["Rain / bad weather","No work / no schedule","Waiting for client / site not ready","Equipment breakdown","Under maintenance","Day off / holiday","Sick / absent","Other"];
+function mk(id,list,get,set){var d=document.createElement("div");d.id=id;d.className="rcwx";list.forEach(function(v){var b=document.createElement("button");b.type="button";b.className="rcb";b.textContent=v;b.onclick=function(){set(v);sync()};d.appendChild(b)});d._get=get;return d}
+function sync(){["rcact","rcwhy"].forEach(function(i){var d=document.getElementById(i);if(!d)return;var g=d._get();[].forEach.call(d.children,function(b){b.classList.toggle("on",b.textContent==g)})})}
+function build(){if(typeof cur=="undefined"||cur!="attendance")return;var f=document.getElementById("frm");if(!f||!f.elements.act||document.getElementById("rcact"))return;var E=f.elements;
+ var a=mk("rcact",ACT,function(){return E.act.value},function(v){E.act.value=v;E.act.dispatchEvent(new Event("change",{bubbles:true}))});
+ E.act.insertAdjacentElement("afterend",a);E.act.style.display="none";
+ if(E.why){var w=mk("rcwhy",WHY,function(){return E.why.value},function(v){E.why.value=v=="Other"?"":v;E.why.dispatchEvent(new Event("input",{bubbles:true}));if(v=="Other")E.why.focus()});
+  E.why.insertAdjacentElement("afterend",w);E.why.addEventListener("input",sync);
+  /* show Reason buttons only when Reason field is visible */
+  var vis=function(){w.style.display=E.why.style.display=="none"?"none":""};vis();E.act.addEventListener("change",function(){setTimeout(function(){vis();sync()},0)})}
+ sync()}
+var o=open_;open_=window.open_=function(){var r=o.apply(this,arguments);try{build()}catch(e){}return r};
+})();
+</script>
+<script>
+/* Messages (toast) must show INSIDE an open form, and Save errors must be visible */
+(function(){
+var t0=window.toast;
+function box(){var d=document.querySelector("dialog[open]");if(!d)return null;var b=d.querySelector("#dlgmsg");if(!b){b=document.createElement("div");b.id="dlgmsg";b.style.cssText="position:relative;margin:12px 0 0;padding:11px 14px;border-radius:10px;background:#dc2626;color:#fff;font-size:15px;font-weight:600;line-height:1.35;z-index:5";var f=d.querySelector("form")||d;f.appendChild(b)}return b}
+window.toast=toast=function(m){var b=null;try{b=box()}catch(e){}if(b&&typeof m=="string"&&m){b.textContent="⚠ "+m;b.style.display="";b.scrollIntoView({block:"nearest"});clearTimeout(b._t);b._t=setTimeout(function(){b.style.display="none"},5000);return}return t0.apply(this,arguments)};
+var sv=document.getElementById("sv");
+if(sv&&sv.onclick){var h=sv.onclick;sv.onclick=function(){var d=document.getElementById("dlgmsg");if(d)d.style.display="none";try{return h.apply(this,arguments)}catch(e){console.error(e);toast("Hindi na-save: "+(e&&e.message||e))}}}
+})();
+</script>
+<style>
+/* Save / Cancel always visible at the bottom of the form */
+#dlg{overflow:auto;max-height:92vh}
+#dlg #frm>div:has(>#sv){position:sticky;bottom:-1px;z-index:6;background:var(--card,#fff);padding:12px 0 8px;margin-top:10px!important;border-top:1px solid var(--bd,#e5e7eb)}
+</style>
 </body>
 </html>
