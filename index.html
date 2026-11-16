@@ -5339,8 +5339,8 @@ var o=open_;open_=window.open_=function(){var r=o.apply(this,arguments);try{buil
 var t0=window.toast;
 function box(){var d=document.querySelector("dialog[open]");if(!d)return null;var b=d.querySelector("#dlgmsg");if(!b){b=document.createElement("div");b.id="dlgmsg";b.style.cssText="position:relative;margin:12px 0 0;padding:11px 14px;border-radius:10px;background:#dc2626;color:#fff;font-size:15px;font-weight:600;line-height:1.35;z-index:5";var f=d.querySelector("form")||d;f.appendChild(b)}return b}
 window.toast=toast=function(m){var b=null;try{b=box()}catch(e){}if(b&&typeof m=="string"&&m){b.textContent="⚠ "+m;b.style.display="";b.scrollIntoView({block:"nearest"});clearTimeout(b._t);b._t=setTimeout(function(){b.style.display="none"},5000);return}return t0.apply(this,arguments)};
-var sv=document.getElementById("sv");
-if(sv&&sv.onclick){var h=sv.onclick;sv.onclick=function(){var d=document.getElementById("dlgmsg");if(d)d.style.display="none";try{return h.apply(this,arguments)}catch(e){console.error(e);toast("Hindi na-save: "+(e&&e.message||e))}}}
+var oo_=open_;open_=window.open_=function(){var r=oo_.apply(this,arguments);window.__fcur=cur;return r};var sv=document.getElementById("sv");
+if(sv&&sv.onclick){var h=sv.onclick;sv.onclick=function(){var d=document.getElementById("dlgmsg");if(d)d.style.display="none";try{if(window.__fcur&&cur!==window.__fcur)cur=window.__fcur;return h.apply(this,arguments)}catch(e){console.error(e);toast("Hindi na-save: "+(e&&e.message||e))}}}
 })();
 </script>
 <style>
