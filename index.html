@@ -798,7 +798,7 @@ async function qPdf(){const src=document.querySelector(".paper"),q=db.quotes.fin
   if(!ta&&(L.getAttribute("oninput")||"").includes("'amount'")){const s=document.createElement("span");s.textContent=peso(+String(L.value).replace(/,/g,""));n.replaceWith(s);return}
   const s=document.createElement(ta?"div":"span");let v=L.value;
   if(L.type=="date"&&v)v=new Date(v+"T00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"}).replace(/ /g,"-");
-  if(ta){s.style.cssText="margin-top:4px";v.split("\n").forEach(l=>{const d=document.createElement("div");d.textContent=l||"\u00a0";d.style.whiteSpace="pre-wrap";s.appendChild(d)})}else s.textContent=v;n.replaceWith(s)});
+  if(ta){s.style.cssText=n.dataset.hdr?"display:inline-block;vertical-align:top;max-width:100%;width:"+(n.style.width||"60%"):"margin-top:4px";v.split("\n").forEach(l=>{const d=document.createElement("div");d.textContent=l||"\u00a0";d.style.whiteSpace="pre-wrap";s.appendChild(d)})}else s.textContent=v;n.replaceWith(s)});
  cl.querySelectorAll(".np").forEach(e=>e.remove());box.appendChild(cl);document.body.appendChild(box);
  try{const c=await html2canvas(cl,{scale:2,backgroundColor:"#ffffff"}),P=new window.jspdf.jsPDF({unit:"pt",format:window.qPaperPt?window.qPaperPt():"a4"}),pw=P.internal.pageSize.getWidth(),ph=P.internal.pageSize.getHeight(),m=20,uw=pw-2*m,uh=ph-2*m-12,f=Math.min(uw/c.width,uh/c.height),H=Math.ceil(uh/f)+2,top=cl.getBoundingClientRect().top,cut=new Set();
   cl.querySelectorAll("*").forEach(n=>{const b=Math.round((n.getBoundingClientRect().bottom-top)*2);if(b>0&&b<c.height)cut.add(b)});
@@ -821,7 +821,7 @@ function qDel(id){$("#cm").textContent="Delete this quotation? This cannot be un
 function logoUp(el){if(el.files[0])shrink(el.files[0],d=>{db.logo=d;save();quoteView()})}
 function quotesBox(){const Q=[...db.quotes].reverse();return `<div class="card" style="margin-bottom:12px"><div class="top" style="margin-bottom:8px"><b style="font-size:15px">Quotations</b><button class="s" onclick="qNew()">+ New quotation</button></div>`+(Q.length?`<div class="wrap" style="border:0"><table><tr><th>No.</th><th>Company</th><th>Project site</th><th>Equipment</th><th>Date</th><th>Valid until</th><th>Amount</th><th></th></tr>${Q.map(q=>`<tr><td>${q.no}</td><td>${q.company||"—"}</td><td>${q.site||"—"}</td><td>${(()=>{const a=qItems(q);return a[0].tons+"T "+a[0].equip+(a.length>1?" +"+(a.length-1)+" more":"")})()}</td><td>${q.date}</td><td>${q.valid}</td><td><b>${peso(q.amount*(1+(q.vat||0)/100))}</b></td><td><button class="s" onclick="qOpen(${q.id})">Open / Edit</button> <button class="s g" onclick="qCopy(${q.id})">Copy</button> <button class="s d" onclick="qDel(${q.id})">✕</button></td></tr>`).join("")}</table></div>`:"<p style='color:var(--mu)'>No quotations yet. Click + New quotation.</p>")+`</div>`}
 function quoteView(){const q=db.quotes.find(x=>x.id==QV);if(!q){QV=null;return table()}
- const E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),I=(k,w,t)=>`<input class="qi" ${t?`type="${t}"`:""} value="${E(q[k])}" style="width:${w}" oninput="qSet('${k}',this.value)">`,A=(k,r)=>`<textarea class="qi" rows="${r}" style="width:100%" oninput="qSet('${k}',this.value);this.style.height='auto';this.style.height=this.scrollHeight+4+'px'">${E(q[k])}</textarea>`,F="display:flex;justify-content:space-between;align-items:center",
+ const E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),I=(k,w,t)=>t?`<input class="qi" type="${t}" value="${E(q[k])}" style="width:${w}" oninput="qSet('${k}',this.value)">`:`<textarea class="qi qh" data-hdr="1" rows="1" style="width:${w}" oninput="qSet('${k}',this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'">${E(q[k])}</textarea>`,A=(k,r)=>`<textarea class="qi" rows="${r}" style="width:100%" oninput="qSet('${k}',this.value);this.style.height='auto';this.style.height=this.scrollHeight+4+'px'">${E(q[k])}</textarea>`,F="display:flex;justify-content:space-between;align-items:center",
  IT=qItems(q),ii=(i,k,w,t)=>`<input class="qi" ${t?`type="${t}"`:""} value="${E(IT[i][k])}" style="width:${w}" oninput="qItemSet(${i},'${k}',this.value)">`,itemsHtml=IT.map((it,i)=>`<div style="margin-top:${i?18:6}px">Equipment: ${ii(i,"equip","200px")} ${ii(i,"tons","44px","number")} Tonner</div><div style="${F};margin-top:8px"><div style="flex:1"><b>RATE:</b> ${ii(i,"rateDesc","80%")}</div><span>${ii(i,"amount","120px","number")}${IT.length>1?` <button class="s d np" onclick="qDelItem(${i})">\u2715</button>`:""}</span></div>`).join("")+`<div style="${F};margin-top:10px"><div style="flex:1"><b>MOB/DEMOB:</b> <input class="qi" value="${E(q.mdDesc)}" style="width:75%" oninput="qMd('mdDesc',this.value)"></div><span><input class="qi" type="number" step="any" value="${E(q.mdAmt)}" style="width:120px" oninput="qMd('mdAmt',this.value)"></span></div><div class="np" style="margin:12px 0 4px"><button class="s g" onclick="qAddItem()">+ Add another equipment &amp; rate (different truck / crane / tonner)</button></div><div style="height:12px"></div>`,
  mob=q.mob||"09159193900 / 09196906140 / 09173054547 / 09455921163 / LANDLINE No. 0444507428",v=+q.vat||0,ps=q.ps||"k",
  prep=ps=="a"?`<img src="${SIG2}" style="height:70px;display:block">`:(ps=="t"||db.sig==="")?I("prepared","220px"):`<img src="${db.sig||SIG}" style="height:70px;display:block">`,
@@ -5240,7 +5240,7 @@ var undo=null;
 window.__qPrep=function(){var p=document.querySelector(".paper");if(!p)return null;var s=SZ[window.QPS]||SZ.short,m=.4,W=Math.floor((s[0]-2*m)*96),H=Math.floor((s[1]-2*m)*96*.94);try{document.activeElement&&document.activeElement.blur()}catch(e){}
  var st=document.createElement("style");st.id="qps_st";st.textContent="@page{margin:"+m+"in}@media print{nav,#nav,#mbar,#tabs,#sync,#ybB,#ybP,#toast,#mhead{display:none!important}body{display:block!important}main{margin:0!important;width:auto!important;max-width:none!important;padding:0!important}html,body,main,#view{min-height:0!important;height:auto!important;background:#fff!important;overflow:visible!important}main,#view{padding:0!important;margin:0!important}.paper{margin:0!important}.paper>div:not(:first-child){margin-top:4px!important;margin-bottom:0!important}.paper{font-size:12px!important;line-height:1.3!important}.paper input::placeholder{color:transparent!important}.paper input{outline:0!important;box-shadow:none!important;background:transparent!important}.paper .qtx{font-size:11px!important;line-height:1.28!important;white-space:pre-wrap;margin-top:2px;orphans:4;widows:4}.paper>div{break-inside:avoid}.paper>div:last-child{break-inside:avoid;margin-top:auto!important;padding-top:16px}.paper{display:flex!important;flex-direction:column!important}.paper>div:nth-last-child(2){break-inside:auto}}";document.head.appendChild(st);
  var old={css:p.style.cssText},had=p.dataset.fit;p.dataset.fit="1";tas=[].slice.call(p.querySelectorAll("textarea")),made=[];
- tas.forEach(function(t){var d=document.createElement("div");d.className="qtx";d.textContent=t.value;d.style.cssText="font-size:11px;line-height:1.28;white-space:pre-wrap;margin-top:2px";t.style.display="none";t.after(d);made.push(d)});
+ tas.forEach(function(t){var d=document.createElement("div");d.className="qtx";d.textContent=t.value;d.style.cssText="font-size:11px;line-height:1.28;white-space:pre-wrap;margin-top:2px";if(t.dataset.hdr){d.style.cssText="font-size:12px;line-height:1.3;white-space:pre-wrap;margin:0;display:inline-block;vertical-align:top;max-width:100%;width:"+(t.style.width||"60%");d.className=""}t.style.display="none";t.after(d);made.push(d)});
  var cs=[].slice.call(p.children).map(function(c,i){var o=c.style.marginTop;if(i>0&&i<p.children.length-1)c.style.marginTop="4px";return o});p.style.maxWidth="none";p.style.padding="0";p.style.border="0";p.style.margin="0";p.style.minHeight="0";p.style.fontSize="12px";p.style.lineHeight="1.3";p.style.width=W+"px";p.style.zoom="";
  var lc=p.lastElementChild,h=Math.ceil(lc.getBoundingClientRect().bottom-p.getBoundingClientRect().top)+4,z=Math.min(1.7,H/h),pages=1;
  if(z>0){if(z<.75&&typeof toast=="function")toast("Long content: text is reduced so it stays on 1 page. Shorten Terms/Conditions for larger letters.");if(Math.abs(z-1)>.005){p.style.zoom=z;p.style.width=Math.floor(W/z)+"px"}p.style.display="flex";p.style.flexDirection="column";p.style.minHeight="calc(100vh / "+z+")";p.style.height="auto";if(p.lastElementChild)p.lastElementChild.style.marginTop="auto"}else{z=1;pages=Math.ceil(h/H);var tc=[].slice.call(p.children).filter(function(c){return /^\s*Terms:/.test(c.textContent)})[0];if(tc){tc.style.breakBefore="page";tc.style.marginTop="0";window.__qtc=tc}}
@@ -5358,6 +5358,31 @@ var oo2=open_;open_=window.open_=function(){var r=oo2.apply(this,arguments);try{
 document.addEventListener("input",function(e){var t=e.target;if(!t||!t.form||t.form.id!="frm")return;var E=t.form.elements;
  if(t.name=="hrs"){t.dataset.man="1";var h=parseFloat(t.value);if(E.ot&&E.ot.dataset.man!="1"&&!isNaN(h))E.ot.value=Math.max(0,Math.round((h-8)*100)/100)}
  else if(t.name=="ot")t.dataset.man="1"},true);
+})();
+</script>
+<style>
+textarea.qh{resize:none!important;overflow:hidden;display:inline-block;vertical-align:top;font:inherit;line-height:1.35;min-height:1.6em;max-width:100%;box-sizing:border-box;white-space:pre-wrap;word-break:break-word}
+</style>
+<script>
+(function(){function fit(){[].forEach.call(document.querySelectorAll("textarea.qh"),function(t){t.style.height="auto";t.style.height=t.scrollHeight+"px"})}
+var qv=window.quoteView;if(typeof qv=="function"){quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);setTimeout(fit,0);setTimeout(fit,150);return r}}
+window.addEventListener("resize",fit)})();
+</script>
+<script>
+/* Rate field accepts text (e.g. "140,000 per month, 200 hrs"); the amount on the right is read from the first number */
+(function(){
+var NUM=/\d[\d,]*(?:\.\d+)?/;
+function amt(s){var m=NUM.exec(String(s||""));return m?m[0].replace(/,/g,""):""}
+function fit(t){t.style.height="auto";t.style.height=t.scrollHeight+"px"}
+function rt(){var P=document.querySelector(".paper");if(!P||typeof qItems!="function")return;
+ var rates=[].slice.call(P.querySelectorAll('input[placeholder*="Enter rate"]'));
+ rates.forEach(function(el,i){
+  var t=document.createElement("textarea");t.className="qi qh";t.rows=1;t.dataset.hdr="1";t.dataset.rt="1";t.placeholder="Enter rate (e.g. 140,000 per month)";
+  t.style.width=el.style.width||"100%";t.value=el.value;
+  t.addEventListener("input",function(){fit(t);var v=t.value;qItemSet(i,"rateDesc",v);var n=amt(v),am=[].slice.call(P.querySelectorAll("input.qi")).filter(function(x){return(x.dataset.am||"")=="a"+i})[0];
+   if(n!==""){qItemSet(i,"amount",n);if(am)am.value=window.qFmt?window.qFmt(n):n}else if(!v.trim()){qItemSet(i,"amount",0);if(am)am.value="0"}});
+  el.replaceWith(t);setTimeout(function(){fit(t)},0)})}
+var qv=window.quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{rt()}catch(e){console.error(e)}return r};
 })();
 </script>
 </body>
