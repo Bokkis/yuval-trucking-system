@@ -5286,9 +5286,11 @@ var m=function(s){var x=/^(\d{1,2}):(\d{2})/.exec(s||"");return x?+x[1]*60+ +x[2
 var span=function(a,b){if(a==null||b==null||a===b)return 0;var d=b-a;if(d<0)d+=1440;return d};
 window.nsOver=function(o){var a=m(o.ain),b=m(o.aout);return a!=null&&b!=null&&b<a};
 sessHrs=window.sessHrs=function(o){var a=m(o.ain),b=m(o.aout),c=m(o.pin),d=m(o.pout),mn=0;
- if(a!=null&&b!=null){mn=span(a,b);if(b<a){/* overnight morning block: ignore leftover afternoon block */}else mn+=span(c,d)}
+ if(a!=null&&b!=null){mn=span(a,b);
+  if(b<a){/* overnight: afternoon block is the continuation after midnight */
+   if(c!=null&&d!=null){var end=b+1440,pa=c;while(pa<end)pa+=1440;if(pa-end<=720){var da=d;while(da<=pa)da+=1440;if(da-pa<=960)mn+=da-pa}}}
+  else mn+=span(c,d)}
  else{mn=span(c,d);if(!mn&&a!=null&&d!=null)mn=span(a,d)}
- if(a!=null&&b!=null&&b>=a&&c!=null&&d!=null){}
  return Math.round(mn/60*100)/100};
 var _s=window.sHrs;
 if(typeof _s=="function"){sHrs=window.sHrs=function(r){var a=m(r.am_in),b=m(r.am_out),c=m(r.pm_in),d=m(r.pm_out);if(a!=null&&b!=null&&b<a)return Math.round(span(a,b)/60*100)/100;return _s(r)}}
@@ -5296,17 +5298,17 @@ if(typeof _s=="function"){sHrs=window.sHrs=function(r){var a=m(r.am_in),b=m(r.am
 function live(e){var f=document.getElementById("frm");if(!f||!f.elements||!f.elements.ain)return;var E=f.elements;
  if(!/^(ain|aout|pin|pout)$/.test(e.target.name||""))return;
  var o={ain:E.ain.value,aout:E.aout.value,pin:E.pin.value,pout:E.pout.value};
- if(nsOver(o)&&(E.pin.value||E.pout.value)){E.pin.value="";E.pout.value=""}
+ 
  o={ain:E.ain.value,aout:E.aout.value,pin:E.pin.value,pout:E.pout.value};
  var h=sessHrs(o);if(E.hrs&&h>0&&E.hrs.dataset.man!="1"){E.hrs.value=h;if(E.ot&&E.ot.dataset.man!="1")E.ot.value=Math.max(0,Math.round((h-8)*100)/100)}
  var n=document.getElementById("nsnote");if(!n){n=document.createElement("div");n.id="nsnote";n.style.cssText="margin:6px 0;padding:8px 12px;border-radius:8px;background:#6366f122;color:#4338ca;font-size:13px";(E.aout.nextElementSibling&&E.aout.nextElementSibling.classList.contains("chips")?E.aout.nextElementSibling:E.aout).insertAdjacentElement("afterend",n)}
- if(nsOver(o)){n.style.display="";n.textContent="🌙 Night shift: ends the next day. "+h+" hrs total"}else n.style.display="none"}
+ if(nsOver(o)){n.style.display="";n.textContent="🌙 Night shift: ends the next day (Afternoon in/out = after midnight, AM). "+h+" hrs total"}else n.style.display="none"}
 document.addEventListener("input",live,true);document.addEventListener("change",live,true);
 /* night shift chips */
 var _c=window.chipify;
 if(typeof _c=="function"){chipify=window.chipify=function(){_c();var f=document.getElementById("frm");if(!f||!f.elements.ain)return;var E=f.elements;
- var add=function(n,L){var el=E[n];var c=el&&el.nextElementSibling;if(!c||!c.classList.contains("chips"))return;L.forEach(function(v){var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=fmt12(v)+(n=="aout"?" 🌙":"");b.onclick=function(){setT(n,v);el.dispatchEvent(new Event("input",{bubbles:true}))};c.insertBefore(b,c.firstChild)})};
- add("aout",["05:00","06:00"]);add("ain",["18:00","20:00"])}}
+ var add=function(n,L){var el=E[n];var c=el&&el.nextElementSibling;if(!c||!c.classList.contains("chips"))return;L.forEach(function(v){var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=fmt12(v)+((n=="aout"||n=="pin"||n=="pout")?" 🌙":"");b.onclick=function(){setT(n,v);el.dispatchEvent(new Event("input",{bubbles:true}))};c.insertBefore(b,c.firstChild)})};
+ add("aout",["05:00","06:00"]);add("ain",["18:00","20:00"]);add("pin",["00:00","01:00"]);add("pout",["04:00","05:00","06:00"])}}
 })();
 </script>
 <style>
