@@ -5298,7 +5298,7 @@ function live(e){var f=document.getElementById("frm");if(!f||!f.elements||!f.ele
  var o={ain:E.ain.value,aout:E.aout.value,pin:E.pin.value,pout:E.pout.value};
  if(nsOver(o)&&(E.pin.value||E.pout.value)){E.pin.value="";E.pout.value=""}
  o={ain:E.ain.value,aout:E.aout.value,pin:E.pin.value,pout:E.pout.value};
- var h=sessHrs(o);if(E.hrs&&h>0){E.hrs.value=h;if(E.ot)E.ot.value=Math.max(0,Math.round((h-8)*100)/100)}
+ var h=sessHrs(o);if(E.hrs&&h>0&&E.hrs.dataset.man!="1"){E.hrs.value=h;if(E.ot&&E.ot.dataset.man!="1")E.ot.value=Math.max(0,Math.round((h-8)*100)/100)}
  var n=document.getElementById("nsnote");if(!n){n=document.createElement("div");n.id="nsnote";n.style.cssText="margin:6px 0;padding:8px 12px;border-radius:8px;background:#6366f122;color:#4338ca;font-size:13px";(E.aout.nextElementSibling&&E.aout.nextElementSibling.classList.contains("chips")?E.aout.nextElementSibling:E.aout).insertAdjacentElement("afterend",n)}
  if(nsOver(o)){n.style.display="";n.textContent="🌙 Night shift: ends the next day. "+h+" hrs total"}else n.style.display="none"}
 document.addEventListener("input",live,true);document.addEventListener("change",live,true);
@@ -5348,5 +5348,15 @@ if(sv&&sv.onclick){var h=sv.onclick;sv.onclick=function(){var d=document.getElem
 #dlg{overflow:auto;max-height:92vh}
 #dlg #frm>div:has(>#sv){position:sticky;bottom:-1px;z-index:6;background:var(--card,#fff);padding:12px 0 8px;margin-top:10px!important;border-top:1px solid var(--bd,#e5e7eb)}
 </style>
+<script>
+/* Hours are manual: no automatic Half day; typed Hours / OT are always followed */
+(function(){
+autoAct=window.autoAct=function(){};
+var oo2=open_;open_=window.open_=function(){var r=oo2.apply(this,arguments);try{var f=document.getElementById("frm");if(f&&f.elements.hrs){f.elements.hrs.dataset.man="";if(f.elements.ot)f.elements.ot.dataset.man=""}}catch(e){}return r};
+document.addEventListener("input",function(e){var t=e.target;if(!t||!t.form||t.form.id!="frm")return;var E=t.form.elements;
+ if(t.name=="hrs"){t.dataset.man="1";var h=parseFloat(t.value);if(E.ot&&E.ot.dataset.man!="1"&&!isNaN(h))E.ot.value=Math.max(0,Math.round((h-8)*100)/100)}
+ else if(t.name=="ot")t.dataset.man="1"},true);
+})();
+</script>
 </body>
 </html>
