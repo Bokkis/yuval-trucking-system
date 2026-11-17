@@ -824,9 +824,9 @@ function quoteView(){const q=db.quotes.find(x=>x.id==QV);if(!q){QV=null;return t
  const E=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),I=(k,w,t)=>t?`<input class="qi" type="${t}" value="${E(q[k])}" style="width:${w}" oninput="qSet('${k}',this.value)">`:`<textarea class="qi qh" data-hdr="1" rows="1" style="width:${w}" oninput="qSet('${k}',this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'">${E(q[k])}</textarea>`,A=(k,r)=>`<textarea class="qi" rows="${r}" style="width:100%" oninput="qSet('${k}',this.value);this.style.height='auto';this.style.height=this.scrollHeight+4+'px'">${E(q[k])}</textarea>`,F="display:flex;justify-content:space-between;align-items:center",
  IT=qItems(q),ii=(i,k,w,t)=>`<input class="qi" ${t?`type="${t}"`:""} value="${E(IT[i][k])}" style="width:${w}" oninput="qItemSet(${i},'${k}',this.value)">`,itemsHtml=IT.map((it,i)=>`<div style="margin-top:${i?18:6}px">Equipment: ${ii(i,"equip","200px")} ${ii(i,"tons","44px","number")} Tonner</div><div style="${F};margin-top:8px"><div style="flex:1"><b>RATE:</b> ${ii(i,"rateDesc","80%")}</div><span>${ii(i,"amount","120px","number")}${IT.length>1?` <button class="s d np" onclick="qDelItem(${i})">\u2715</button>`:""}</span></div>`).join("")+`<div style="${F};margin-top:10px"><div style="flex:1"><b>MOB/DEMOB:</b> <input class="qi" value="${E(q.mdDesc)}" style="width:75%" oninput="qMd('mdDesc',this.value)"></div><span><input class="qi" type="number" step="any" value="${E(q.mdAmt)}" style="width:120px" oninput="qMd('mdAmt',this.value)"></span></div><div class="np" style="margin:12px 0 4px"><button class="s g" onclick="qAddItem()">+ Add another equipment &amp; rate (different truck / crane / tonner)</button></div><div style="height:12px"></div>`,
  mob=q.mob||"09159193900 / 09196906140 / 09173054547 / 09455921163 / LANDLINE No. 0444507428",v=+q.vat||0,ps=q.ps||"k",
- prep=ps=="a"?`<img src="${SIG2}" style="height:70px;display:block">`:(ps=="t"||db.sig==="")?I("prepared","220px"):`<img src="${db.sig||SIG}" style="height:70px;display:block">`,
+ prep=ps=="a"?`<img src="${SIG2}" style="height:70px;display:block">`:(ps=="t"||q.noSig)?I("prepared","220px"):`<img src="${db.sig||SIG}" style="height:70px;display:block">`,
  O=(k,t)=>`<option value="${k}"${ps==k?" selected":""}>Prepared by: ${t}</option>`;
- $("#view").innerHTML=`<div class="np" style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="g" onclick="QV=null;go()">← Back to documents</button><button onclick="qPdf()">Download PDF</button><button class="g" onclick="qPrint()">Print</button><select style="width:auto" onchange="qSet('ps',this.value);quoteView()">${O("k","Kimberly B. Dela Cruz")}${O("a","Ann Pauline Almas")}${O("t","typed name")}</select><label class="g" style="padding:8px 12px;border:1px solid var(--bd);border-radius:6px;cursor:pointer">Upload logo<input type="file" accept="image/*" style="display:none" onchange="logoUp(this)"></label><label class="g" style="padding:8px 12px;border:1px solid var(--bd);border-radius:6px;cursor:pointer">Upload signature<input type="file" accept="image/*" style="display:none" onchange="sigUp(this)"></label><button class="g" onclick="db.sig='';save();quoteView()">Remove signature</button></div>
+ $("#view").innerHTML=`<div class="np" style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="g" onclick="QV=null;go()">← Back to documents</button><button onclick="qPdf()">Download PDF</button><button class="g" onclick="qPrint()">Print</button><select style="width:auto" onchange="qSet('ps',this.value);quoteView()">${O("k","Kimberly B. Dela Cruz")}${O("a","Ann Pauline Almas")}${O("t","typed name")}</select><label class="g" style="padding:8px 12px;border:1px solid var(--bd);border-radius:6px;cursor:pointer">Upload logo<input type="file" accept="image/*" style="display:none" onchange="logoUp(this)"></label><label class="g" style="padding:8px 12px;border:1px solid var(--bd);border-radius:6px;cursor:pointer">Upload signature<input type="file" accept="image/*" style="display:none" onchange="sigUp(this)"></label><button class="g" onclick="qSet('noSig',${q.noSig?0:1});quoteView()">${q.noSig?"Restore signature":"Remove signature"}</button></div>
  <div class="paper"><div style="display:flex;gap:12px;align-items:center"><img src="${db.logo||LOGO}" style="height:90px"><div style="flex:1;text-align:center"><div style="font-size:38px;font-weight:900">YUVAL TRUCKING</div><div style="background:#ffeb00;font-weight:700;font-size:13px">TRUCKING AND HEAVY EQUIPMENT SERVICES</div><div style="font-size:11px">Purok 6, Barangay Talipapa, Cabanatuan City, Nueva Ecija<br>Mob. Nos. <input class="qi" value="${E(mob)}" style="width:62%;text-align:center;font-size:11px" oninput="qSet('mob',this.value)"><br>Email: Kissyuvaleean09@gmail.com</div></div></div>
  <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 24px"><div>Company: ${I("company","65%")}</div><div>Quotation No.: ${I("no","50%")}</div><div>Address: ${I("address","70%")}</div><div>Date: ${I("date","150px","date")}</div><div>Contact Info.: ${I("contact","60%")}</div><div>Valid Until: ${I("valid","150px","date")}</div></div>
  <div style="background:#ffeb00;text-align:center;font-weight:700;margin:8px 0;border:1px solid #000">QUOTATION</div>
@@ -5383,6 +5383,44 @@ function rt(){var P=document.querySelector(".paper");if(!P||typeof qItems!="func
    if(n!==""){qItemSet(i,"amount",n);if(am)am.value=window.qFmt?window.qFmt(n):n}else if(!v.trim()){qItemSet(i,"amount",0);if(am)am.value="0"}});
   el.replaceWith(t);setTimeout(function(){fit(t)},0)})}
 var qv=window.quoteView;quoteView=window.quoteView=function(){var r=qv.apply(this,arguments);try{rt()}catch(e){console.error(e)}return r};
+})();
+</script>
+<script>
+/* Download PDF = same layout as Print (one page, fills the page); signature removal is per quotation */
+(function(){
+qPdf=window.qPdf=async function(){
+ var src=document.querySelector(".paper"),q=db.quotes.find(function(x){return x.id==QV});if(!src||!q)return;
+ if(!window.html2canvas||!window.jspdf)return toast("PDF tools could not load. Check your internet connection.");
+ toast("Preparing PDF...");
+ var pp=window.qPaperPt?window.qPaperPt():[612,792],m=28.8,pw=pp[0],ph=pp[1],uw=pw-2*m,uh=ph-2*m,Wpx=Math.floor(uw*96/72),Hpx=Math.floor(uh*96/72*.94);
+ var box=document.createElement("div");box.style.cssText="position:fixed;left:-10000px;top:0;background:#fff";
+ var cl=src.cloneNode(true);cl.className="paper";
+ cl.style.cssText="width:"+Wpx+"px;max-width:none;margin:0;padding:0;border:0;border-radius:0;font-size:12px;line-height:1.3;color:#000;background:#fff;display:flex;flex-direction:column;box-sizing:border-box";
+ var live=src.querySelectorAll("input,textarea"),cf=cl.querySelectorAll("input,textarea");
+ cl.querySelectorAll(".np").forEach(function(e){e.remove()});
+ [].slice.call(cl.querySelectorAll("div[style*='auto-fit']")).forEach(function(g){g.style.gridTemplateColumns="1fr 1fr"});
+ [].forEach.call(cf,function(n,i){var L=live[i],ta=n.tagName=="TEXTAREA";
+  if(!ta&&(L.getAttribute("oninput")||"").indexOf("'amount'")>=0||(!ta&&L.dataset&&L.dataset.am)){var s0=document.createElement("span");s0.textContent=(L.dataset&&L.dataset.am&&window.qFmt)?window.qFmt(L.value):peso(+String(L.value).replace(/,/g,""));n.replaceWith(s0);return}
+  var s=document.createElement(ta?"div":"span"),v=L.value;
+  if(L.type=="date"&&v)v=new Date(v+"T00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"}).replace(/ /g,"-");
+  if(ta){if(L.dataset.hdr){s.style.cssText="display:inline-block;vertical-align:top;max-width:100%;white-space:pre-wrap;width:"+(L.style.width||"60%");s.textContent=v}
+   else{s.style.cssText="font-size:11px;line-height:1.28;margin-top:2px";v.split("\n").forEach(function(l){var d=document.createElement("div");d.textContent=l||" ";d.style.whiteSpace="pre-wrap";s.appendChild(d)})}}
+  else s.textContent=v;n.replaceWith(s)});
+ var kids=[].slice.call(cl.children);kids.forEach(function(c,i){if(i>0)c.style.marginTop="4px";c.style.marginBottom="0"});
+ var last=cl.lastElementChild;if(last){last.style.marginTop="auto";last.style.paddingTop="16px"}
+ box.appendChild(cl);document.body.appendChild(box);
+ try{
+  cl.style.minHeight="0";var h=Math.ceil(last.getBoundingClientRect().bottom-cl.getBoundingClientRect().top)+4,z=Math.min(1.7,Hpx/h);if(!(z>0))z=1;
+  /* content taller than the page: shrink so it stays on 1 page (same as Print) */
+  cl.style.width=Math.floor(Wpx/z)+"px";cl.style.minHeight=Math.floor(Hpx/z)+"px";
+  if(last)last.style.marginTop="auto";
+  var c=await html2canvas(cl,{scale:2,backgroundColor:"#ffffff",useCORS:true}),P=new window.jspdf.jsPDF({unit:"pt",format:[pw,ph]}),f=Math.min(uw/c.width,uh/c.height);
+  P.addImage(c.toDataURL("image/jpeg",.95),"JPEG",m+(uw-c.width*f)/2,m,c.width*f,c.height*f);
+  var blob=P.output("blob"),name="Quotation-"+(q.no||"draft")+".pdf",dl=(typeof claude!="undefined"&&claude.use)?await claude.use("downloads"):null;
+  if(dl){await dl.save({filename:name,data:blob});toast("PDF ready")}
+  else{var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast("PDF downloaded")}
+ }catch(e){if(!e||e.code!="declined")toast("Could not create PDF: "+((e&&e.message)||e))}
+ box.remove()};
 })();
 </script>
 </body>
