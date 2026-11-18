@@ -5427,5 +5427,14 @@ qPdf=window.qPdf=async function(){
 /* Inventory: header stays visible and opaque while scrolling */
 @media screen{.hscr table.inv th{position:sticky;top:0;z-index:6;background:var(--card)!important;box-shadow:0 1px 0 var(--bd),0 3px 6px -3px rgba(0,0,0,.18)}.hscr table.inv th:nth-child(3){z-index:7}.hscr table.inv td{background:var(--card)}}
 </style>
+<style>
+/* Inventory: clear column and row separators */
+@media screen{.hscr table.inv{border-collapse:separate;border-spacing:0}
+.hscr table.inv th,.hscr table.inv td{border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.hscr table.inv th:last-child,.hscr table.inv td:last-child{border-right:0}
+.hscr table.inv th{border-bottom:2px solid #94a3b8}
+.hscr table.inv tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 94%,var(--tx) 6%)}
+.hscr table.inv tr:hover td{background:color-mix(in srgb,var(--card) 88%,#f2711c 12%)}}
+</style>
 </body>
 </html>
