@@ -5436,5 +5436,31 @@ qPdf=window.qPdf=async function(){
 .hscr table.inv tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 94%,var(--tx) 6%)}
 .hscr table.inv tr:hover td{background:color-mix(in srgb,var(--card) 88%,#f2711c 12%)}}
 </style>
+<style>
+/* Stock In/Out: same separators as Parts inventory */
+@media screen{#view[data-cur=stock] .wrap table{border-collapse:separate;border-spacing:0}
+#view[data-cur=stock] .wrap th,#view[data-cur=stock] .wrap td{border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+#view[data-cur=stock] .wrap th:last-child,#view[data-cur=stock] .wrap td:last-child{border-right:0}
+#view[data-cur=stock] .wrap th{border-bottom:2px solid #94a3b8;position:sticky;top:0;z-index:6;background:var(--card)!important;box-shadow:0 3px 6px -3px rgba(0,0,0,.18)}
+#view[data-cur=stock] .wrap tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 94%,var(--tx) 6%)}
+#view[data-cur=stock] .wrap tr:hover td{background:color-mix(in srgb,var(--card) 88%,#f2711c 12%)}}
+</style>
+<script>
+(function(){var t0=window.table;if(typeof t0!="function")return;
+table=window.table=function(){var r=t0.apply(this,arguments);try{var v=document.getElementById("view");if(v)v.dataset.cur=cur}catch(e){}return r}})();
+</script>
+<style>
+/* Purchase orders + Maintenance records: same separators */
+@media screen{#view:is([data-cur=po],[data-cur=mrec]) .wrap table{border-collapse:separate;border-spacing:0}
+#view:is([data-cur=po],[data-cur=mrec]) .wrap th,#view:is([data-cur=po],[data-cur=mrec]) .wrap td{border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+#view:is([data-cur=po],[data-cur=mrec]) .wrap th:last-child,#view:is([data-cur=po],[data-cur=mrec]) .wrap td:last-child{border-right:0}
+#view:is([data-cur=po],[data-cur=mrec]) .wrap th{border-bottom:2px solid #94a3b8;position:sticky;top:0;z-index:6;background:var(--card)!important;box-shadow:0 3px 6px -3px rgba(0,0,0,.18)}
+#view:is([data-cur=po],[data-cur=mrec]) .wrap tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 94%,var(--tx) 6%)}
+#view:is([data-cur=po],[data-cur=mrec]) .wrap tr:hover td{background:color-mix(in srgb,var(--card) 88%,#f2711c 12%)}}
+</style>
+<script>
+(function(){var v=document.getElementById("view");if(!v)return;function s(){try{if(v.dataset.cur!==cur)v.dataset.cur=cur}catch(e){}}
+new MutationObserver(s).observe(v,{childList:true});s()})();
+</script>
 </body>
 </html>
