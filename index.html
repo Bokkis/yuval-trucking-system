@@ -5423,5 +5423,9 @@ qPdf=window.qPdf=async function(){
  box.remove()};
 })();
 </script>
+<style>
+/* Inventory: header stays visible and opaque while scrolling */
+@media screen{.hscr table.inv th{position:sticky;top:0;z-index:6;background:var(--card)!important;box-shadow:0 1px 0 var(--bd),0 3px 6px -3px rgba(0,0,0,.18)}.hscr table.inv th:nth-child(3){z-index:7}.hscr table.inv td{background:var(--card)}}
+</style>
 </body>
 </html>
