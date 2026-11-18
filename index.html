@@ -519,7 +519,7 @@ const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
 const net=r=>M.payroll.c[1](r);
 const ACK={"Not operating (paid)":"stby","Operating":"op","Half day":"half","Shop rate":"shop","Standby":"stby","Not operating":"off","Leave":"mnt","Maintenance":"mnt"};
 function badge(v){const g=["Available","Active","Approved","Done","Resolved","Returned","Contract","Operating","IN","VAT","Half day"],r=["Breakdown","Not operating","Reported","Cancelled","Inactive","Not resolved"],c=g.includes(v)?"ok":r.includes(v)?"bad":["Maintenance","OUT","Standby","Shop rate","Not operating (paid)","In process","Pending","Dispatched","In progress","Quotation","Rented","Scheduled","On leave","Leave"].includes(v)?"wa":"";return `<span class="b ${c}${ACK[v]?" ac-"+ACK[v]:""}">${v}</span>`}
-const GRP=[["dash","Dashboard",["dash"]],["ops","Fleet / Site Clients",["fleet","sites"]],["res","Rescue",["rescue"]],["ppl","People",["employees"]],["mon","Monitoring",["attendance"]],["pay","Payroll",["payroll"]],["bil","Documents",["docs","dtr"]],["exp","Parts & Stock",["inventory","stock","po"]]],GICON={mon:"attendance",pay:"payroll",dash:"dash",res:"rescue",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Monitoring",payroll:"Payroll",invoices:"Invoices",coll:"Collection",docs:"Quotations",dtr:"DTR Form",exp:"Purchase Order",inventory:"Parts inventory",stock:"Stock in / out",po:"Purchase orders",pof:"Purchase Order Form"};let GLAST={},ALDX="";
+const GRP=[["dash","Dashboard",["dash"]],["ops","Fleet / Site Clients",["fleet","sites"]],["ppl","People",["employees"]],["mon","Monitoring",["attendance"]],["pay","Payroll",["payroll"]],["bil","Documents",["docs"]],["exp","Parts & Stock",["inventory","stock","po"]]],GICON={mon:"attendance",pay:"payroll",dash:"dash",res:"rescue",ops:"fleet",ppl:"employees",bil:"invoices",exp:"exp"},SL={fleet:"Fleet",sites:"Sites & Clients",rescue:"Rescue",employees:"Operators",attendance:"Monitoring",payroll:"Payroll",invoices:"Invoices",coll:"Collection",docs:"Quotations",dtr:"DTR Form",exp:"Purchase Order",inventory:"Parts inventory",stock:"Stock in / out",po:"Purchase orders",pof:"Purchase Order Form"};let GLAST={},ALDX="";
 function toggleRail(){document.body.classList.add("rail");try{localStorage.setItem("yuvalRail",document.body.classList.contains("rail")?"1":"0")}catch(e){}}
 document.body.classList.add("rail");
 function nav(){const HIDE=["clients","rentals","maint","receipts","invoices","exp","coll"],keys=["dash",...Object.keys(M)].filter(k=>!HIDE.includes(k)&&(window.ROLE=="payroll"?k=="payroll":k!="payroll")),PR=window.ROLE=="payroll";document.body.classList.toggle("proly",PR);if(!keys.includes(cur))cur=keys[0];
@@ -5461,6 +5461,14 @@ table=window.table=function(){var r=t0.apply(this,arguments);try{var v=document.
 <script>
 (function(){var v=document.getElementById("view");if(!v)return;function s(){try{if(v.dataset.cur!==cur)v.dataset.cur=cur}catch(e){}}
 new MutationObserver(s).observe(v,{childList:true});s()})();
+</script>
+<style>
+/* Rescue module hidden (data is kept, nothing deleted) */
+[onclick*="sfRescue"]{display:none!important}
+</style>
+<script>
+(function(){function hide(){[].forEach.call(document.querySelectorAll("#ybQ button,#ybQ span,#ybQ a,.ybchip,.ybq button"),function(b){if(/^\s*(\u{1F6DF}\s*)?Rescue\s*$/u.test(b.textContent))b.style.display="none"})}
+new MutationObserver(hide).observe(document.body,{childList:true,subtree:true});hide()})();
 </script>
 </body>
 </html>
