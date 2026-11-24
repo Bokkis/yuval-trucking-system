@@ -5470,5 +5470,150 @@ new MutationObserver(s).observe(v,{childList:true});s()})();
 (function(){function hide(){[].forEach.call(document.querySelectorAll("#ybQ button,#ybQ span,#ybQ a,.ybchip,.ybq button"),function(b){if(/^\s*(\u{1F6DF}\s*)?Rescue\s*$/u.test(b.textContent))b.style.display="none"})}
 new MutationObserver(hide).observe(document.body,{childList:true,subtree:true});hide()})();
 </script>
+<style>
+/* Print Parts inventory: all rows, all columns, landscape, header repeats on every page */
+@page inv{size:A4 landscape;margin:8mm}
+@media print{
+ .invwrap{page:inv;border:0!important;border-radius:0!important;overflow:visible!important;background:#fff!important}
+ html,body,main,#view{height:auto!important;min-height:0!important;overflow:visible!important}
+ body{display:block!important}
+ .invbar,.rmsel,.invwrap .np{display:none!important}
+ body:has(.invwrap) main>:not(#view),body:has(.invwrap) #view>:not(.invwrap),body:has(.invwrap) body>:not(main):not(script):not(style){display:none!important}
+ body:has(.invwrap) main,body:has(.invwrap) #view{padding:0!important;margin:0!important;display:block!important}
+ .invtitle{display:block!important;text-align:center;font:700 14px Georgia,serif;letter-spacing:.08em;margin:0 0 6px;color:#000}
+ .hscr{max-height:none!important;height:auto!important;overflow:visible!important}
+ table.inv{width:100%!important;font-size:9.5px;table-layout:auto;color:#000;border-collapse:collapse!important}
+ table.inv thead{display:table-header-group}
+ table.inv th{position:static!important;box-shadow:none!important;white-space:normal!important;font-size:8.5px!important;padding:4px!important;background:#e5e7eb!important;color:#000!important;border:1px solid #777!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ table.inv td{padding:3px 5px!important;white-space:normal!important;border:1px solid #999!important;background:#fff!important;color:#000!important}
+ table.inv tr{break-inside:avoid;page-break-inside:avoid}
+ table.inv th:last-child,table.inv td:last-child{display:none!important}
+ .ipill{border:0!important;background:transparent!important;padding:0!important;min-width:0!important}
+}
+</style>
+<script>
+window.addEventListener("beforeprint",function(){[].forEach.call(document.querySelectorAll("table.inv"),function(t){if(t.querySelector("thead"))return;var f=t.querySelector("tr");if(!f)return;var h=document.createElement("thead");t.insertBefore(h,t.firstChild);h.appendChild(f)})});
+</script>
+<style>
+/* Parts inventory summary report (Print this month) */
+#invSheet{display:none}
+@page invs{size:A4 portrait;margin:10mm 10mm 14mm;@bottom-center{content:"Yuval Trucking \00b7  Stock inventory \00b7  Page " counter(page) " of " counter(pages);font:9px Inter,Arial,sans-serif;color:#6b7280}}
+@media print{
+ body.invsum>*:not(#invSheet){display:none!important}
+ body.invsum #invSheet{display:block!important;page:invs;color:#111827;background:#fff;font:11px/1.4 Inter,system-ui,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #invSheet *{box-sizing:border-box}
+ #invSheet .hd{display:flex;justify-content:space-between;align-items:flex-end;background:#0f172a;color:#fff;padding:14px 18px;border-radius:10px;border-bottom:5px solid #f2711c}
+ #invSheet .hd>div:first-child{white-space:nowrap}#invSheet .hd .co{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#fdba74;font-weight:700}
+ #invSheet .hd h1{margin:2px 0 0;font:700 22px Inter,Arial,sans-serif;letter-spacing:.01em;color:#fff}
+ #invSheet .hd .rt{text-align:right;font-size:11px;color:#cbd5e1}#invSheet .hd .rt b{display:block;font-size:15px;color:#fff}
+ #invSheet .kp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 8px}
+ #invSheet .kp>div{border:1px solid #e5e7eb;border-left:5px solid #64748b;border-radius:8px;padding:8px 10px;background:#f9fafb}
+ #invSheet .kp b{display:block;font-size:24px;line-height:1.05;font-weight:800}
+ #invSheet .kp small{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:#4b5563;margin-top:2px}
+ #invSheet .kp i{font-style:normal;font-size:10px;color:#6b7280}
+ #invSheet .kp .ok{border-left-color:#16a34a}#invSheet .kp .ok b{color:#15803d}
+ #invSheet .kp .lo{border-left-color:#f2711c}#invSheet .kp .lo b{color:#c2410c}
+ #invSheet .kp .ou{border-left-color:#dc2626}#invSheet .kp .ou b{color:#b91c1c}
+ #invSheet .bar{display:flex;height:11px;border-radius:99px;overflow:hidden;background:#e5e7eb;margin:0 0 4px}
+ #invSheet .bar span{display:block;height:100%}
+ #invSheet .lg{display:flex;gap:14px;font-size:9.5px;color:#4b5563;margin-bottom:6px}
+ #invSheet .lg u{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;text-decoration:none}
+ #invSheet h2{display:flex;justify-content:space-between;align-items:center;margin:14px 0 5px;padding:0 0 4px;font-size:13px;font-weight:800;border-bottom:2px solid #0f172a;break-after:avoid;page-break-after:avoid}
+ #invSheet h2 span{font-weight:500;font-size:10.5px;color:#4b5563}
+ #invSheet h3{display:flex;justify-content:space-between;align-items:center;margin:12px 0 0;padding:5px 9px;font-size:11.5px;font-weight:800;background:#0f172a;color:#fff;border-radius:6px 6px 0 0;break-after:avoid;page-break-after:avoid;text-transform:uppercase;letter-spacing:.04em}
+ #invSheet h3 span{font-weight:500;font-size:10px;color:#cbd5e1;text-transform:none;letter-spacing:0}
+ #invSheet table{width:100%;border-collapse:collapse;margin:0}
+ #invSheet thead{display:table-header-group}
+ #invSheet th{background:#e5e7eb;color:#111827;font-size:9px;text-transform:uppercase;letter-spacing:.05em;padding:4px 6px;text-align:center;border-bottom:1px solid #9ca3af}
+ #invSheet td{padding:3.5px 6px;border-bottom:1px solid #e5e7eb}
+ #invSheet tbody tr:nth-child(even) td{background:#f9fafb}
+ #invSheet td:last-child,#invSheet th:last-child{display:table-cell!important}
+ #invSheet td.c{text-align:center}#invSheet td.n{text-align:right}#invSheet td.it{font-weight:600}
+ #invSheet tr{break-inside:avoid;page-break-inside:avoid}
+ #invSheet .pl{display:inline-block;min-width:88px;text-align:center;padding:1.5px 8px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:.03em;border:1px solid}
+ #invSheet .pl.ok{background:#dcfce7;color:#166534;border-color:#86efac}
+ #invSheet .pl.lo{background:#ffedd5;color:#9a3412;border-color:#fdba74}
+ #invSheet .pl.ou{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+ #invSheet .bl{font-weight:800}#invSheet .bl.ou{color:#b91c1c}#invSheet .bl.lo{color:#c2410c}
+ #invSheet .mb{display:flex;height:9px;border-radius:99px;overflow:hidden;background:#e5e7eb;min-width:90px}
+ #invSheet .mb span{display:block;height:100%}
+ #invSheet .att tbody tr.ou td{background:#fef2f2}#invSheet .att tbody tr.lo td{background:#fff7ed}
+ #invSheet .ft{margin-top:14px;padding-top:6px;border-top:1px solid #d1d5db;font-size:9px;color:#6b7280;text-align:center}
+}
+</style>
+<script>
+(function(){
+function esc(s){return String(s==null?"":s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+var COL={ok:"#16a34a",lo:"#f2711c",ou:"#dc2626"},LB={ok:"Available",lo:"Need to restock",ou:"Out of stock"};
+function pct(a,b){return b?Math.round(a*100/b):0}
+function seg(x,t){return["ok","lo","ou"].map(function(k){return x[k]?"<span style='width:"+(x[k]*100/t)+"%;background:"+COL[k]+"'></span>":""}).join("")}
+function build(){var t=document.querySelector("table.inv");if(!t)return null;
+ var rows=[].slice.call(t.querySelectorAll("tr")).filter(function(r){return r.querySelector("td")}).map(function(r){var c=[].map.call(r.querySelectorAll("td"),function(td){return td.textContent.replace(/\s+/g," ").trim()});
+  var rm=c[8]||"",k=/OUT OF/i.test(rm)?"ou":/RESTOCK/i.test(rm)?"lo":"ok";return{q:c[0],u:c[1],i:c[2],cat:c[3]||"Uncategorized",loc:c[4],si:c[5],so:c[6],b:c[7],cost:c[9],sup:c[10],k:k}});
+ var n={ok:0,lo:0,ou:0},T=rows.length||1;rows.forEach(function(r){n[r.k]++});
+ var month=(document.querySelector(".invtitle")||{}).textContent||"";month=month.replace(/^.*?—\s*/,"");month=month.replace(/\b(\w)(\w*)/g,function(m,a,b){return a.toUpperCase()+b.toLowerCase()});
+ var anyCost=rows.some(function(r){return r.cost}),anySup=rows.some(function(r){return r.sup});
+ function head(){return"<thead><tr><th style='width:34px'>Qty</th><th style='width:42px'>Unit</th><th style='text-align:left'>Item description</th><th style='width:74px'>Location</th><th style='width:32px'>In</th><th style='width:32px'>Out</th><th style='width:46px'>Balance</th><th style='width:104px'>Status</th>"+(anyCost?"<th style='width:50px'>Cost</th>":"")+(anySup?"<th style='width:72px'>Supplier</th>":"")+"</tr></thead>"}
+ function line(r){return"<tr class='"+r.k+"'><td class='c'>"+esc(r.q)+"</td><td class='c'>"+esc(r.u)+"</td><td class='it'>"+esc(r.i)+"</td><td class='c'>"+esc(r.loc)+"</td><td class='c'>"+esc(r.si)+"</td><td class='c'>"+esc(r.so)+"</td><td class='c bl "+r.k+"'>"+esc(r.b)+"</td><td class='c'><span class='pl "+r.k+"'>"+LB[r.k].toUpperCase()+"</span></td>"+(anyCost?"<td class='n'>"+esc(r.cost)+"</td>":"")+(anySup?"<td>"+esc(r.sup)+"</td>":"")+"</tr>"}
+ var today=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
+ var h="<div class='hd'><div><div class='co'>Yuval Trucking Services</div><h1>Stock Inventory Report</h1></div><div class='rt'><b>"+esc(month)+"</b>Printed "+today+"</div></div>";
+ h+="<div class='kp'><div><b>"+rows.length+"</b><small>Total items</small></div><div class='ok'><b>"+n.ok+"</b><small>Available</small><i>"+pct(n.ok,T)+"% of items</i></div><div class='lo'><b>"+n.lo+"</b><small>Need to restock</small><i>"+pct(n.lo,T)+"% of items</i></div><div class='ou'><b>"+n.ou+"</b><small>Out of stock</small><i>"+pct(n.ou,T)+"% of items</i></div></div>";
+ h+="<div class='bar'>"+seg(n,T)+"</div><div class='lg'><span><u style='background:#16a34a'></u>Available</span><span><u style='background:#f2711c'></u>Need to restock</span><span><u style='background:#dc2626'></u>Out of stock</span></div>";
+ var cats={};rows.forEach(function(r){(cats[r.cat]=cats[r.cat]||[]).push(r)});var names=Object.keys(cats).sort();
+ h+="<h2>1. Summary by category <span>"+names.length+" categories</span></h2><table><thead><tr><th style='text-align:left'>Category</th><th style='width:46px'>Items</th><th style='width:60px'>Available</th><th style='width:60px'>Restock</th><th style='width:60px'>Out</th><th style='width:130px'>Stock health</th></tr></thead><tbody>"+names.map(function(c){var a=cats[c],x={ok:0,lo:0,ou:0};a.forEach(function(r){x[r.k]++});return"<tr><td class='it'>"+esc(c)+"</td><td class='c'><b>"+a.length+"</b></td><td class='c' style='color:#15803d'>"+(x.ok||"–")+"</td><td class='c' style='color:#c2410c;font-weight:700'>"+(x.lo||"–")+"</td><td class='c' style='color:#b91c1c;font-weight:700'>"+(x.ou||"–")+"</td><td><div class='mb'>"+seg(x,a.length)+"</div></td></tr>"}).join("")+"</tbody></table>";
+ var att=rows.filter(function(r){return r.k!="ok"}).sort(function(a,b){return(a.k=="ou"?0:1)-(b.k=="ou"?0:1)||a.i.localeCompare(b.i)});
+ if(att.length)h+="<h2>2. Needs attention <span>"+att.length+" item(s) to buy · out of stock first</span></h2><table class='att'>"+head()+"<tbody>"+att.map(line).join("")+"</tbody></table>";
+ h+="<h2 style='break-before:page;page-break-before:always'>3. Full list by category <span>"+rows.length+" items</span></h2>";
+ names.forEach(function(c){var a=cats[c].slice().sort(function(x,y){return x.i.localeCompare(y.i)});h+="<h3>"+esc(c)+" <span>"+a.length+" item(s)</span></h3><table>"+head()+"<tbody>"+a.map(line).join("")+"</tbody></table>"});
+ h+="<div class='ft'>Qty = last month's ending stock · In / Out = stock received / released this month · Balance = stock at the end of the month</div>";
+ return h}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(!b||!/Print this month/.test(b.textContent))return;
+ e.preventDefault();e.stopImmediatePropagation();var h=build();if(!h)return window.print();
+ var s=document.getElementById("invSheet");if(!s){s=document.createElement("div");s.id="invSheet";document.body.appendChild(s)}s.innerHTML=h;document.body.classList.add("invsum");
+ setTimeout(function(){window.print()},50)},true);
+window.addEventListener("afterprint",function(){document.body.classList.remove("invsum");var s=document.getElementById("invSheet");if(s)s.innerHTML=""});
+})();
+</script>
+<script>
+/* Date filter (From / To): no re-render while typing, quick presets */
+(function(){
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function mon(d){var x=new Date(d);var k=(x.getDay()+6)%7;x.setDate(x.getDate()-k);return x}
+var P=[["Today",function(n){return[n,n]}],["Yesterday",function(n){var y=new Date(n);y.setDate(y.getDate()-1);return[y,y]}],
+["This week",function(n){var a=mon(n),b=new Date(a);b.setDate(b.getDate()+6);return[a,b]}],
+["Last week",function(n){var a=mon(n);a.setDate(a.getDate()-7);var b=new Date(a);b.setDate(b.getDate()+6);return[a,b]}],
+["This month",function(n){return[new Date(n.getFullYear(),n.getMonth(),1),new Date(n.getFullYear(),n.getMonth()+1,0)]}],
+["Last month",function(n){return[new Date(n.getFullYear(),n.getMonth()-1,1),new Date(n.getFullYear(),n.getMonth(),0)]}],
+["This year",function(n){return[new Date(n.getFullYear(),0,1),new Date(n.getFullYear(),11,31)]}]];
+function apply(f,t){if(f&&t&&f>t){var x=f;f=t;t=x}FF=f;FT=t;table()}
+function dec(){var v=document.getElementById("view");if(!v)return;
+ var fi=v.querySelector('input[type=date][onchange*="FF=this.value"]'),ti=v.querySelector('input[type=date][onchange*="FT=this.value"]');if(!fi||!ti||fi.dataset.df)return;
+ fi.dataset.df=ti.dataset.df="1";fi.removeAttribute("onchange");ti.removeAttribute("onchange");
+ [[fi,"F"],[ti,"T"]].forEach(function(a){var el=a[0],typing=false;
+  function commit(){var f=fi.value,t=ti.value;if(f===(window.FF||"")&&t===(window.FT||""))return;apply(f,t)}
+  el.addEventListener("keydown",function(e){if(/^[0-9]$/.test(e.key))typing=true;if(e.key=="Enter"){typing=false;commit()}});
+  el.addEventListener("change",function(){if(!typing)commit()});
+  el.addEventListener("blur",function(){if(typing){typing=false;commit()}})});
+ var box=fi.closest(".card")||fi.parentNode.parentNode,w=document.createElement("div");w.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 8px";
+ P.forEach(function(p){var b=document.createElement("button");b.type="button";b.className="g s";b.textContent=p[0];b.style.cssText="padding:7px 12px";
+  var r=p[1](new Date());if(iso(r[0])==(window.FF||"")&&iso(r[1])==(window.FT||"")){b.style.background="#0f172a";b.style.color="#fff"}
+  b.onclick=function(){apply(iso(r[0]),iso(r[1]))};w.appendChild(b)});
+ var clr=box.querySelector("button.g.s:last-of-type");box.insertBefore(w,clr||null)}
+var t0=window.table;table=window.table=function(){var r=t0.apply(this,arguments);try{dec()}catch(e){console.error(e)}return r};
+})();
+</script>
+<script>
+/* From / To: To can't be earlier than From; after picking From, the To calendar opens */
+(function(){
+function sync(){var v=document.getElementById("view");if(!v)return;
+ var fi=v.querySelector('input[type=date][data-df]'),ti=v.querySelectorAll('input[type=date][data-df]')[1];if(!fi||!ti||fi.dataset.rg)return;fi.dataset.rg="1";
+ function lim(){ti.min=fi.value||"";fi.max=ti.value||""}lim();
+ fi.addEventListener("change",function(){lim();if(fi.value&&!ti.value&&document.activeElement===fi&&!fi.dataset.typed){try{ti.focus();ti.showPicker&&ti.showPicker()}catch(e){}}});
+ fi.addEventListener("keydown",function(){fi.dataset.typed="1"});fi.addEventListener("blur",function(){delete fi.dataset.typed});
+ ti.addEventListener("change",lim);
+ var lb=ti.parentNode&&ti.parentNode.querySelector("label");if(lb)lb.textContent="To (end date)";var lf=fi.parentNode&&fi.parentNode.querySelector("label");if(lf)lf.textContent="From (start date)"}
+var t0=window.table;table=window.table=function(){var r=t0.apply(this,arguments);try{sync()}catch(e){console.error(e)}return r};
+})();
+</script>
 </body>
 </html>
