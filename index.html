@@ -5545,7 +5545,7 @@ window.addEventListener("beforeprint",function(){[].forEach.call(document.queryS
  #invSheet .dt.ok{background:#16a34a}#invSheet .dt.lo{background:#f2711c}#invSheet .dt.ou{background:#dc2626}
  #invSheet td small{display:block;color:#6b7280;font-size:7px;font-weight:400;margin-left:10px;line-height:1.15}
  #invSheet td small.u{display:inline;margin:0;font-size:7px}
- #invSheet .cols td.it{font-weight:700;font-size:9px}#invSheet .nn{color:#6b7280;font-weight:600}#invSheet .nn u{text-decoration:none;border-bottom:1px dotted #6b7280}#invSheet .cols tbody tr:nth-child(even) td{background:#f3f4f6}#invSheet .cols td.bl{font-size:10px;background:#fff7ed}#invSheet .cols td.bl.ok{background:#f0fdf4}#invSheet .cols td.bl.ou{background:#fef2f2}
+ #invSheet .dh{color:#9ca3af}#invSheet .cols td.bl{font-size:11px}#invSheet .cols td.it{font-weight:700;font-size:9px}#invSheet .nn{color:#6b7280;font-weight:600}#invSheet .nn u{text-decoration:none;border-bottom:1px dotted #6b7280}#invSheet .cols tbody tr:nth-child(even) td{background:#f3f4f6}#invSheet .cols td.bl{font-size:10px;background:#fff7ed}#invSheet .cols td.bl.ok{background:#f0fdf4}#invSheet .cols td.bl.ou{background:#fef2f2}
  #invSheet .ft{margin-top:8px;padding-top:4px;border-top:1px solid #d1d5db;font-size:7.5px;color:#6b7280;text-align:center}
 }
 </style>
@@ -5562,24 +5562,24 @@ function build(){var t=document.querySelector("table.inv");if(!t)return null;
  var month=(document.querySelector(".invtitle")||{}).textContent||"";month=month.replace(/^.*?—\s*/,"");month=month.replace(/\b(\w)(\w*)/g,function(m,a,b){return a.toUpperCase()+b.toLowerCase()});
  var anyCost=rows.some(function(r){return r.cost}),anySup=rows.some(function(r){return r.sup});
  var anyIn=rows.some(function(r){return r.si}),anyOut=rows.some(function(r){return r.so});
- function head(){return"<colgroup><col><col style='width:40px'><col style='width:40px'>"+(anyIn?"<col style='width:24px'>":"")+(anyOut?"<col style='width:24px'>":"")+(anyCost?"<col style='width:42px'>":"")+"</colgroup><thead><tr><th style='text-align:left'>Item name</th><th>Bal.</th><th>Qty</th>"+(anyIn?"<th>In</th>":"")+(anyOut?"<th>Out</th>":"")+(anyCost?"<th>Cost</th>":"")+"</tr></thead>"}
+ function head(){return"<colgroup><col><col style='width:36px'><col style='width:36px'><col style='width:62px'></colgroup><thead><tr><th style='text-align:left'>Item name</th><th>In</th><th>Out</th><th>Remaining</th></tr></thead>"}
  function nm(s){s=String(s||"").trim();return s?esc(s):"<span class='nn'>(no name)</span>"}
- function line(r){var sub=[r.loc,r.sup].filter(Boolean).map(esc).join(" \u00b7 ");return"<tr class='"+r.k+"'><td class='it'><i class='dt "+r.k+"'></i>"+nm(r.i)+(sub?"<small>"+sub+"</small>":"")+"</td><td class='c bl "+r.k+"'>"+esc(r.b)+(r.u?" <small class='u'>"+esc(r.u)+"</small>":"")+"</td><td class='c'>"+esc(r.q)+"</td>"+(anyIn?"<td class='c'>"+esc(r.si)+"</td>":"")+(anyOut?"<td class='c'>"+esc(r.so)+"</td>":"")+(anyCost?"<td class='n'>"+esc(r.cost)+"</td>":"")+"</tr>"}
+ function line(r){var d=function(v){return v===""||v==null||v==="0"?"<span class='dh'>\u2013</span>":esc(v)};return"<tr class='"+r.k+"'><td class='it'><i class='dt "+r.k+"'></i>"+nm(r.i)+"</td><td class='c'>"+d(r.si)+"</td><td class='c'>"+d(r.so)+"</td><td class='c bl "+r.k+"'>"+esc(r.b||"0")+(r.u?" <small class='u'>"+esc(r.u)+"</small>":"")+"</td></tr>"}
  var today=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
  var h="<div class='hd'><div><div class='co'>Yuval Trucking Services</div><h1>Stock Inventory Report</h1></div><div class='rt'><b>"+esc(month)+"</b>Printed "+today+"</div></div>";
  h+="<div class='kp'><div><b>"+rows.length+"</b><small>Total items</small></div><div class='ok'><b>"+n.ok+"</b><small>Available</small><i>"+pct(n.ok,T)+"% of items</i></div><div class='lo'><b>"+n.lo+"</b><small>Need to restock</small><i>"+pct(n.lo,T)+"% of items</i></div><div class='ou'><b>"+n.ou+"</b><small>Out of stock</small><i>"+pct(n.ou,T)+"% of items</i></div></div>";
  h+="<div class='bar'>"+seg(n,T)+"</div><div class='lg'><span><u style='background:#16a34a'></u>Available</span><span><u style='background:#f2711c'></u>Need to restock (buy)</span><span><u style='background:#dc2626'></u>Out of stock (buy now)</span></div>";
  var cats={};rows.forEach(function(r){(cats[r.cat]=cats[r.cat]||[]).push(r)});var names=Object.keys(cats).sort();
- h+="<h2>Stock list by category <span>"+rows.length+" items \u00b7 "+names.length+" categories \u00b7 out of stock and restock items are listed first</span></h2>";
- var ord={ou:0,lo:1,ok:2};
- var segs=[],tot=0;names.forEach(function(c){var a=cats[c].slice().sort(function(x,y){return ord[x.k]-ord[y.k]||x.i.localeCompare(y.i)});segs.push({c:c,a:a});tot+=a.length+2});
+ h+="<h2>Stock list by category <span>"+rows.length+" items \u00b7 "+names.length+" categories \u00b7 grouped by color: green, orange, red \u00b7 most to zero stock</span></h2>";
+ var ord={ok:0,lo:1,ou:2};function nb(r){var v=parseFloat(String(r.b).replace(/,/g,""));return isNaN(v)?0:v}
+ var segs=[],tot=0;names.forEach(function(c){var a=cats[c].slice().sort(function(x,y){return ord[x.k]-ord[y.k]||nb(y)-nb(x)||x.i.localeCompare(y.i)});segs.push({c:c,a:a});tot+=a.length+2});
  var half=tot/2,used=0,L="",R="";
  function blk(c,a,all,cont){var x={ok:0,lo:0,ou:0};all.forEach(function(r){x[r.k]++});return"<h3>"+esc(c)+(cont?" (cont.)":"")+" <span>"+all.length+" item(s) \u00b7 "+x.lo+" restock \u00b7 "+x.ou+" out</span></h3><table>"+head()+"<tbody>"+a.map(line).join("")+"</tbody></table>"}
  segs.forEach(function(s){var side=used<half?"L":"R",n=s.a.length+2;
   if(side==="L"&&used+n>half+3){var k=Math.max(3,Math.round(half-used-2));if(k<s.a.length-2){L+=blk(s.c,s.a.slice(0,k),s.a,false);R+=blk(s.c,s.a.slice(k),s.a,true);used+=n;return}}
   if(side==="L")L+=blk(s.c,s.a,s.a,false);else R+=blk(s.c,s.a,s.a,false);used+=n});
  h+="<div class='cols'><div>"+L+"</div><div>"+R+"</div></div>";
- h+="<div class='ft'>Qty = last month's ending stock · In / Out = stock received / released this month · Balance = stock at the end of the month</div>";
+ h+="<div class='ft'>In / Out = stock received / released this month \u00b7 Remaining = stock left at the end of the month \u00b7 green = available, orange = need to restock, red = out of stock</div>";
  return h}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(!b||!/Print this month/.test(b.textContent))return;
  e.preventDefault();e.stopImmediatePropagation();var h=build();if(!h)return window.print();
