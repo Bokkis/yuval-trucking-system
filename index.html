@@ -2719,7 +2719,7 @@ window.payView=function(){var r=_pv.apply(this,arguments);
 <script>
 /* payslip of boom truck / crane / trailer operators: trips and commission instead of daily attendance */
 (function(){var _sh=window.slipHTML;
-window.slipHTML=function(r){var e=r.e;if(!cmOp(e))return _sh.apply(this,arguments);
+window.slipHTML=function(r){var e=r.e;if(!cmOp(e)||!r.com)return _sh.apply(this,arguments);
  try{var f=function(v){return peso(v)},T=dspL().filter(function(t){return t.emp==e.id&&t.back&&t.back>=PF&&t.back<=PT}).sort(function(a,b){return a.back.localeCompare(b.back)}),
   P=dspL().filter(function(t){return t.emp==e.id&&t.out<=PT&&!(t.back&&t.back>=PF&&t.back<=PT)&&(t.back||ltoday())>=PF}),
   u=db.fleet.find(function(x){return x.id==e.equip}),sa=0,se=0,days=0;
