@@ -5676,5 +5676,32 @@ function comp(f){var type=["video/webm;codecs=vp8,opus","video/webm;codecs=vp9,o
 window.mrVid=mrVid=function(inp){var f=(inp.files||[])[0];if(!f||!MRM)return;if(f.size>104857600){toast("Video is too large (max 100 MB). Record a shorter clip.");return}msg("Preparing video\u2026");comp(f);try{inp.value=""}catch(e){}};
 })();
 </script>
+<style>
+/* Payroll account: one page only, so no side menu - a simple top bar instead */
+body.paynav nav#nav,body.paynav #mbar,body.paynav #ov{display:none!important}
+body.paynav{display:block!important}
+body.paynav main{margin-left:0!important;width:100%!important;max-width:none!important}
+#pbar{display:none}
+body.paynav #pbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 76px 12px 20px;background:linear-gradient(90deg,#1c1613,#0d0a09);border-bottom:3px solid #f2711c;position:sticky;top:0;z-index:50;color:#fff}
+#pbar img{width:44px;height:44px;border-radius:11px;background:#fff;object-fit:cover}
+#pbar .pt b{display:block;font-size:18px;line-height:1.15;color:#fff}#pbar .pt small{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#fdba74}
+#pbar .sp{flex:1}
+#pbar button{display:inline-flex;align-items:center;gap:8px;font:600 15px Inter,Arial,sans-serif;padding:11px 18px;min-height:44px;border-radius:12px;border:1.5px solid #ffffff33;background:#ffffff14;color:#fff;cursor:pointer;transition:.15s}
+#pbar button:hover{background:#ffffff26;border-color:#f2711c}
+#pbar button:focus-visible{outline:3px solid #fde68a;outline-offset:2px}
+#pbar button.out{background:linear-gradient(135deg,#f2711c,#e5342b)!important;border-color:transparent!important;color:#fff!important}#pbar button{background-color:#ffffff14}
+#pbar .who{display:flex;align-items:center;gap:10px;font-size:14px;color:#e9dfd4}
+#pbar .av2{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:linear-gradient(135deg,#fb923c,#ea580c);color:#fff;box-shadow:0 0 0 3px #f2711c55}
+</style>
+<script>
+(function(){var n0=window.nav;
+function bar(){try{var pay=window.ROLE=="payroll";document.body.classList.toggle("paynav",pay);var b=document.getElementById("pbar");if(!pay){if(b)b.remove();return}
+ if(b)return;var lg=document.getElementById("mlogo"),src=(lg&&lg.src)||(typeof db!="undefined"&&db.logo)||"";
+ b=document.createElement("div");b.id="pbar";b.innerHTML='<img alt="" src="'+src+'"><div class="pt"><b>Yuval Trucking</b><small>Payroll</small></div><div class="sp"></div><span class="who"><span class="av2">P</span>Payroll account</span><button type="button" id="pbg">\u2753 Guide</button><button type="button" class="out" id="pbo">\u23fb Sign out</button>';
+ document.body.insertBefore(b,document.body.firstChild);
+ b.querySelector("#pbg").onclick=function(){var g=document.querySelector("nav#nav a.gd");if(g)g.click()};
+ b.querySelector("#pbo").onclick=function(){if(typeof logout=="function")logout();else if(typeof demoRole=="function")demoRole()}}catch(e){console.error(e)}}
+nav=window.nav=function(){var r=n0.apply(this,arguments);bar();return r};bar()})();
+</script>
 </body>
 </html>
