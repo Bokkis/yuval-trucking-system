@@ -2681,6 +2681,7 @@ window.calcPay=function(f,t,ao){var R=_cp.apply(this,arguments),td=ltoday();
  try{R.forEach(function(r){var e=r.e;if(!cmOp(e))return;var T=dspL().filter(function(x){return x.emp==e.id}),com=0,days=0;
   var sa=0,se=0;T.forEach(function(x){if(x.back&&(!f||x.back>=f)&&(!t||x.back<=t)){sa+=(+x.amt||0);se+=(+x.exp||0)}
    var a=x.out,b=x.back||td;if(f&&a<f)a=f;if(t&&b>t)b=t;if(b>=a)days+=dspN(a,b)});
+  if(!days&&!sa&&!se&&((+r.days||0)>0||(+r.hrs||0)>0))return;
   r.days=days;com=Math.max(0,sa-se)*DSPC;r.hrs=0;r.ot=0;r.sdays=0;r.shop=0;r.meal=0;r.otp=0;r.basic=Math.round(com*100)/100;r.net=Math.round((r.basic-r.ded)*100)/100;r.com=1});
  }catch(x){}return R}})();
 </script>
