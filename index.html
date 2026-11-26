@@ -6038,7 +6038,7 @@ body:has(#ybP.on) #thm{display:none!important}
 #rgHome .tl{border-radius:18px!important}
 </style>
 <script id="skin8">
-(function(){var g=window.go;window.go=go=function(){var r=g.apply(this,arguments);try{if(cur=="dash"){document.querySelectorAll("#view .card").forEach(function(c){if(c.querySelector("[aria-label='Choose graph']")||c.querySelector("svg, [class*=pw3]")&&/last 8 weeks|weekly pay/i.test(c.textContent))c.style.display="none"})}}catch(e){}return r}})();
+(function(){var g=window.go;window.go=go=function(){var r=g.apply(this,arguments);try{if(cur=="dash"){document.querySelectorAll("#view .card").forEach(function(c){var tx=c.textContent.trim();if(/^(Ready to rent|Fleet status)/.test(tx)&&!c.classList.contains("sk-c")){c.style.display="none";return}if(c.querySelector("[aria-label='Choose graph']")||c.querySelector("svg, [class*=pw3]")&&/last 8 weeks|weekly pay/i.test(c.textContent))c.style.display="none"})}}catch(e){}return r}})();
 </script>
 </body>
 </html>
